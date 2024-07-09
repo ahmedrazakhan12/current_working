@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Fonts and Icons -->
+    <link
+      href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/google-fonts.css" />
+    <link rel="stylesheet" href="assets/vendor/fonts/boxicons.css" />
+
+    <!-- Core CSS -->
+    <link
+      rel="stylesheet"
+      href="assets/vendor/css/core.css"
+      class="template-customizer-core-css"
+    />
+    <link
+      rel="stylesheet"
+      href="assets/vendor/css/theme-default.css"
+      class="template-customizer-theme-css"
+    />
+    <link rel="stylesheet" href="assets/css/demo.css" />
+    <link rel="stylesheet" href="assets/css/custom.css" />
+
+    <!-- Vendors CSS -->
+    <link
+      rel="stylesheet"
+      href="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css"
+    />
+    <link rel="stylesheet" href="assets/vendor/css/pages/page-auth.css" />
+    <link rel="stylesheet" href="assets/css/apex-charts.css" />
+    <link rel="stylesheet" href="assets/lightbox/lightbox.min.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="assets/css/daterangepicker.css" />
+    <link rel="stylesheet" href="assets/css/bootstrap-datetimepicker.min.css" />
+    <link href="assets/css/select2.min.css" rel="stylesheet" />
+    <link href="assets/css/bootstrap-table.min.css" rel="stylesheet" />
+    <link href="assets/css/dragula.css" rel="stylesheet" />
+    <link href="assets/css/toastr.min.css" rel="stylesheet" />
+    <link href="assets/css/dropzone.min.css" rel="stylesheet" />
+    <link href="assets/css/fullcalendar/core/main.css" rel="stylesheet" />
+    <link href="assets/css/fullcalendar/daygrid/main.css" rel="stylesheet" />
+    <link href="assets/css/fullcalendar/list/main.css" rel="stylesheet" />
+
+    <!-- Helpers -->
+    <script src="assets/vendor/js/helpers.js"></script>
+
+    <!-- Config -->
+    <script src="assets/js/config.js"></script>
+
+    <!-- jQuery -->
+    <script src="assets/vendor/libs/jquery/jquery.js"></script>
+
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+
+    <!-- Variables -->
+    <script>
+      var label_please_wait = "Please Wait...";
+      var label_please_select_records_to_delete =
+        "Please Select Records to Delete.";
+      var label_something_went_wrong = "Something Went Wrong.";
+      var label_please_correct_errors = "Please Correct Errors.";
+      var label_project_removed_from_favorite_successfully =
+        "Project Removed from Favorite Successfully.";
+      var label_project_marked_as_favorite_successfully =
+        "Project Marked as Favorite Successfully.";
+      var label_yes = "Yes";
+      var label_upload = "Upload";
+      var decimal_points = 2;
+      var label_update = "Update";
+      var label_delete = "Delete";
+      var label_view = "View";
+      var label_not_assigned = "Not Assigned";
+      var label_delete_selected = "Delete Selected";
+      var label_search = "Search";
+      var label_create = "Create";
+      var label_users_associated_with_project = "Users Associated with Project";
+      var label_update_task = "Update Task";
+      var label_quick_view = "Quick View";
+      var label_project = "Project";
+      var label_task = "Task";
+      var label_projects = "Projects";
+      var label_tasks = "Tasks";
+      var label_clear_filters = "Clear Filters";
+      var label_set_as_default_view = "Set as Default View";
+      var label_default_view = "Default View";
+      var label_save_column_visibility = "Save Column Visibility";
+      var label_showing = "Showing";
+      var label_to_for_pagination = "to";
+      var label_of = "of";
+      var label_rows = "rows";
+      var label_rows_per_page = "rows per page";
+      var label_select = "Select";
+      var label_or = "or";
+      var label_drag_and_drop_files_here = "Drag & Drop Files Here";
+      var label_drag_and_drop_update_zip_here =
+        "Drag & Drop System Update / Installable / Plugin's .zip file Here";
+      var label_only_one_file_can_be_uploaded_at_a_time =
+        "Only 1 file can be uploaded at a time";
+    </script>
+
+    <script>
+      var manage_notifications = "true";
+    </script>
+
+    <!-- Core JS -->
+    <script src="assets/vendor/libs/popper/popper.js"></script>
+    <script src="assets/vendor/js/bootstrap.js"></script>
+    <script src="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="assets/vendor/js/menu.js"></script>
+
+    <!-- Main JS -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/ui-toasts.js"></script>
+    <script async defer src="assets/js/buttons.js"></script>
+
+    <!-- select 2 js -->
+    <script src="assets/js/select2.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $(".js-example-basic-multiple").select2();
+        $("#task_status_filter").select2();
+        $("#task_priority_filter").select2();
+      });
+    </script>
+
+    <!-- Bootstrap-table -->
+    <script src="assets/js/bootstrap-table/bootstrap-table.min.js"></script>
+    <!-- Dragula -->
+    <script src="assets/js/dragula.min.js"></script>
+    <script src="assets/js/popper.js"></script>
+    <!-- Toastr -->
+    <script src="assets/js/toastr.min.js"></script>
+    <script src="assets/js/ui-popover.js"></script>
+    <script src="assets/js/tinymce.min.js"></script>
+    <script src="assets/js/tinymce-jquery.min.js"></script>
+    <!-- Date picker -->
+    <script src="assets/js/moment.min.js"></script>
+    <script src="assets/js/daterangepicker.js"></script>
+    <script src="assets/lightbox/lightbox.min.js"></script>
+    <script src="assets/js/dropzone.min.js"></script>
+    <script src="assets/js/extended-ui-perfect-scrollbar.js"></script>
+    <script src="assets/js/fullcalendar/core/main.js"></script>
+    <script src="assets/js/fullcalendar/interaction/main.js"></script>
+    <script src="assets/js/fullcalendar/daygrid/main.js"></script>
+    <script src="assets/js/fullcalendar/list/main.js"></script>
+    <script src="assets/js/fullcalendar/google-calendar/main.js"></script>
+
+    <!-- Custom js -->
+    <script>
+      var authUserId = "7";
+      var permissions = [
+        "edit_tasks",
+        "delete_tasks",
+        "edit_projects",
+        "delete_projects",
+        "edit_clients",
+        "delete_clients",
+        "create_projects",
+        "create_tasks",
+        "create_clients",
+        "edit_users",
+        "delete_users",
+        "manage_users",
+        "manage_projects",
+        "manage_tasks",
+        "manage_clients",
+        "create_users",
+        "create_workspaces",
+        "manage_workspaces",
+        "edit_workspaces",
+        "delete_workspaces",
+        "create_meetings",
+        "manage_meetings",
+        "edit_meetings",
+        "delete_meetings",
+        "delete_contracts",
+        "edit_contracts",
+        "manage_contracts",
+        "create_contracts",
+      ];
+      var csrf_token = "oXBOn727wgv062O0zra9PaMnxV1wkPxLTZtX2knQ";
+      var js_date_format = "MMMM DD, YYYY";
+      var isAdmin = 1;
+    </script>
+    <script src="assets/js/custom.js"></script>
+    <script src="assets/js/time-tracker.js"></script>
+  </body>
+</html>

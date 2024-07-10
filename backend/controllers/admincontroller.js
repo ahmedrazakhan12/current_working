@@ -21,7 +21,7 @@ const {
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log("Email:", email, "Password:", password);
     const emailError = validateEmail(email);
     // const passwordError = validatePassword(password);
 
@@ -263,44 +263,42 @@ exports.adminRegister = async (req, res) => {
       name,
       email,
       contact,
-      description,
       address,
       postalCode,
       password,
       role,
       country,
+      confirmPassword
     } = req.body;
     console.log(
       "Data: ",
       name,
       email,
       contact,
-      description,
       address,
       postalCode,
       password,
       role,
+      confirmPassword,
       country
     );
 
     const nameError = validateName(name);
     const emailError = validateEmail(email);
-    const contactError = validateContact(contact);
-    const passwordError = validatePassword(password);
-    const countryError = validateCountry(country);
-    const postalCodeError = validatePostalCode(postalCode);
-    const addressError = validateAddress(address);
-    const validateDescriptionError = validateDescription(description);
+    // const contactError = validateContact(contact);
+    const passwordError = validatePassword(password , confirmPassword);
+    // const countryError = validateCountry(country);
+    // const postalCodeError = validatePostalCode(postalCode);
+    // const addressError = validateAddress(address);
     const validateStatusError = validateStatus(role);
     if (
       nameError ||
       emailError ||
-      contactError ||
+      // contactError ||
       passwordError ||
-      countryError ||
-      postalCodeError ||
-      addressError ||
-      validateDescriptionError ||
+      // countryError ||
+      // postalCodeError ||
+      // addressError ||
       validateStatusError
     ) {
       return res.status(400).json({
@@ -309,18 +307,17 @@ exports.adminRegister = async (req, res) => {
         message:
           nameError ||
           emailError ||
-          contactError ||
-          validateDescriptionError ||
-          countryError ||
-          postalCodeError ||
-          addressError ||
+          // contactError ||
+          // countryError ||
+          // postalCodeError ||
+          // addressError ||
           passwordError ||
           validateStatusError,
       });
     }
     const imageIs = req.body.pfpImage;
     console.log(imageIs);
-    let imagePath = null;
+    let imagePath = "http://localhost:5000/public/uploads/pfp/avatar.png";
 
     // Check if req.file exists (new profile picture uploaded)
     if (req.file) {
@@ -330,28 +327,7 @@ exports.adminRegister = async (req, res) => {
       imagePath = `http://localhost:5000/public/uploads/pfp/${photoFileName}`;
     }
 
-    // Input validation
-    // console.log(
-    //   "name: ",
-    //   name,
-    //   "email: ",
-    //   email,
-    //   "password: ",
-    //   password,
-    //   "confirmPassword: ",
-    //   confirmPassword,
-    //   "role: ",
-    //   role,
-    //   "description: ",
-    //   description,
-    //   "contact: ",
-    //   contact,
-    //   "address: ",
-    //   address,
-    //   "postalCode: ",
-    //   postalCode
-    // );
-    // Password hashing
+   
     const hashedPassword = await bcrypt.hash(password, 10); // Hash password with bcrypt
 
     // Create admin record
@@ -359,7 +335,6 @@ exports.adminRegister = async (req, res) => {
       name: name,
       email: email,
       contact: contact,
-      description: description,
       address: address,
       postalCode: postalCode,
       country: country,
@@ -367,7 +342,7 @@ exports.adminRegister = async (req, res) => {
       password: hashedPassword, // Store hashed password
       role: role,
     });
-
+    console.log("Admin registered successfully");
     // Respond with success message
     res.status(200).json({ message: "Admin registered successfully" });
   } catch (error) {

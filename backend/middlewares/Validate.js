@@ -76,11 +76,20 @@ const validateContact = (contact) => {
 };
 
 // Validate password
-const validatePassword = (password, ) => {
+const validatePassword = (password,confirmPassword ) => {
  
-  if (!password) {
+  
+  if (!password ) {
     return "Password is required.";
   }
+  if(!confirmPassword){
+    return "Confirm Password is required.";
+  }
+
+  if(password !== confirmPassword){
+    return "Passwords do not match.";
+  }
+
 
   if (password.length < minLength || password.length > maxLength) {
     return `Password must be between ${minLength} and ${maxLength} characters.`;

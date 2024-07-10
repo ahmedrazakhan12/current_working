@@ -22,7 +22,7 @@ const adminModel = sequelize.define(
 
     contact: {
       type: DataTypes.BIGINT, // Define contact as STRING to store phone numbers
-      allowNull: false,
+      allowNull: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -39,16 +39,16 @@ const adminModel = sequelize.define(
     },
     address: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     postalCode: {
       type: DataTypes.BIGINT, // Define contact as STRING to store phone numbers
-      allowNull: false,
+      allowNull: true,
     },
 
     country: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
 
     

@@ -44,6 +44,7 @@ function App() {
                 <Route path="/meeting" element={<Protected Component={Meeting} />}  />
                 <Route path="/users" element={<Protected Component={Users} />}  />
                 <Route path="/clients" element={<Protected Component={Clients} />} />
+                <Route path="/register" element={<Protected Component={Register} />} />
               </Routes>
               {/* <Footer /> */}
             </div>
@@ -54,7 +55,6 @@ function App() {
       </div>
       <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
         </Routes>
 
     </Router>

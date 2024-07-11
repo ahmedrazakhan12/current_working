@@ -94,7 +94,6 @@ const Login = () => {
                   </div>
                   {/* /Logo */}
                   <h4 className="mb-2">Welcome to Taskify! 👋</h4>
-                  <p className="mb-4">Sign into your account</p>
                   <form
                     id="formAuthentication"
                     className="mb-3 form-submit-event"
@@ -125,7 +124,8 @@ const Login = () => {
                         placeholder="Please Enter Email"
                         // defaultValue="admin@gmail.com"
                         autoFocus
-                        onChange={handleChange}
+                          required
+                          onChange={handleChange}
                       />
                     </div>
                     <div className="mb-3 form-password-toggle">
@@ -147,6 +147,7 @@ const Login = () => {
                           // defaultValue="123456"
                           onChange={handleChange}
                           aria-describedby="password"
+                          required
                         />
                         <span
                           className="input-group-text cursor-pointer"
@@ -164,7 +165,15 @@ const Login = () => {
                       <span className="text-danger text-xs mt-1 error-message" />
                     </div>
                     <div className="mb-4">
-                      {error && <p className="text-danger text-xs text-center">{error}</p>}
+                    {error &&  
+               <div className=" col-12 mb-0">
+                <div className="alert alert-warning">
+                 
+                  <p className="mb-0 text-center">
+                  {error}
+                  </p>
+                </div>
+              </div>}
                       <button
                         className="btn btn-primary d-grid w-100"
                         id="submit_btn"
@@ -173,14 +182,7 @@ const Login = () => {
                         Login
                       </button>
                     </div>
-                    <div className="text-center">
-                      <p className="mb-3">
-                        Don't have an account?{" "}
-                        <Link to={'/register'}>
-                          Sign Up
-                        </Link>
-                      </p>
-                    </div>
+                    
                   </form>
                 </div>
               </div>

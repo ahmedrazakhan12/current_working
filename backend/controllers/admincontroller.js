@@ -116,28 +116,36 @@ exports.adminEditPfpImage = async (req, res) => {
   try {
     const {
       id,
-      username,
+      name,
       email,
       contact,
       description,
       country,
       postalCode,
-      status,
+      role,
       address,
     } = req.body;
-    console.log(
-      "Received data: ",
+    
 
-      status
+    console.log(
+      // id,
+      // name,
+      // email,
+      // contact,
+      // description,
+      // country,
+      // postalCode,
+      role,
+      // address,
     );
-    const nameError = validateName(username);
+    const nameError = validateName(name);
     const emailError = validateEmail(email);
     const contactError = validateContact(contact);
     const countryError = validateCountry(country);
     const postalCodeError = validatePostalCode(postalCode);
     const addressError = validateAddress(address);
     const validateDescriptionError = validateDescription(description);
-    const validateStatusError = validateStatus(status);
+    const validateStatusError = validateStatus(role);
     if (
       nameError ||
       emailError ||
@@ -162,66 +170,23 @@ exports.adminEditPfpImage = async (req, res) => {
           validateStatusError,
       });
     }
-    const imageIs = req.body.pfpImage;
-    let imagePath = null;
 
-    // Check if req.file exists (new profile picture uploaded)
-    if (req.file) {
-      console.log("File received: ");
-      const photoFileName = req.file.filename;
-      console.log("PhotoFileName: ", photoFileName);
-      imagePath = `http://localhost:5000/public/uploads/pfp/${photoFileName}`;
-    }
-
-    // Method to update adminModel by id
-    const editProfile = async (
-      id,
-      name,
-      email,
-      contact,
-      description,
-      country,
-      postalCode,
-      address,
-      status,
-      pfpImage
-    ) => {
-      const updateFields = {
-        name,
-        email,
-        contact,
-        description,
-        country,
-        postalCode,
-        address,
-        status,
-      };
-
-      // Only add pfpImage to updateFields if imagePath is not null
-      if (pfpImage !== null) {
-        updateFields.pfpImage = pfpImage;
+    await adminModel.update(
+      {
+        name: name,
+        email: email,
+        contact: contact,
+        description: description,
+        country: country,
+        postalCode: postalCode,
+        role: role,
+        address: address,
+      },
+      {
+        where: {
+          id: id,
+        },
       }
-
-      // Handle special case where imageIs === "null1"
-      if (imageIs === "null1") {
-        updateFields.pfpImage = null;
-      }
-
-      return await adminModel.update(updateFields, { where: { id: id } });
-    };
-
-    // Call editProfile to update user profile with the received dataid, username, email, description, imagePath , country, postalCode, address, imageIs
-    await editProfile(
-      id,
-      username,
-      email,
-      contact,
-      description,
-      country,
-      postalCode,
-      address,
-      status,
-      imagePath
     );
 
     res.status(200).json({ message: "Profile updated successfully" });
@@ -266,6 +231,7 @@ exports.adminRegister = async (req, res) => {
       address,
       postalCode,
       password,
+      description,
       role,
       country,
       confirmPassword
@@ -276,6 +242,7 @@ exports.adminRegister = async (req, res) => {
       email,
       contact,
       address,
+      description,
       postalCode,
       password,
       role,
@@ -285,21 +252,23 @@ exports.adminRegister = async (req, res) => {
 
     const nameError = validateName(name);
     const emailError = validateEmail(email);
-    // const contactError = validateContact(contact);
-    const passwordError = validatePassword(password , confirmPassword);
-    // const countryError = validateCountry(country);
-    // const postalCodeError = validatePostalCode(postalCode);
-    // const addressError = validateAddress(address);
+    const contactError = validateContact(contact);
     const validateStatusError = validateStatus(role);
+    const addressError = validateAddress(address);
+    const descriptionError = validateDescription(description);
+    const countryError = validateCountry(country);
+    const postalCodeError = validatePostalCode(postalCode);
+    const passwordError = validatePassword(password , confirmPassword);
     if (
       nameError ||
       emailError ||
-      // contactError ||
+      contactError ||
+      validateStatusError ||
       passwordError ||
-      // countryError ||
-      // postalCodeError ||
-      // addressError ||
-      validateStatusError
+      descriptionError ||
+      countryError ||
+      postalCodeError ||
+      addressError 
     ) {
       return res.status(400).json({
         status: 400,
@@ -307,17 +276,18 @@ exports.adminRegister = async (req, res) => {
         message:
           nameError ||
           emailError ||
-          // contactError ||
-          // countryError ||
-          // postalCodeError ||
-          // addressError ||
+          contactError ||
+      descriptionError ||
+      countryError ||
+          postalCodeError ||
+          addressError ||
           passwordError ||
           validateStatusError,
       });
     }
     const imageIs = req.body.pfpImage;
     console.log(imageIs);
-    let imagePath = "http://localhost:5000/public/uploads/pfp/avatar.png";
+    let imagePath = "http://localhost:5000/public/uploads/pfp/avatar.jpg";
 
     // Check if req.file exists (new profile picture uploaded)
     if (req.file) {
@@ -486,7 +456,39 @@ exports.imageDel = async (req, res) => {
     const { id } = req.params;
     await adminModel.update({ pfpImage: null }, { where: { id: id } });
     console.log("image deleted");
+    return res.status(200).json({ message: "Image changed successfully" });
   } catch (err) {
     console.log(err);
+    return res.status(200).json({ message: "Error updating profile pic." });
+
   }
 };
+
+
+exports.adminSingleProfilePicUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if req.file exists and is not empty
+    if (!req.file || req.file === "") {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    let imagePath = null;
+
+    // Process the uploaded file
+    if (req.file) {
+      console.log("File received: ", req.file.filename);
+      const photoFileName = req.file.filename;
+      console.log("PhotoFileName: ", photoFileName);
+      imagePath = `http://localhost:5000/public/uploads/pfp/${photoFileName}`;
+    }
+
+    await adminModel.update({ pfpImage: imagePath }, { where: { id: id } });
+    console.log("image updated");
+    res.status(200).json({ message: "Profile Image updated successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

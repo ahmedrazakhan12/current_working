@@ -104,7 +104,7 @@ const Navbar = () => {
               <li className="nav-item navbar-dropdown dropdown mt-3 mx-2">
                 <p className="nav-item">
                   <span className="nav-mobile-hidden">Hi👋</span>
-                  <span className="nav-mobile-hidden">{data.name}</span>
+                  <span className="nav-mobile-hidden text-capitalize">{data.name}</span>
                 </p>
               </li>
               {/* User */}
@@ -138,7 +138,7 @@ const Navbar = () => {
                           </div>
                         </div>
                         <div className="flex-grow-1">
-                          <span className="fw-semibold d-block">
+                          <span className="fw-semibold d-block text-capitalize">
                           {data.name}
                           </span>
                           <small className="text-muted m-0 p-0">

@@ -5,12 +5,15 @@ const app = express();
 // Routes Import
 const adminRoute = require("./routes/Adminroute");
 const db = require("./models"); // Adjust the path as necessary
+const bodyParser = require('body-parser');
 
 // Middlewares
 app.use(cors());
 app.use(express.json()); // Add this line to parse JSON bodies
 app.use("/public", express.static("public")); // Serve static files
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 // Sync the models with the database
 db.sequelize
   .sync()

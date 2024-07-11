@@ -11,8 +11,8 @@ const hasNumbers = /\d/;
 const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/;
 
 // Name criteria (modify as needed)
-const nameMinLength = 2;
-const nameMaxLength = 50;
+const nameMinLength = 3;
+const nameMaxLength = 20;
 
 // Email regex pattern (modify as needed)
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -218,7 +218,7 @@ const validServiceType = (service) => {
 
 const validateCountry = (country) => {
   const minLength = 2;
-  const maxLength = 50;
+  const maxLength = 20;
 
   if (!country) {
     return "Country is required.";
@@ -269,7 +269,7 @@ const validateCity = (city) => {
 const validateStatus = (status) => {
  
   if (!status) {
-    return "Status is required.";
+    return "Role is required.";
   }
  
 };

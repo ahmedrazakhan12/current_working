@@ -25,7 +25,7 @@ import axios from 'axios';
 function App() {
   const { isMenuExpanded } = useAppContext();
 
-  const shouldRenderLayout = window.location.pathname !== "/login";
+
 
   const [data, setData] = useState([]);
   const activeId = localStorage.getItem("id");
@@ -47,9 +47,9 @@ function App() {
       <div className={`${isMenuExpanded ? ' light-style layout-menu-fixed layout-menu-expanded' : 'light-style layout-menu-fixed '}`}>
         <div className="layout-wrapper layout-content-navbar">
           <div className="layout-container">
-            {shouldRenderLayout && <Sidebar />}
+             <Sidebar />
             <div className="layout-page">
-              {shouldRenderLayout && <Navbar />}
+               <Navbar />
               <div className="content-wrapper">
                 <Routes>
                   <Route path="/" element={<Protected Component={Dashboard} />} />

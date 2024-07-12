@@ -29,6 +29,7 @@ const Login = () => {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("id", res.data.data.id);
         navigate("/");
+        // window.location.reload();
         Swal.fire({
           position: "top-end",
           title: "Login Successful",

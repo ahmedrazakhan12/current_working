@@ -9,19 +9,18 @@ const Navbar = () => {
   const navigate = useNavigate();
   const activeId = localStorage.getItem("id");
 
+  
   useEffect(() => {
     axios.get(`http://localhost:5000/admin/adminInfo/`, {
-      headers: { Authorization: ` ${activeId}` }
+        headers: { Authorization: `${activeId}` }
     })
-    .then((res)=>{
-      setData(res.data);
-      console.log("Login user data: ",res.data);
+    .then((res) => {
+        setData(res.data);
     })
-    .catch((err)=>{
-      console.log(err);
-    })
-  }, []);
-
+    .catch((err) => {
+        console.log(err);
+    });
+}, [activeId]);
 
 
 

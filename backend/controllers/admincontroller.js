@@ -307,6 +307,7 @@ exports.adminRegister = async (req, res) => {
       contact: contact,
       address: address,
       postalCode: postalCode,
+      description: description,
       country: country,
       pfpImage: imagePath,
       password: hashedPassword, // Store hashed password

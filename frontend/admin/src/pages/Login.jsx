@@ -79,21 +79,18 @@ const Login = () => {
                 <div className="card-body">
                   {/* Logo */}
                   <div className="app-brand justify-content-center">
-                    <a
-                      href="https://taskify.taskhub.company/"
-                      className="app-brand-link gap-2"
-                    >
+                   
                       <span className="app-brand-logo demo">
                         <img
-                          src="https://taskify.taskhub.company/storage/logos/zEy4tSCAFSMczWbOoxBZ3B43Nc9eeqMlNBXDrOzn.png"
+                          src="assets/images/yourlogo.png"
                           width="300px"
                           alt=""
+                          className="mb-4"
                         />
                       </span>
-                    </a>
                   </div>
                   {/* /Logo */}
-                  <h4 className="mb-2">Welcome to Taskify! 👋</h4>
+                  <h4 className="mb-2">Welcome to Company Name! 👋</h4>
                   <form
                     id="formAuthentication"
                     className="mb-3 form-submit-event"

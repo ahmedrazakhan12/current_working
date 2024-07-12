@@ -64,7 +64,7 @@ const Register = () => {
       .then((res) => {
         console.log(res.data);
         setErrorMessage(null);
-        navigate('/');
+        navigate('/manageUsers');
         Swal.fire({
           position: "top-end",
           title: "User Registered",
@@ -195,6 +195,7 @@ const Register = () => {
                       onChange={handleChange}
                     >
                       <option value="">Select Role</option>
+                      <option value="super-admin">Super Admin</option>
                       <option value="admin">Admin</option>
                       <option value="member">Member</option>
                     </select>

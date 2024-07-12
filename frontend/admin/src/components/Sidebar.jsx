@@ -1,14 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import {Link, useLocation} from "react-router-dom";
+import axios from "axios";
 const Sidebar = () => {
   const{
     setIsOpen,
     isOpen,
+    setIsOpen1,
+    isOpen1,
     setIsMenuExpanded,
     isMenuExpanded
   }=useAppContext();
   const location = useLocation();
+
+
+  const [data , setData] = useState([]);
+  const activeId = localStorage.getItem("id");
+
+  
+  useEffect(() => {
+    axios.get(`http://localhost:5000/admin/adminInfo/`, {
+        headers: { Authorization: `${activeId}` }
+    })
+    .then((res) => {
+        setData(res.data);
+    })
+    .catch((err) => {
+        console.log(err);
+    });
+}, [activeId]);
+
+
+
   return (
     <>
       <aside
@@ -16,104 +39,22 @@ const Sidebar = () => {
         className="layout-menu menu-vertical menu bg-menu-theme menu-container"
       >
         <div className="app-brand demo">
-          <a href="/home" className="app-brand-link">
             <span className="app-brand-logo demo">
               <img
-                src="assets/images/zEy4tSCAFSMczWbOoxBZ3B43Nc9eeqMlNBXDrOzn.webp"
+                src="./assets/images/yourlogo.png"
                 width="200px"
                 alt=""
               />
             </span>
             {/* <span class="app-brand-text demo menu-text fw-bolder ms-2">Taskify</span> */}
-          </a>
-          <a
+          <span
             onClick={() => setIsMenuExpanded(!isMenuExpanded)}
             className="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none"
           >
             <i className="bx bx-chevron-left bx-sm align-middle" />
-          </a>
+          </span>
         </div>
-        <div className="btn-group dropend px-2">
-          <button
-            type="button"
-            className="btn btn-primary dropdown-toggle"
-            data-bs-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            Main workspace
-          </button>
-          <ul className="dropdown-menu">
-            <li>
-              <a className="dropdown-item" href="/workspaces/switch/6">
-                <i className="menu-icon tf-icons bx bx-check-square text-primary" />{" "}
-                Main workspace
-                <span className="badge bg-success">Primary</span>{" "}
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="/workspaces/switch/7">
-                <i className="menu-icon tf-icons bx bx-square text-solid" /> Dev
-                Team
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="/workspaces/switch/13">
-                <i className="menu-icon tf-icons bx bx-square text-solid" />{" "}
-                UI/UX &amp; Graphics Team
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="/workspaces/switch/14">
-                <i className="menu-icon tf-icons bx bx-square text-solid" />{" "}
-                Sales Team
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="/workspaces/switch/15">
-                <i className="menu-icon tf-icons bx bx-square text-solid" />{" "}
-                DevOps Team
-              </a>
-            </li>
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <a className="dropdown-item" href="/workspaces">
-                <i className="menu-icon tf-icons bx bx-bar-chart-alt-2 text-success" />
-                Manage Workspaces{" "}
-                <span className="badge badge-center bg-primary"> + 96</span>
-              </a>
-            </li>
-            <li>
-              <span
-                data-bs-toggle="modal"
-                data-bs-target="#createWorkspaceModal"
-              >
-                <a className="dropdown-item" href="javascript:void(0);">
-                  <i className="menu-icon tf-icons bx bx-plus text-warning" />
-                  Create Workspace
-                </a>
-              </span>
-            </li>
-            <li>
-              <a
-                className="dropdown-item edit-workspace"
-                href="javascript:void(0);"
-                data-id={6}
-              >
-                <i className="menu-icon tf-icons bx bx-edit text-primary" />
-                Edit Workspace
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#" id="remove-participant">
-                <i className="menu-icon tf-icons bx bx-exit text-danger" />
-                Remove Me from Workspace
-              </a>
-            </li>
-          </ul>
-        </div>
+    
         <ul className="menu-inner py-1">
           <hr className="dropdown-divider" />
           {/* Dashboard */}
@@ -146,6 +87,33 @@ const Sidebar = () => {
               </li>
             </ul>
           </li>
+
+         {data && data?.role === "super-admin" && (
+            <>
+ <li className={`${isOpen1 ? 'menu-item open': 'menu-item'}`}  >
+            <span className="menu-link menu-toggle" onClick={() => setIsOpen1(!isOpen1)}>
+            <i className="menu-icon tf-icons bx bx-group text-primary" />
+              <div>Users</div>
+            </span>
+            <ul className="menu-sub">
+              <li className={location.pathname === '/manageUsers' ? 'menu-item active' : 'menu-item'}>
+                <span className="menu-link">
+                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/manageUsers '}>Manage Users</Link></div>
+                </span>
+              </li>
+              <li className={location.pathname === '/register' ? 'menu-item active' : 'menu-item'}>
+                <span  className="menu-link">
+                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/register'}>Add Users</Link></div>
+                </span>
+              </li>
+            
+            </ul>
+          </li>
+            </>
+        )}
+
+
+
           <li className={location.pathname === '/tasks' ? 'menu-item active' : 'menu-item'}>
             <span className="menu-link">
               <i className="menu-icon tf-icons bx bx-task text-primary" />
@@ -193,12 +161,18 @@ const Sidebar = () => {
               </div>
             </span>
           </li>
-          <li className={location.pathname === '/register' ? 'menu-item active' : 'menu-item'}>
+
+       
+
+
+
+
+          {/* <li className={location.pathname === '/register' ? 'menu-item active' : 'menu-item'}>
             <span  className="menu-link">
               <i className="menu-icon tf-icons bx bx-group text-primary" />
               <div><Link style={{textDecoration:'none' , color:'inherit'}} to="/register">Register</Link></div>
             </span>
-          </li>
+          </li> */}
           <li className={location.pathname === '/clients' ? 'menu-item active' : 'menu-item'}>
             <Link style={{textDecoration:'none' , color:'inherit'}} to="/clients" className="menu-link">
               <i className="menu-icon tf-icons bx bx-group text-warning" />

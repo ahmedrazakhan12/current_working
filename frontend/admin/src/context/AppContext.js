@@ -8,6 +8,7 @@ import React, {
   export const AppProvider = ({ children }) => {
     const [isMenuExpanded, setIsMenuExpanded] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [isOpen1, setIsOpen1] = useState(false);
   
     return (
       <AppContext.Provider
@@ -15,7 +16,9 @@ import React, {
             isMenuExpanded,
             setIsMenuExpanded,
             setIsOpen,
-            isOpen
+            isOpen,
+            setIsOpen1,
+            isOpen1,
           // options
         }}
       >

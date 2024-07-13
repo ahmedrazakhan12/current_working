@@ -1,9 +1,8 @@
 .custom-swal {
   font-size: 8px;
   width: 20%; /* Adjust the font size as needed */
-  background-color: #508d4ee0; /* Set the background color */
+  background-color: #4e8d79e0; /* Set the background color */
   color: white; /* Set text color to contrast with background */
-  /* height: 10px; */
 }
 #myInput {
   width: 100%;

@@ -296,11 +296,11 @@ const Manage = () => {
                   </label>
                   <div className="input-group">
                     <div
-                      className="form-select form-select-sm select-bg-label-info"
+                      className={item.status === "started" ? "form-select form-select-sm select-bg-label-info" : item.status === "ongoing" ? "form-select form-select-sm select-bg-label-warning"  : item.status === "inreview" ?"form-select form-select-sm select-bg-label-primary": "form-select form-select-sm select-bg-label-info"}
                       // data-original-color-class="select-bg-label-info"
                       style={{textAlign:'center' , border:'none'}}
                     >
-                      {item.status}
+                      {item.status === "started" ? "Started" : item.status === "ongoing" ? "On Going" : item.status === "inreview" ?"In Review": "Started"}
                      
                       {/* <option
                         className="badge bg-label-primary"

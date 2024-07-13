@@ -97,9 +97,9 @@ const navigate = useNavigate();
                     onChange={handleChange}
                   >
                     <option value={""}>Default</option>
-                    <option value={"started"}>Started (Primary)</option>
-                    <option value={"ongoing"}>On Going (Info)</option>
-                    <option value={"inreview"}>In Review (Warning)</option>
+                    <option value={"started"}>Started</option>
+                    <option value={"ongoing"}>On Going</option>
+                    <option value={"inreview"}>In Review</option>
                   </select>
                 </div>
                 
@@ -130,8 +130,8 @@ const navigate = useNavigate();
                 <button
                   type="button"
                   className="m-0 me-2 btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
+                  onClick={() => navigate("/manage")}
+>
                   Close{" "}
                 </button>
                 <button

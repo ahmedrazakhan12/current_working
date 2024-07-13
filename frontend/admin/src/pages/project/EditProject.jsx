@@ -104,9 +104,9 @@ const EditProject = () => {
                     onChange={handleChange}
                   >
                     <option value="">Default</option>
-                    <option value="started">Started (Primary)</option>
-                    <option value="ongoing">On Going (Info)</option>
-                    <option value="inreview">In Review (Warning)</option>
+                    <option value="started">Started</option>
+                    <option value="ongoing">On Going</option>
+                    <option value="inreview">In Review</option>
                   </select>
                 </div>
               </div>

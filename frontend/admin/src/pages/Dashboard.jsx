@@ -1,6 +1,32 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
+import axios from 'axios';
+import { Link } from 'react-router-dom';
 const Dashboard = () => {
+  const [project , setProject] = useState([])
+  const [users , setUsers] = useState([])
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/project/getAllProject')
+    .then((res) => {
+      setProject(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/admin/team')
+    .then((res) => {
+      setUsers(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []); 
+
   return (
     <>
     
@@ -18,8 +44,8 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Projects</span>
-                    <h3 className="card-title mb-2">213</h3>
-                    <a href="/projects"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></a>
+                    <h3 className="card-title mb-2">{project.length}</h3>
+                    <Link to="/manage"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>
               </div>
@@ -42,12 +68,12 @@ const Dashboard = () => {
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
                       <div className="avatar flex-shrink-0">
-                        <i className="menu-icon tf-icons bx bxs-user-detail bx-md text-warning" />
+                        <i className="menu-icon tf-icons bx bxs-user-detail bx-md text-info" />
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Users</span>
-                    <h3 className="card-title mb-2">33</h3>
-                    <a href="/users"><small className="text-warning fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></a>
+                    <h3 className="card-title mb-2"> {users.length}</h3>
+                    <Link to="/manageUsers"><small className="text-info fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>
               </div>
@@ -56,15 +82,16 @@ const Dashboard = () => {
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
                       <div className="avatar flex-shrink-0">
-                        <i className="menu-icon tf-icons bx bxs-user-detail bx-md text-info" />
+                        <i className="menu-icon tf-icons bx bxs-user-detail bx-md text-warning" />
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Clients</span>
-                    <h3 className="card-title mb-2"> 21</h3>
-                    <a href="/clients"><small className="text-info fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></a>
+                    <h3 className="card-title mb-2">33</h3>
+                    <a href="/users"><small className="text-warning fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></a>
                   </div>
                 </div>
               </div>
+              
             </div>
             {/* <div className="row">
               <div className="col-md-4 col-sm-12">

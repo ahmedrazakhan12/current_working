@@ -7,6 +7,10 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordType, setPasswordType] = useState("password");
+  
+  const handleEyePassword = () => {
+    setPasswordType(passwordType === "password" ? "text" : "password");
+  };
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -49,9 +53,6 @@ const Login = () => {
         console.log(err);
       
       });
-  };
-  const handleEyePassword = () => {
-    setPasswordType(passwordType === "password" ? "text" : "password");
   };
 
   return (

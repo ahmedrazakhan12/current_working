@@ -1,36 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
-import {Link, useLocation} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 const Sidebar = () => {
-  const{
+  const {
     setIsOpen,
     isOpen,
     setIsOpen1,
     isOpen1,
+    isOpen2,
+    setIsOpen2,
     setIsMenuExpanded,
-    isMenuExpanded
-  }=useAppContext();
+    isMenuExpanded,
+  } = useAppContext();
   const location = useLocation();
 
-
-  const [data , setData] = useState([]);
+  const [data, setData] = useState([]);
   const activeId = localStorage.getItem("id");
 
-  
   useEffect(() => {
-    axios.get(`http://localhost:5000/admin/adminInfo/`, {
-        headers: { Authorization: `${activeId}` }
-    })
-    .then((res) => {
+    axios
+      .get(`http://localhost:5000/admin/adminInfo/`, {
+        headers: { Authorization: `${activeId}` },
+      })
+      .then((res) => {
         setData(res.data);
-    })
-    .catch((err) => {
+      })
+      .catch((err) => {
         console.log(err);
-    });
-}, [activeId]);
-
-
+      });
+  }, [activeId]);
 
   return (
     <>
@@ -39,14 +38,10 @@ const Sidebar = () => {
         className="layout-menu menu-vertical menu bg-menu-theme menu-container"
       >
         <div className="app-brand demo">
-            <span className="app-brand-logo demo">
-              <img
-                src="./assets/images/yourlogo.png"
-                width="200px"
-                alt=""
-              />
-            </span>
-            {/* <span class="app-brand-text demo menu-text fw-bolder ms-2">Taskify</span> */}
+          <span className="app-brand-logo demo">
+            <img src="./assets/images/yourlogo.png" width="200px" alt="" />
+          </span>
+          {/* <span class="app-brand-text demo menu-text fw-bolder ms-2">Taskify</span> */}
           <span
             onClick={() => setIsMenuExpanded(!isMenuExpanded)}
             className="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none"
@@ -54,72 +49,169 @@ const Sidebar = () => {
             <i className="bx bx-chevron-left bx-sm align-middle" />
           </span>
         </div>
-    
+
         <ul className="menu-inner py-1">
           <hr className="dropdown-divider" />
           {/* Dashboard */}
-          <li className={location.pathname === '/' ? 'menu-item active' : 'menu-item'}>
-            <span  className="menu-link">
+          <li
+            className={
+              location.pathname === "/" ? "menu-item active" : "menu-item"
+            }
+          >
+            <span className="menu-link">
               <i className="menu-icon tf-icons bx bx-home-circle text-danger" />
-              <div><Link style={{textDecoration:'none' , color:'inherit'}} to="/">Dashboard</Link></div>
+              <div>
+                <Link
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  to="/"
+                >
+                  Dashboard
+                </Link>
+              </div>
             </span>
           </li>
-          <li className={`${isOpen ? 'menu-item open': 'menu-item'}`}  >
-            <span className="menu-link menu-toggle" onClick={() => setIsOpen(!isOpen)}>
+          <li className={`${isOpen ? "menu-item open" : "menu-item"}`}>
+            <span
+              className="menu-link menu-toggle"
+              onClick={() => setIsOpen(!isOpen)}
+            >
               <i className="menu-icon tf-icons bx bx-briefcase-alt-2 text-success" />
               <div>Projects</div>
             </span>
             <ul className="menu-sub">
-              <li className={location.pathname === '/manage' ? 'menu-item active' : 'menu-item'}>
+              <li
+                className={
+                  location.pathname === "/manage"
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
                 <span className="menu-link">
-                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/manage'}>Manage Projects</Link></div>
+                  <div>
+                    <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      to={"/manage"}
+                    >
+                      Manage Projects
+                    </Link>
+                  </div>
                 </span>
               </li>
-              <li className={location.pathname === '/favorite' ? 'menu-item active' : 'menu-item'}>
-                <span  className="menu-link">
-                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/favorite'}>Favorite Projects</Link></div>
+              <li
+                className={
+                  location.pathname === "/favorite"
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
+                <span className="menu-link">
+                  <div>
+                    <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      to={"/favorite"}
+                    >
+                      Favorite Projects
+                    </Link>
+                  </div>
                 </span>
               </li>
-              <li className={location.pathname === '/tag' ? 'menu-item active' : 'menu-item'}>
+              <li
+                className={
+                  location.pathname === "/tag"
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
                 <span href="/tags/manage" className="menu-link">
-                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/tag'}>Tags</Link></div>
+                  <div>
+                    <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      to={"/tag"}
+                    >
+                      Tags
+                    </Link>
+                  </div>
                 </span>
               </li>
             </ul>
           </li>
 
-         {data && data?.role === "super-admin" && (
+          {data && data?.role === "super-admin" && (
             <>
- <li className={`${isOpen1 ? 'menu-item open': 'menu-item'}`}  >
-            <span className="menu-link menu-toggle" onClick={() => setIsOpen1(!isOpen1)}>
-            <i className="menu-icon tf-icons bx bx-group text-primary" />
-              <div>Users</div>
-            </span>
-            <ul className="menu-sub">
-              <li className={location.pathname === '/manageUsers' ? 'menu-item active' : 'menu-item'}>
-                <span className="menu-link">
-                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/manageUsers '}>Manage Users</Link></div>
+              <li className={`${isOpen1 ? "menu-item open" : "menu-item"}`}>
+                <span
+                  className="menu-link menu-toggle"
+                  onClick={() => setIsOpen1(!isOpen1)}
+                >
+                  <i className="menu-icon tf-icons bx bx-group text-primary" />
+                  <div>Users</div>
                 </span>
+                <ul className="menu-sub">
+                  <li
+                    className={
+                      location.pathname === "/manageUsers"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                  >
+                    <span className="menu-link">
+                      <div>
+                        <Link
+                          style={{ textDecoration: "none", color: "inherit" }}
+                          to={"/manageUsers "}
+                        >
+                          Manage Users
+                        </Link>
+                      </div>
+                    </span>
+                  </li>
+                  <li
+                    className={
+                      location.pathname === "/register"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                  >
+                    <span className="menu-link">
+                      <div>
+                        <Link
+                          style={{ textDecoration: "none", color: "inherit" }}
+                          to={"/register"}
+                        >
+                          Add Users
+                        </Link>
+                      </div>
+                    </span>
+                  </li>
+                </ul>
               </li>
-              <li className={location.pathname === '/register' ? 'menu-item active' : 'menu-item'}>
-                <span  className="menu-link">
-                  <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/register'}>Add Users</Link></div>
-                </span>
-              </li>
-            
-            </ul>
-          </li>
             </>
-        )}
+          )}
 
-
-
-          <li className={location.pathname === '/tasks' ? 'menu-item active' : 'menu-item'}>
+          <li
+            className={
+              location.pathname === "/tasks" ? "menu-item active" : "menu-item"
+            }
+          >
             <span className="menu-link">
               <i className="menu-icon tf-icons bx bx-task text-primary" />
-              <div><Link style={{textDecoration:'none' , color:'inherit'}} to={'/tasks'}>Tasks</Link></div>
+              <div>
+                <Link
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  to={"/tasks"}
+                >
+                  Tasks
+                </Link>
+              </div>
             </span>
           </li>
+
+
+
+
+
+
+
           {/* <li className={location.pathname === '/manage' ? 'menu-item active' : 'menu-item'}>
             <span href="/status/manage" className="menu-link">
               <i className="menu-icon tf-icons bx bx-grid-small text-secondary" />
@@ -150,11 +242,22 @@ const Sidebar = () => {
               <div>Todos </div>
             </span>
           </li> */}
-          <li className={location.pathname === '/meeting' ? 'menu-item active' : 'menu-item'}>
-            <span  className="menu-link">
+          <li
+            className={
+              location.pathname === "/meeting"
+                ? "menu-item active"
+                : "menu-item"
+            }
+          >
+            <span className="menu-link">
               <i className="menu-icon tf-icons bx bx-shape-polygon text-success" />
               <div>
-                <Link style={{textDecoration:'none' , color:'inherit'}} to="/meeting">Meetings</Link>{" "}
+                <Link
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  to="/meeting"
+                >
+                  Meetings
+                </Link>{" "}
                 <span className="flex-shrink-0 badge badge-center bg-success w-px-20 h-px-20">
                   2
                 </span>
@@ -162,23 +265,69 @@ const Sidebar = () => {
             </span>
           </li>
 
-       
-
-
-
-
           {/* <li className={location.pathname === '/register' ? 'menu-item active' : 'menu-item'}>
             <span  className="menu-link">
               <i className="menu-icon tf-icons bx bx-group text-primary" />
               <div><Link style={{textDecoration:'none' , color:'inherit'}} to="/register">Register</Link></div>
             </span>
           </li> */}
-          <li className={location.pathname === '/clients' ? 'menu-item active' : 'menu-item'}>
-            <Link style={{textDecoration:'none' , color:'inherit'}} to="/clients" className="menu-link">
+          <li
+            className={
+              location.pathname === "/clients"
+                ? "menu-item active"
+                : "menu-item"
+            }
+          >
+            <Link
+              style={{ textDecoration: "none", color: "inherit" }}
+              to="/clients"
+              className="menu-link"
+            >
               <i className="menu-icon tf-icons bx bx-group text-warning" />
-              <div><Link style={{textDecoration:'none' , color:'inherit'}} to="/clients">Clients</Link></div>
+              <div>
+                <Link
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  to="/clients"
+                >
+                  Clients
+                </Link>
+              </div>
             </Link>
           </li>
+         
+
+          <li className={`${isOpen2 ? "menu-item open" : "menu-item"}`}>
+            <span
+              className="menu-link menu-toggle"
+              onClick={() => setIsOpen2(!isOpen2)}
+            >
+              <i className="menu-icon tf-icons bx bx-box text-success" />
+              <div>Setting</div>
+            </span>
+            <ul className="menu-sub">
+              <li
+                className={
+                  location.pathname === "/general"
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
+                <span className="menu-link">
+                  <div>
+                    <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      to={"/general"}
+                    >
+                      General
+                    </Link>
+                  </div>
+                </span>
+              </li>
+             
+            </ul>
+          </li>
+
+
           {/* <li className={location.pathname === '/manage' ? 'menu-item active' : 'menu-item'}>
             <span href="javascript:void(0)" className="menu-link menu-toggle">
               <i className="menu-icon tf-icons bx bx-news text-success" />

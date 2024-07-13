@@ -3,12 +3,13 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Pagination } from "react-bootstrap";
 import Swal from "sweetalert2";
+import Navbar from "../../components/Navbar";
 const Manageusers = () => {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // Adjust items per page as needed
-  const navigate = useNavigate();
-  useEffect(() => {
+
+  const fetchData = () => {
     axios
       .get("http://localhost:5000/admin/team")
       .then((res) => {
@@ -17,6 +18,10 @@ const Manageusers = () => {
       .catch((err) => {
         console.log("Error fetching providers:", err);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const handleSearchChange = (e) => {
@@ -40,9 +45,11 @@ const Manageusers = () => {
   const nextPage = () => {
     setCurrentPage((prev) => prev + 1);
   };
+
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // Calculate current items to display based on currentPage and itemsPerPage
@@ -50,11 +57,7 @@ const Manageusers = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-
-
-  
   const handleUserDelete = (id) => {
-  
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -77,7 +80,7 @@ const Manageusers = () => {
                 popup: "custom-swal",
               },
             }).then(() => {
-              navigate("/manageUsers");
+              fetchData(); // Fetch data again to update the table
             });
           })
           .catch((err) => {
@@ -85,59 +88,57 @@ const Manageusers = () => {
           });
       }
     });
-
-  }
+  };
 
 
   return (
     <>
+          <Navbar />
+
       <div className="container">
         <div
-          className="card-body px-0 pt-0 pt-2 pl-2 pb-1 pe-2 bg-white mt-4 shadow blur border-radius-lg"
+        style={{borderRadius:'6px'}}
+          className="card-body p-3  bg-white mt-4 shadow blur border-radius-lg"
           
         >
-          <div className="table-responsive p-2">
+            
+            <div className="table-responsive p-2"  >
             <div
+            
               className="pt-2 pb-2"
               style={{
                 display: "flex",
                 justifyContent: "space-between",
               }}
             >
-              <div className="input-group p-0 w-20">
-                <span className="input-group-text text-body">
-                  <i className="bx bx-search" aria-hidden="true" />
+             
+              <div class="searchbar">
+    <div class="searchbar-wrapper">
+        <div class="searchbar-left">
+            <div class="search-icon-wrapper">
+                <span class="search-icon searchbar-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z">
+                        </path>
+                    </svg>
                 </span>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Type here..."
-                  onChange={handleSearchChange}
-                />
-              </div>
+            </div>
+        </div>
+
+        <div class="searchbar-center">
+            <div class="searchbar-input-spacer"></div>
+
+            <input type="text" class="searchbar-input" onChange={handleSearchChange} maxlength="2048" name="q" autocapitalize="off" autocomplete="off" title="Search" role="combobox" placeholder="Search user" />
+        </div>
+
+    </div>
+</div>
+
             </div>
 
             <table
                 id="table"
-                data-toggle="table"
-                data-loading-template="loadingTemplate"
-                data-url="https://taskify.taskhub.company/users/list"
-                data-icons-prefix="bx"
-                data-icons="icons"
-                data-show-refresh="true"
-                data-total-field="total"
-                data-trim-on-search="false"
-                data-data-field="rows"
-                data-page-list="[5, 10, 20, 50, 100, 200]"
-                data-search="true"
-                data-side-pagination="server"
-                data-show-columns="true"
-                data-pagination="true"
-                data-sort-name="id"
-                data-sort-order="desc"
-                data-mobile-responsive="true"
-                data-query-params="queryParams"
-                className="table table-bordered table-hover"
+                className="table table-bordered "
               >
                 <thead>
                   <tr>
@@ -220,13 +221,13 @@ const Manageusers = () => {
                       </div>
                     </td>
                     <td style={{textAlign:'center'}}>
-                      <span className="badge bg-label-info me-1" style={{fontSize:'12px' , textAlign:'center'}}>
+                      <span className={item.role === "super-admin" ? "badge bg-success me-1" : "badge bg-primary me-1"} style={{fontSize:'12px' , textAlign:'center'}}>
                         {item.role}
                       </span>
                     </td>
                     <td className="align-middle text-center text-sm">
                         <p className="text-xs font-weight-bold mb-0"  style={{fontSize:'15px'}}>
-                          {item.contact}
+                          +{item.contact}
                         </p>
                     </td> 
                     <td >
@@ -253,18 +254,25 @@ const Manageusers = () => {
                       <Link
                         to={`/editusers/${item.id}`}
                       >
-                        <i className="bx bx-edit mx-1" />
+                        <i className="bx bx-edit mx-2" />
                       </Link>
+
+                      <Link
+                        to={`/changeUserpassword/${item.id}`}
+                      >
+                      <i className="bx bx-lock text-warning" />
+                      </Link>
+
+
+
+
                       <button
                         title="Delete"
                         type="button"
-                        className="btn delete"
-                        data-id={7}
-                        data-type="users"
+                        style={{ border: "none", background: "none" , margin:'0' }}
                         onClick={()=>handleUserDelete(item.id)}
-                        fdprocessedid="p9v6t"
                       >
-                        <i className="bx bx-trash text-danger mx-1" />
+                        <i className="bx bx-trash text-danger " />
                       </button>
                     </td>
                   </tr>

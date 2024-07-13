@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar'
+
 const Profile = () => {
   const [data, setData] = useState({});
   const [pfpImage, setPfpImage] = useState(null); // Separate state for the file
@@ -135,6 +137,8 @@ const Profile = () => {
 
   }
   return (
+    <>
+    <Navbar />
     <div className="container-fluid">
     <div className="d-flex justify-content-between mb-2 mt-4">
       <div>
@@ -456,6 +460,7 @@ const Profile = () => {
     </div>
    
     </div>
+    </>
   )
 }
 

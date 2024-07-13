@@ -32,7 +32,7 @@ const Navbar = () => {
   return (
     <>
       {/* Navbar */}
-      <div id="section-not-to-print">
+      <div id="section-not-to-print" style={{zIndex:'2'}}>
         <nav
           className="layout-navbar container-fluid navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
           id="layout-navbar"
@@ -122,7 +122,7 @@ const Navbar = () => {
                     />
                   </div>
                 </a>
-                <ul className="dropdown-menu dropdown-menu-end">
+                <ul className="dropdown-menu dropdown-menu-end"sty >
                   <li>
                     <a className="dropdown-item" href="#">
                       <div className="d-flex">

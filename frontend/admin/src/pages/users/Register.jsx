@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-
+import Navbar from '../../components/Navbar';
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -89,6 +89,8 @@ const Register = () => {
     navigate('/');
   };
   return (
+    <>
+    <Navbar />
     <div className="container-fluid">
       <div className="d-flex justify-content-between mb-2 mt-4">
         <div>
@@ -349,6 +351,7 @@ const Register = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

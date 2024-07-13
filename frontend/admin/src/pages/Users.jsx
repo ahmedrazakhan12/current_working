@@ -1,7 +1,10 @@
 import React from 'react'
+import Navbar from '../components/Navbar'
 
 const Users = () => {
   return (
+    <>
+    <Navbar />
     <div className="container-fluid">
   <div className="d-flex justify-content-between mb-2 mt-4">
     <div>
@@ -197,6 +200,7 @@ const Users = () => {
     </div>
   </div>
 </div>
+    </>
   )
 }
 

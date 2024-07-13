@@ -332,45 +332,38 @@ exports.adminRegister = async (req, res) => {
 // Change Password
 exports.superAdminChangePassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
-    const authorizationHeader = req.headers.authorization;
+    const { currentPassword, password , confirmPassword } = req.body;
+    const id = req.headers.authorization;
 
-    if (!authorizationHeader) {
+    if (!id) {
       return res
         .status(400)
-        .json({ message: "Authorization header is missing" });
+        .json({ message: "Internal server error" });
     }
 
-    const email = authorizationHeader.split(" ")[1];
-    if (!email) {
-      return res
-        .status(400)
-        .json({ message: "Authorization header is malformed" });
+    const user = await adminModel.findOne({ where: { id: id } })
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-
-    const admin = await adminModel.findOne({ where: { email: email } });
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
+    if(!currentPassword){
+      return res.status(400).json({ message: "Current password is required" });
     }
-
-    const isPasswordMatch = await bcrypt.compare(
-      currentPassword,
-      admin.password
-    );
-    if (isPasswordMatch) {
-      console.log("Password  not match");
-    }
-    if (!isPasswordMatch) {
-      console.log("Password does not match");
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    const validatePasswordError = validatePassword(password , confirmPassword);
+    if (validatePasswordError) {
+      return res.status(400).json({ message: validatePasswordError });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
     await adminModel.update(
       { password: hashedPassword },
-      { where: { email: email } }
+      { where: { id: id } }
     );
 
+    console.log("Password changed successfully");
     return res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     console.error("Error in changing password:", error);
@@ -418,11 +411,14 @@ exports.adminDelete = async (req, res) => {
 exports.adminChangePassword = async (req, res) => {
   try {
     const { id } = req.params;
-    const { newPassword } = req.body;
+    const { password , confirmPassword   } = req.body;
 
-    console.log("ID:", id, "New Password:", newPassword);
+    const validatePasswordError = validatePassword(password , confirmPassword);
+    if (validatePasswordError) {
+      return res.status(400).json({ message: validatePasswordError });
+    }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     await adminModel.update(
       { password: hashedPassword },
       { where: { id: id } }

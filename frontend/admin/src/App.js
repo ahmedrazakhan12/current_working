@@ -21,6 +21,8 @@ import Userview from './pages/users/Userview';
 import Editusers from './pages/users/Editusers';
 import NotFound from './pages/Notfound';  // Import the NotFound component
 import axios from 'axios';
+import ChangeUserPass from './pages/users/ChangeUserPass';
+import General from './pages/setting/General';
 
 function App() {
   const { isMenuExpanded } = useAppContext();
@@ -49,7 +51,6 @@ function App() {
           <div className="layout-container">
              <Sidebar />
             <div className="layout-page">
-               <Navbar />
               <div className="content-wrapper">
                 <Routes>
                   <Route path="/" element={<Protected Component={Dashboard} />} />
@@ -61,12 +62,14 @@ function App() {
                   <Route path="/meeting" element={<Protected Component={Meeting} />} />
                   <Route path="/users" element={<Protected Component={Users} />} />
                   <Route path="/clients" element={<Protected Component={Clients} />} />
+                  <Route path="/general" element={<Protected Component={General} />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />
                       <Route path="/manageUsers" element={<Protected Component={Manageusers} />} />
                       <Route path="/userview/:id" element={<Protected Component={Userview} />} />
                       <Route path="/editusers/:id" element={<Protected Component={Editusers} />} />
+                      <Route path="/changeUserPassword/:id" element={<Protected Component={ChangeUserPass} />} />
                     </>
                   }
                   <Route path="*" element={<NotFound />} />  {/* Add the NotFound route */}

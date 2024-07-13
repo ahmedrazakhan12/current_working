@@ -6,6 +6,10 @@ import Swal from 'sweetalert2';
 const Manage = () => {
   const navigate = useNavigate();
   const [data ,setData]= useState([]);
+  const [statusFilter, setStatusFilter] = useState('');
+
+
+
   useEffect(() => {
     axios.get('http://localhost:5000/project/getAllProject')
     .then((res) => {
@@ -46,6 +50,19 @@ const Manage = () => {
   })
   };
 
+
+
+  const handleStatusChange = (e) => {
+    setStatusFilter(e.target.value);
+  };
+
+  const filteredData = statusFilter
+    ? data.filter(item => item.status === statusFilter)
+    : data;
+
+
+
+
   return (
     <>
     <Navbar />
@@ -81,27 +98,17 @@ const Manage = () => {
     </div>
     <div className="row">
       <div className="col-md-3 mb-3">
-        <select
-          aria-label="Default select example"
-          className="form-select"
-          id="status_filter"
-        >
-          <option value="">
-            Filter by Status
-          </option>
-          <option value="0">
-            Default
-          </option>
-          <option value="1">
-            Started
-          </option>
-          <option value="2">
-            On Going
-          </option>
-          <option value="59">
-            In Review
-          </option>
-        </select>
+      <select
+        aria-label="Default select example"
+        className="form-select"
+        id="status_filter"
+        onChange={handleStatusChange}
+      >
+        <option value="">Filter by Status</option>
+        <option value="started">Started</option>
+        <option value="ongoing">On Going</option>
+        <option value="inreview">In Review</option>
+      </select>
       </div>
       <div className="col-md-3 mb-3">
         <select
@@ -176,7 +183,7 @@ const Manage = () => {
       </div>
     </div>
     <div className="mt-4 d-flex row">
-      {data.map((item ,index)=>{
+      {filteredData.map((item ,index)=>{
         return(
           <div className="col-md-6">
         <div className="card mb-3">
@@ -319,6 +326,11 @@ const Manage = () => {
                 </div>
                 <div className="col-md-12">
                   <p className='mt-2'>{item.projectDescription}</p>
+                </div>
+
+                <div>
+                <p className='text-muted'> {new Date(item.createdAt).toLocaleDateString()}</p>
+
                 </div>
                 {/* <div className="col-md-6">
                   <label

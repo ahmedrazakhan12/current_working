@@ -142,19 +142,7 @@ const Manageusers = () => {
               >
                 <thead>
                   <tr>
-                    <th
-                      className="bs-checkbox "
-                      style={{ width: 36 }}
-                      data-field={0}
-                    >
-                      <div className="th-inner ">
-                        <label>
-                          <input name="btSelectAll" type="checkbox" />
-                          <span />
-                        </label>
-                      </div>
-                      <div className="fht-cell" />
-                    </th>
+                   
                     <th style={{}} data-field="id">
                       <div className="th-inner sortable both">ID</div>
                       <div className="fht-cell" />
@@ -186,16 +174,7 @@ const Manageusers = () => {
                 <tbody>
                 {currentItems.map((item, index) => (
                   <tr key={index} >
-                    <td className="bs-checkbox " style={{ width: 36 }}>
-                      <label>
-                        <input
-                          data-index={0}
-                          name="btSelectItem"
-                          type="checkbox"
-                        />
-                        <span />
-                      </label>
-                    </td>
+                    
                     <td>{index + 1}</td>
                     <td>
                       <div className="d-flex mt-2">
@@ -302,7 +281,7 @@ const Manageusers = () => {
                       <span
                         className={
                           number === currentPage - 1
-                            ? " text-light text-xs font-weight-bold"
+                            ? " text-white text-xs font-weight-bold"
                             : "text-dark text-xs font-weight-bold"
                         }
                       >

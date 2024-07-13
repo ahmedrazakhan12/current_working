@@ -5,6 +5,7 @@ const app = express();
 // Routes Import
 const adminRoute = require("./routes/Adminroute");
 const ProjectRoute = require("./routes/Projectroute");
+const TaskRoute = require("./routes/Tasksroute");
 const db = require("./models"); // Adjust the path as necessary
 const bodyParser = require('body-parser');
 
@@ -28,6 +29,7 @@ db.sequelize
   // Routes
 app.use("/admin", adminRoute);
 app.use("/project", ProjectRoute);
+app.use("/tasks", TaskRoute);
 
 
 

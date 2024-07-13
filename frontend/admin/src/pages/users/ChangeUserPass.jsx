@@ -80,7 +80,7 @@ const ChangeUserPass = () => {
           <div className="col-md-12">
             <div className="card mb-4">
               <h5 className="card-header text-capitalize">
-                {data.name} | Password & Security
+               <img src={data.pfpImage} style={{width:'40px' , objectFit:'cover' , borderRadius:'8px'}} alt="" /> <span className="text-capitalize">{data.name}</span> | Password & Security
               </h5>
               {/* Account */}
 
@@ -134,6 +134,7 @@ const ChangeUserPass = () => {
                       <button
                         className="btn btn-secondary float-end me-2 "
                         type="button"
+                        onClick={() => navigate("/manageUsers")}
                       >
                         Cancel
                       </button>

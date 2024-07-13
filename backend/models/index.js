@@ -4,6 +4,7 @@ const sequelize = require("../config/database"); // Adjust the path as necessary
 // Import models
 const { adminModel } = require("./Adminmodel");
 const {projectModel} = require("./Projectmodel");
+const {taskModel} = require("./Taskmodel");
 
 const db = {};
 
@@ -13,6 +14,7 @@ db.Sequelize = Sequelize;
 
 db.adminModel = adminModel;
 db.projectModel = projectModel;
+db.taskModel = taskModel;
 
 // Add other models to db object
 // db.userModel = userModel;

@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 // Routes Import
 const adminRoute = require("./routes/Adminroute");
+const ProjectRoute = require("./routes/Projectroute");
 const db = require("./models"); // Adjust the path as necessary
 const bodyParser = require('body-parser');
 
@@ -26,6 +27,7 @@ db.sequelize
 
   // Routes
 app.use("/admin", adminRoute);
+app.use("/project", ProjectRoute);
 
 
 

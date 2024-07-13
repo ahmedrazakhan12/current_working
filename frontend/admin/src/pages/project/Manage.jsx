@@ -1,7 +1,54 @@
-import React from 'react'
-
+import React, { useEffect, useState } from 'react'
+import {Link, useNavigate} from 'react-router-dom';
+import Navbar from '../../components/Navbar';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 const Manage = () => {
+  const navigate = useNavigate();
+  const [data ,setData]= useState([]);
+  useEffect(() => {
+    axios.get('http://localhost:5000/project/getAllProject')
+    .then((res) => {
+      setData(res.data);
+      console.log(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+  const deleteProject = (id) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      axios
+        .delete(`http://localhost:5000/project/deleteProject/${id}`)
+        .then((res) => {
+          console.log(res.data);
+          Swal.fire(
+            'Deleted!',
+            'Your file has been deleted.',
+            'success'
+          )
+          window.location.reload(); 
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  })
+  };
+
   return (
+    <>
+    <Navbar />
     <div className="container-fluid">
     <div className="d-flex justify-content-between mb-2 mt-4">
       <div>
@@ -28,15 +75,7 @@ const Manage = () => {
       </div>
       <div>
         <a href="projects/list/favorite">
-          <button
-            className="btn btn-sm btn-primary"
-            data-bs-original-title="List View"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            type="button"
-          >
-            <i className="bx bx-list-ul" />
-          </button>
+          
         </a>
       </div>
     </div>
@@ -90,7 +129,7 @@ const Manage = () => {
       <div className="col-md-5 mb-3">
       <select
           aria-label="Default select example"
-          className="form-select"
+          className="form-select w-100"
           id="status_filter"
         >
           <option value="">
@@ -110,37 +149,49 @@ const Manage = () => {
           </option>
         </select>
       </div>
-      <div className="col-md-1">
-        <div>
-          <button
-            className="btn btn-sm btn-primary"
+      <div className="col-md-1 d-flex w-10 h-100 mt-1">
+      <button
+            className="btn btn-sm nd btn-primary me-2"
+            style={{marginLeft:'-15px' }}
             data-bs-original-title="Filter"
             data-bs-placement="left"
             data-bs-toggle="tooltip"
             id="tags_filter"
             type="button"
+            onClick={() =>navigate('/addProject')}
           >
-            <i className="bx bx-filter-alt" />
+            <i className="bx bx-plus" />
           </button>
-        </div>
+          <button
+            className="btn btn-sm btn-primary "
+            data-bs-original-title="List View"
+            data-bs-placement="left"
+            data-bs-toggle="tooltip"
+            type="button"
+          >
+            <i className="bx bx-list-ul" />
+          </button>
+      
+        
       </div>
     </div>
     <div className="mt-4 d-flex row">
-      <div className="col-md-6">
+      {data.map((item ,index)=>{
+        return(
+          <div className="col-md-6">
         <div className="card mb-3">
           <div className="card-body">
             <div className="mb-3">
             </div>
             <div className="d-flex justify-content-between">
               <h4 className="card-title">
-                <a
-                  href="projects/information/419"
-                  target="_blank"
+                <Link
+                className='text-capitalize'
                 >
                   <strong>
-                    CAM KABİN TEMMUZ
+                    {item.projectName}
                   </strong>
-                </a>
+                </Link>
               </h4>
               <div className="d-flex align-items-center justify-content-center">
                 <div className="input-group">
@@ -156,28 +207,23 @@ const Manage = () => {
                     />
                   </a>
                   <ul className="dropdown-menu">
-                    <a
+                    <Link
+                      to={`/editProject/${item.id}`}
                       className="edit-project"
-                      data-id="419"
-                      href="javascript:void(0);"
                     >
                       <li className="dropdown-item">
                         <i className="menu-icon tf-icons bx bx-edit text-primary" />
                         Update
                       </li>
-                    </a>
-                    <a
+                    </Link>
+                    <span
                       className="delete"
-                      data-id="419"
-                      data-reload="true"
-                      data-type="projects"
-                      href="javascript:void(0);"
                     >
-                      <li className="dropdown-item">
+                      <li className="dropdown-item cursor-pointer" onClick={() => deleteProject(item.id)}>
                         <i className="menu-icon tf-icons bx bx-trash text-danger" />
                         Delete
                       </li>
-                    </a>
+                    </span>
                     <a
                       className="duplicate"
                       data-id="419"
@@ -234,7 +280,7 @@ const Manage = () => {
             </div>
             <div className="my-2">
               <div className="row align-items-center">
-                <div className="col-md-6">
+                <div className="col-md-12">
                   <label
                     className="form-label"
                     htmlFor="statusSelect"
@@ -242,20 +288,14 @@ const Manage = () => {
                     Status
                   </label>
                   <div className="input-group">
-                    <select
+                    <div
                       className="form-select form-select-sm select-bg-label-info"
-                      data-id="419"
-                      data-original-color-class="select-bg-label-info"
-                      data-original-status-id="2"
-                      id="statusSelect"
+                      // data-original-color-class="select-bg-label-info"
+                      style={{textAlign:'center' , border:'none'}}
                     >
-                      <option
-                        className="badge bg-label-danger"
-                        value="0"
-                      >
-                        Default
-                      </option>
-                      <option
+                      {item.status}
+                     
+                      {/* <option
                         className="badge bg-label-primary"
                         value="1"
                       >
@@ -273,11 +313,14 @@ const Manage = () => {
                         value="59"
                       >
                         In Review
-                      </option>
-                    </select>
+                      </option> */}
+                    </div>
                   </div>
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-12">
+                  <p className='mt-2'>{item.projectDescription}</p>
+                </div>
+                {/* <div className="col-md-6">
                   <label
                     className="form-label"
                     htmlFor="prioritySelect"
@@ -300,10 +343,10 @@ const Manage = () => {
                       </option>
                     </select>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
-            <div className="my-4 d-flex justify-content-between">
+            {/* <div className="my-4 d-flex justify-content-between">
               <span>
                 <i className="bx bx-task text-primary" />
                 {' '}
@@ -395,13 +438,18 @@ const Manage = () => {
                 <i className="bx bx-calendar text-danger" />
                 Ends At : June 30, 2024
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
+      
+        )
+      })}
      
     </div>
+   
   </div>
+    </>
   )
 }
 

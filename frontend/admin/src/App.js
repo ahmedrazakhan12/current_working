@@ -23,6 +23,8 @@ import NotFound from './pages/Notfound';  // Import the NotFound component
 import axios from 'axios';
 import ChangeUserPass from './pages/users/ChangeUserPass';
 import General from './pages/setting/General';
+import Addproject from './pages/project/Addproject';
+import EditPrject from './pages/project/EditProject';
 
 function App() {
   const { isMenuExpanded } = useAppContext();
@@ -59,6 +61,8 @@ function App() {
                   <Route path="/manage" element={<Protected Component={Manage} />} />
                   <Route path="/tag" element={<Protected Component={Tag} />} />
                   <Route path="/tasks" element={<Protected Component={Tasks} />} />
+                  <Route path="/addProject" element={<Protected Component={Addproject} />} />
+                  <Route path="/editProject/:id" element={<Protected Component={EditPrject} />} />
                   <Route path="/meeting" element={<Protected Component={Meeting} />} />
                   <Route path="/users" element={<Protected Component={Users} />} />
                   <Route path="/clients" element={<Protected Component={Clients} />} />

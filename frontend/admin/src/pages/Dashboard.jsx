@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const [project , setProject] = useState([])
   const [users , setUsers] = useState([])
 
+
+ 
   useEffect(() => {
     axios.get('http://localhost:5000/project/getAllProject')
     .then((res) => {
@@ -30,7 +32,7 @@ const Dashboard = () => {
   return (
     <>
     
-    <Navbar />
+     
     <div className="content-wrapper">
         <div className="container-fluid">
           <div className="col-lg-12 col-md-12 order-1">

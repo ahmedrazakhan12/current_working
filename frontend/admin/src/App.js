@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
@@ -25,6 +25,9 @@ import ChangeUserPass from './pages/users/ChangeUserPass';
 import General from './pages/setting/General';
 import Addproject from './pages/project/Addproject';
 import EditPrject from './pages/project/EditProject';
+import ChangePass from './pages/setting/ChangePass';
+import Addstatus from './pages/setting/status/Addstatus';
+import Viewstatus from './pages/setting/status/Viewstatus';
 
 function App() {
   const { isMenuExpanded } = useAppContext();
@@ -34,17 +37,21 @@ function App() {
   const [data, setData] = useState([]);
   const activeId = localStorage.getItem("id");
 
+
   useEffect(() => {
-    axios.get(`http://localhost:5000/admin/adminInfo/`, {
-      headers: { Authorization: `${activeId}` }
-    })
-    .then((res) => {
-      setData(res.data);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+     
+      axios.get(`http://localhost:5000/admin/adminInfo/`, {
+        headers: { Authorization: `${activeId}` }
+      })
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    
   }, [activeId]);
+
 
   return (
     <Router>
@@ -53,6 +60,7 @@ function App() {
           <div className="layout-container">
              <Sidebar />
             <div className="layout-page">
+              <Navbar />
               <div className="content-wrapper">
                 <Routes>
                   <Route path="/" element={<Protected Component={Dashboard} />} />
@@ -67,6 +75,9 @@ function App() {
                   <Route path="/users" element={<Protected Component={Users} />} />
                   <Route path="/clients" element={<Protected Component={Clients} />} />
                   <Route path="/general" element={<Protected Component={General} />} />
+                  <Route path="/changePassword" element={<Protected Component={ChangePass} />} />
+                  <Route path="/addStatus" element={<Protected Component={Addstatus} />} />
+                  <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />
@@ -148,7 +159,7 @@ export default App;
 //         <div className="layout-container">
 //         {shouldRenderLayout && <Sidebar />}
 //           <div className="layout-page">
-//           {shouldRenderLayout && <Navbar />}
+//           {shouldRenderLayout &&  }
 //             <div className="content-wrapper">
 //               <Routes>
 //                  <Route path="/" element={<Protected Component={Dashboard} />} />

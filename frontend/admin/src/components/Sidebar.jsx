@@ -76,7 +76,7 @@ const Sidebar = () => {
               onClick={() => setIsOpen(!isOpen)}
             >
               <i className="menu-icon tf-icons bx bx-briefcase-alt-2 text-success" />
-              <div>Projects</div>
+              <div className="cursor-pointer">Projects</div>
             </span>
             <ul className="menu-sub">
               <li
@@ -144,7 +144,7 @@ const Sidebar = () => {
                   onClick={() => setIsOpen1(!isOpen1)}
                 >
                   <i className="menu-icon tf-icons bx bx-group text-primary" />
-                  <div>Users</div>
+                  <div className="cursor-pointer">Users</div>
                 </span>
                 <ul className="menu-sub">
                   <li
@@ -301,7 +301,7 @@ const Sidebar = () => {
               className="menu-link menu-toggle"
               onClick={() => setIsOpen2(!isOpen2)}
             >
-              <i className="menu-icon tf-icons bx bx-box text-success" />
+              <i className="bx bx-cog me-3 text-success" />
               <div>Setting</div>
             </span>
             <ul className="menu-sub">

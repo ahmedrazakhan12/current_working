@@ -25,8 +25,42 @@ const validateStatus = (status) => {
   }
 };
 
+
+
+
+const validatePriority = (priority) => {
+  if (!priority) {
+    return "Priority is required.";
+  }
+ 
+};
+
+const validateBudget = (budget) => {
+  if (budget === undefined || budget === null || budget === "" || !budget) {
+    return "Budget is required.";
+  }
+  if (isNaN(budget) || budget < 0) {
+    return "Budget must be a non-negative number.";
+  }
+};
+
+const validateDate = (date) => {
+  if (!date) {
+    return "Date is required.";
+  }
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate)) {
+    return "Invalid date format.";
+  }
+  return null; // If valid
+};
+
+
 module.exports = {
   validateStatus,
   validateTitle,
   validateDescription,
+  validatePriority,
+  validateBudget,
+  validateDate,
 };

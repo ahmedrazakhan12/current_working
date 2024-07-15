@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar'
 const Meeting = () => {
   return (
     <>
-    <Navbar />
+     
     <div className="container-fluid">
   <div className="d-flex justify-content-between mb-2 mt-4">
     <div>

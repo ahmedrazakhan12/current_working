@@ -29,7 +29,7 @@ const Userview = () => {
   
   return (
         <>
-          <Navbar />
+           
     <div className="container-fluid">
 
     <div className="d-flex justify-content-between mb-2 mt-4">

@@ -90,217 +90,239 @@ const Manageusers = () => {
     });
   };
 
-
   return (
     <>
-          <Navbar />
-
-      <div className="container">
-        <div
-        style={{borderRadius:'6px'}}
-          className="card-body p-3  bg-white mt-4 shadow blur border-radius-lg"
-          
-        >
-            
-            <div className="table-responsive p-2"  >
+       <div className="container-fluid">
+       <div className="row">
+          <div className="col-lg-12 col-md-12 col-sm-12 col-12">
             <div
-            
-              className="pt-2 pb-2"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-              }}
+              style={{ borderRadius: "6px" }}
+              className="card-body p-3  bg-white mt-4 shadow blur border-radius-lg"
             >
-             
-              <div class="searchbar">
-    <div class="searchbar-wrapper">
-        <div class="searchbar-left">
-            <div class="search-icon-wrapper">
-                <span class="search-icon searchbar-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z">
-                        </path>
-                    </svg>
-                </span>
-            </div>
-        </div>
-
-        <div class="searchbar-center">
-            <div class="searchbar-input-spacer"></div>
-
-            <input type="text" class="searchbar-input" onChange={handleSearchChange} maxlength="2048" name="q" autocapitalize="off" autocomplete="off" title="Search" role="combobox" placeholder="Search user" />
-        </div>
-
-    </div>
-</div>
-
-            </div>
-
-            <table
-                id="table"
-                className="table table-bordered "
-              >
-                <thead>
-                  <tr>
-                   
-                    <th style={{}} data-field="id">
-                      <div className="th-inner sortable both">ID</div>
-                      <div className="fht-cell" />
-                    </th>
-                    <th style={{}} data-field="profile">
-                      <div className="th-inner ">Users</div>
-                      <div className="fht-cell" />
-                    </th>
-                    <th style={{textAlign:"center"}} data-field="role">
-                      <div className="th-inner ">Role</div>
-                      <div className="fht-cell" />
-                    </th>
-                    <th style={{textAlign:"center"}} data-field="phone">
-                      <div className="th-inner sortable both desc">
-                        Phone Number
+              <div className="table-responsive p-2">
+                <div
+                  className="pt-2 pb-2"
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div class="searchbar">
+                    <div class="searchbar-wrapper">
+                      <div class="searchbar-left">
+                        <div class="search-icon-wrapper">
+                          <span class="search-icon searchbar-icon">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                            </svg>
+                          </span>
+                        </div>
                       </div>
-                      <div className="fht-cell" />
-                    </th>
-                    <th style={{textAlign:"center"}} data-field="assigned">
-                      <div className="th-inner ">Assigned</div>
-                      <div className="fht-cell" />
-                    </th>
-                    <th style={{textAlign:"center"}} data-field="actions">
-                      <div className="th-inner ">Actions</div>
-                      <div className="fht-cell" />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                {currentItems.map((item, index) => (
-                  <tr key={index} >
-                    
-                    <td>{index + 1}</td>
-                    <td>
-                      <div className="d-flex mt-2">
-                        <div
-                          className="avatar avatar-md pull-up"
-                          title="Admin Infinitie"
-                        >
-                          <Link to={`/Userview/${item.id}`}>
-                            <img
-                              src={item.pfpImage}
-                              alt="Avatar"
-                              style={{ objectFit: "cover"  , borderRadius:'5px'}}
-                            />
+
+                      <div class="searchbar-center">
+                        <div class="searchbar-input-spacer"></div>
+
+                        <input
+                          type="text"
+                          class="searchbar-input"
+                          onChange={handleSearchChange}
+                          maxlength="2048"
+                          name="q"
+                          autocapitalize="off"
+                          autocomplete="off"
+                          title="Search"
+                          role="combobox"
+                          placeholder="Search user"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <table id="table" className="table table-bordered ">
+                  <thead>
+                    <tr>
+                      <th style={{}} data-field="id">
+                        <div className="th-inner sortable both">ID</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{}} data-field="profile">
+                        <div className="th-inner ">Users</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{ textAlign: "center" }} data-field="role">
+                        <div className="th-inner ">Role</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{ textAlign: "center" }} data-field="phone">
+                        <div className="th-inner sortable both desc">
+                          Phone Number
+                        </div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{ textAlign: "center" }} data-field="assigned">
+                        <div className="th-inner ">Assigned</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{ textAlign: "center" }} data-field="actions">
+                        <div className="th-inner ">Actions</div>
+                        <div className="fht-cell" />
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((item, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>
+                          <div className="d-flex mt-2">
+                            <div
+                              className="avatar avatar-md pull-up"
+                              title="Admin Infinitie"
+                            >
+                              <Link to={`/Userview/${item.id}`}>
+                                <img
+                                  src={item.pfpImage}
+                                  alt="Avatar"
+                                  style={{
+                                    objectFit: "cover",
+                                    borderRadius: "5px",
+                                  }}
+                                />
+                              </Link>
+                            </div>
+                            <div className="mx-2">
+                              <h6 className="mb-1 text-capitalize">
+                                {item.name}{" "}
+                                {/* <span className="badge bg-success">Active</span> */}
+                              </h6>
+                              <p
+                                className="text-muted  "
+                                style={{ fontSize: "14px", marginTop: "-4px" }}
+                              >
+                                {item.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <span
+                            className={
+                              item.role === "super-admin"
+                                ? "badge bg-success me-1"
+                                : "badge bg-primary me-1"
+                            }
+                            style={{ fontSize: "12px", textAlign: "center" }}
+                          >
+                            {item.role}
+                          </span>
+                        </td>
+                        <td className="align-middle text-center text-sm">
+                          <p
+                            className="text-xs font-weight-bold mb-0"
+                            style={{ fontSize: "15px" }}
+                          >
+                            +{item.contact}
+                          </p>
+                        </td>
+                        <td>
+                          <div className="d-flex " style={{ textAlign: "center" }}>
+                            <div className="mx-4" style={{ textAlign: "center" }}>
+                              <span
+                                className="badge rounded-pill bg-primary"
+                                style={{ fontSize: "12px" }}
+                              >
+                                216
+                              </span>
+
+                              <div style={{ fontSize: "12px" }}>Projects</div>
+                            </div>
+                            <div>
+                              <span
+                                className="badge rounded-pill bg-primary"
+                                style={{ fontSize: "12px" }}
+                              >
+                                355
+                              </span>
+
+                              <div style={{ fontSize: "12px" }}>Tasks</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <Link to={`/editusers/${item.id}`}>
+                            <i className="bx bx-edit mx-2" />
                           </Link>
-                        </div>
-                        <div className="mx-2">
-                          <h6 className="mb-1 text-capitalize">
-                            {item.name}{" "}
-                            {/* <span className="badge bg-success">Active</span> */}
-                          </h6>
-                          <p className="text-muted  " style={{fontSize:'14px' , marginTop:'-4px'}}>{item.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{textAlign:'center'}}>
-                      <span className={item.role === "super-admin" ? "badge bg-success me-1" : "badge bg-primary me-1"} style={{fontSize:'12px' , textAlign:'center'}}>
-                        {item.role}
-                      </span>
-                    </td>
-                    <td className="align-middle text-center text-sm">
-                        <p className="text-xs font-weight-bold mb-0"  style={{fontSize:'15px'}}>
-                          +{item.contact}
-                        </p>
-                    </td> 
-                    <td >
-                      <div className="d-flex " style={{textAlign:"center"}} >
-                        <div className="mx-4" style={{textAlign:"center"}} >
-                    
-                            <span className="badge rounded-pill bg-primary"  style={{fontSize:'12px'}}>
-                              216
-                            </span>
-                         
-                          <div  style={{fontSize:'12px'}}>Projects</div>
-                        </div>
-                        <div  >
-                       
-                            <span className="badge rounded-pill bg-primary"  style={{fontSize:'12px'}}>
-                              355
-                            </span>
-                          
-                          <div  style={{fontSize:'12px'}}>Tasks</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td  style={{textAlign:"center"}} >
-                      <Link
-                        to={`/editusers/${item.id}`}
-                      >
-                        <i className="bx bx-edit mx-2" />
-                      </Link>
 
-                      <Link
-                        to={`/changeUserpassword/${item.id}`}
-                      >
-                      <i className="bx bx-lock text-warning" />
-                      </Link>
+                          <Link to={`/changeUserpassword/${item.id}`}>
+                            <i className="bx bx-lock text-warning" />
+                          </Link>
 
+                          <button
+                            title="Delete"
+                            type="button"
+                            style={{
+                              border: "none",
+                              background: "none",
+                              margin: "0",
+                            }}
+                            onClick={() => handleUserDelete(item.id)}
+                          >
+                            <i className="bx bx-trash text-danger " />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
+              {/* Pagination */}
+              <Pagination className="mt-3 justify-content-center ">
+                <Pagination.Prev onClick={prevPage} disabled={currentPage === 1} />
 
-
-                      <button
-                        title="Delete"
-                        type="button"
-                        style={{ border: "none", background: "none" , margin:'0' }}
-                        onClick={()=>handleUserDelete(item.id)}
-                      >
-                        <i className="bx bx-trash text-danger " />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                </tbody>
-              </table>
+                {[...Array(Math.ceil(data.length / itemsPerPage)).keys()].map(
+                  (number) => {
+                    // Limit pagination items to maximum of 10
+                    if (
+                      number < currentPage + 5 &&
+                      number >= currentPage - 4 &&
+                      number + 1 <= Math.ceil(data.length / itemsPerPage)
+                    ) {
+                      return (
+                        <Pagination.Item
+                          key={number + 1}
+                          active={number + 1 === currentPage}
+                          onClick={() => paginate(number + 1)}
+                        >
+                          <span
+                            className={
+                              number === currentPage - 1
+                                ? " text-white text-xs font-weight-bold"
+                                : "text-dark text-xs font-weight-bold"
+                            }
+                          >
+                            {number + 1}
+                          </span>
+                        </Pagination.Item>
+                      );
+                    } else {
+                      return null;
+                    }
+                  }
+                )}
+                <Pagination.Next
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                />
+              </Pagination>
+            </div>
           </div>
-
-          {/* Pagination */}
-          <Pagination className="mt-3 justify-content-center ">
-            <Pagination.Prev onClick={prevPage} disabled={currentPage === 1} />
-
-            {[...Array(Math.ceil(data.length / itemsPerPage)).keys()].map(
-              (number) => {
-                // Limit pagination items to maximum of 10
-                if (
-                  number < currentPage + 5 &&
-                  number >= currentPage - 4 &&
-                  number + 1 <= Math.ceil(data.length / itemsPerPage)
-                ) {
-                  return (
-                    <Pagination.Item
-                      key={number + 1}
-                      active={number + 1 === currentPage}
-                      onClick={() => paginate(number + 1)}
-                    >
-                      <span
-                        className={
-                          number === currentPage - 1
-                            ? " text-white text-xs font-weight-bold"
-                            : "text-dark text-xs font-weight-bold"
-                        }
-                      >
-                        {number + 1}
-                      </span>
-                    </Pagination.Item>
-                  );
-                } else {
-                  return null;
-                }
-              }
-            )}
-            <Pagination.Next
-              onClick={nextPage}
-              disabled={currentPage === totalPages}
-            />
-          </Pagination>
-        </div>
       </div>
+       </div>
     </>
   );
 };

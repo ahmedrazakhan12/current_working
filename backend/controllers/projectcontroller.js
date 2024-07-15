@@ -5,17 +5,25 @@ const {
   validateTitle,
   validateDescription,
   validateStatus,
-} = require("../middlewares/Projectvalidation");
+  validatePriority,
+  validateBudget,
+  validateDate,
 
+} = require("../middlewares/Projectvalidation");
 exports.addProject = async (req, res) => {
   try {
-    const { projectName, projectDescription, status } = req.body;
-    console.log(projectName, projectDescription, status);
+    const { projectName, projectDescription, status, priority, budget, startAt, endAt,  tag, note, username, activeId } = req.body; // Make sure username is included
+    console.log(projectName, projectDescription, status, priority, budget, startAt, endAt,  tag, note, username, activeId );
 
     const error =
       validateTitle(projectName) ||
       validateDescription(projectDescription) ||
-      validateStatus(status);
+      validateStatus(status) ||
+      validatePriority(priority) ||
+      validateBudget(budget) ||
+      validateDate(startAt) ||
+      validateDate(endAt) ||
+      validateDescription(note);
     if (error) {
       return res.status(400).json({
         status: 400,
@@ -28,13 +36,56 @@ exports.addProject = async (req, res) => {
       projectName: projectName,
       projectDescription: projectDescription,
       status: status,
+      priority: priority,
+      budget: budget,
+      startAt: startAt,
+      endAt: endAt,
+      note: note,
     });
+
+    // Emit the project addition event to all connected clients
+    const notification = { username, projectName  ,activeId};
+    req.io.emit('projectAdded', notification);
+
+    // Log the notification
+    console.log('Notification sent:', notification);
+
     res.status(200).send("Project successfully added.");
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
   }
 };
+
+
+// exports.addProject = async (req, res) => {
+//   try {
+//     const { projectName, projectDescription, status } = req.body;
+//     console.log(projectName, projectDescription, status);
+
+//     const error =
+//       validateTitle(projectName) ||
+//       validateDescription(projectDescription) ||
+//       validateStatus(status);
+//     if (error) {
+//       return res.status(400).json({
+//         status: 400,
+//         data: null,
+//         message: error,
+//       });
+//     }
+
+//     await projectModel.create({
+//       projectName: projectName,
+//       projectDescription: projectDescription,
+//       status: status,
+//     });
+//     res.status(200).send("Project successfully added.");
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// };
 
 // Update Project
 exports.updateProject = async (req, res) => {

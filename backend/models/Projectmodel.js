@@ -22,6 +22,26 @@ const projectModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    priority: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    budget: {
+      type: DataTypes.FLOAT, // Change to INTEGER if you prefer whole numbers
+      allowNull: true,
+    },
+    startAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    endAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
   },
   {
     // Additional model options can be defined here

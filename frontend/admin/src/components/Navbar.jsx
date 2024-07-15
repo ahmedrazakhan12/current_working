@@ -2,37 +2,77 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 const Navbar = () => {
   const { setIsMenuExpanded, isMenuExpanded } = useAppContext();
-  const [data , setData] = useState([]);
+  const [data, setData] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
   const activeId = localStorage.getItem("id");
 
-  
   useEffect(() => {
-    axios.get(`http://localhost:5000/admin/adminInfo/`, {
-        headers: { Authorization: `${activeId}` }
-    })
-    .then((res) => {
-        setData(res.data);
-    })
-    .catch((err) => {
-        console.log(err);
+    if (!activeId) {
+      navigate("/login"); // Redirect to login
+    } else {
+      axios
+        .get(`http://localhost:5000/admin/adminInfo/`, {
+          headers: { Authorization: `${activeId}` },
+        })
+        .then((res) => {
+          setData(res.data);
+        })
+        .catch((err) => {
+          console.error(err);
+          if (err.response && err.response.status === 404) {
+            navigate("/login"); // Redirect to login on 404
+          }
+        });
+    }
+
+    const socket = io("http://localhost:5000");
+
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server");
     });
-}, [activeId]);
 
+    socket.on("projectAdded", (notification) => {
+      if (notification.activeId !== activeId) {
+        setNotifications((prevNotifications) => [
+          notification,
+          ...prevNotifications,
+        ]);
+      }
+      console.log("Notification received:", notification);
 
+      // Check if browser supports notifications
+      if ("Notification" in window && notification.activeId !== activeId) {
+        // Request permission to show notifications
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            // Show notification
+            new Notification("New Project Added", {
+              body: `${notification.username} added a new project: ${notification.projectName}`,
+            });
+          }
+        });
+      }
+    });
 
+    return () => {
+      socket.disconnect();
+    };
+  }, [activeId]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+
   return (
     <>
       {/* Navbar */}
-      <div id="section-not-to-print" style={{zIndex:'2'}}>
+      <div id="section-not-to-print" style={{ zIndex: "10" }}>
         <nav
           className="layout-navbar container-fluid navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
           id="layout-navbar"
@@ -64,9 +104,11 @@ const Navbar = () => {
                   <i className="bx bx-bell bx-sm" />
                   <span
                     id="unreadNotificationsCount"
-                    className="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger d-none"
+                    className={`badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ${
+                      notifications.length === 0 ? "d-none" : ""
+                    }`}
                   >
-                    0
+                    {notifications.length}
                   </span>
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
@@ -78,13 +120,40 @@ const Navbar = () => {
                     <div className="dropdown-divider" />
                   </li>
                   <div id="unreadNotificationsContainer">
-                    <li className="p-5 d-flex align-items-center justify-content-center">
-                      <span>No Unread Notifications!</span>
-                    </li>
-                    <li>
-                      <div className="dropdown-divider" />
-                    </li>
+                    {notifications.length === 0 ? (
+                      <li className="p-5 d-flex align-items-center justify-content-center">
+                        <span>No Unread Notifications!</span>
+                      </li>
+                    ) : (
+                      notifications.map((notification, index) => (
+                        <>
+                          <li key={index} className="p-3  ">
+                            <span>
+                              <b className="text-capitalize">
+                                {index + 1}. {notification.username}
+                              </b>{" "}
+                              added a new project:{" "}
+                              <b className="text-capitalize">
+                                {notification.projectName}
+                              </b>
+                            </span>
+                          </li>
+                          <div className="dropdown-divider" />
+                        </>
+                      ))
+                    )}
+                    <li>{/* <div className="dropdown-divider" /> */}</li>
                   </div>
+                {/* {notifications.length === 0 && (
+                   <>
+                    <li>
+                    <div className="dropdown-divider" />
+  
+                    </li>
+                    </>
+                )} */}
+                  {notifications.length > 0 && (
+                   <>
                   <li className="d-flex justify-content-between">
                     <a href="/notifications" className="p-3">
                       <b>View All</b>
@@ -93,17 +162,22 @@ const Navbar = () => {
                       href="#"
                       className="p-3 text-end"
                       id="mark-all-notifications-as-read"
+                      onClick={() => setNotifications([])}
                     >
                       <b>Mark All as Read</b>
                     </a>
                   </li>
+                   </>
+                  )}
                 </ul>
               </li>
 
               <li className="nav-item navbar-dropdown dropdown mt-3 mx-2">
                 <p className="nav-item">
                   <span className="nav-mobile-hidden">Hi👋</span>
-                  <span className="nav-mobile-hidden text-capitalize">{data.name}</span>
+                  <span className="nav-mobile-hidden text-capitalize">
+                    {data.name}
+                  </span>
                 </p>
               </li>
               {/* User */}
@@ -118,11 +192,11 @@ const Navbar = () => {
                       src={data.pfpImage}
                       alt=""
                       className=" rounded-circle"
-                      style={{ objectFit: "cover"  }}
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
                 </a>
-                <ul className="dropdown-menu dropdown-menu-end"sty >
+                <ul className="dropdown-menu dropdown-menu-end">
                   <li>
                     <a className="dropdown-item" href="#">
                       <div className="d-flex">
@@ -132,16 +206,16 @@ const Navbar = () => {
                               src={data.pfpImage}
                               alt=""
                               className="  rounded-circle"
-                              style={{ objectFit: "cover"  }}
+                              style={{ objectFit: "cover" }}
                             />
                           </div>
                         </div>
                         <div className="flex-grow-1">
                           <span className="fw-semibold d-block text-capitalize">
-                          {data.name}
+                            {data.name}
                           </span>
                           <small className="text-muted m-0 p-0">
-                          {data.email}
+                            {data.email}
                           </small>
                         </div>
                       </div>
@@ -151,7 +225,7 @@ const Navbar = () => {
                     <div className="dropdown-divider" />
                   </li>
                   <li>
-                    <Link to={"/profile"} className="dropdown-item" >
+                    <Link to={"/profile"} className="dropdown-item">
                       <i className="bx bx-user me-2" />
                       <span className="align-middle">My Profile</span>
                     </Link>

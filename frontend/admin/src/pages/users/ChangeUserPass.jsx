@@ -62,7 +62,7 @@ const ChangeUserPass = () => {
 
   return (
     <>
-      <Navbar />
+       
       <div className="container-fluid">
         <div className="d-flex justify-content-between mb-2 mt-4">
           <div>
@@ -133,8 +133,8 @@ const ChangeUserPass = () => {
                       </button>
                       <button
                         className="btn btn-secondary float-end me-2 "
-                        type="button"
-                        onClick={() => navigate("/manageUsers")}
+                        type=""
+                        onClick={() => navigate("/")}
                       >
                         Cancel
                       </button>

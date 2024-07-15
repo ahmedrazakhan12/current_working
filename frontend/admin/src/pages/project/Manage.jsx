@@ -3,78 +3,69 @@ import {Link, useNavigate} from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-const Manage = () => {
-  const navigate = useNavigate();
-  const [data ,setData]= useState([]);
+import { Pagination } from "react-bootstrap";
+
+const Manage = () => { const navigate = useNavigate();
+  const [data, setData] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
-
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     axios.get('http://localhost:5000/project/getAllProject')
-    .then((res) => {
-      setData(res.data);
-      console.log(res.data);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
   const deleteProject = (id) => {
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      axios
-        .delete(`http://localhost:5000/project/deleteProject/${id}`)
-        .then((res) => {
-          console.log(res.data);
-          Swal.fire(
-            'Deleted!',
-            'Your file has been deleted.',
-            'success'
-          )
-          window.location.reload(); 
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  })
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`http://localhost:5000/project/deleteProject/${id}`)
+          .then(() => {
+            Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
+            setData(prevData => prevData.filter(item => item.id !== id));
+          })
+          .catch(err => console.log(err));
+      }
+    });
   };
-
-
 
   const handleStatusChange = (e) => {
     setStatusFilter(e.target.value);
+    setCurrentPage(1); // Reset to the first page on filter change
   };
 
   const filteredData = statusFilter
     ? data.filter(item => item.status === statusFilter)
     : data;
 
-
-
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <>
-    <Navbar />
+     
     <div className="container-fluid">
     <div className="d-flex justify-content-between mb-2 mt-4">
       <div>
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb breadcrumb-style1">
             <li className="breadcrumb-item">
-              <a href="home">
-                Home
-              </a>
+                <Link to={'/'}>
+              Dashboard
+              </Link>
+             
             </li>
             <li className="breadcrumb-item">
               <a href="projects">
@@ -104,7 +95,7 @@ const Manage = () => {
         id="status_filter"
         onChange={handleStatusChange}
       >
-        <option value="">Filter by Status</option>
+        <option value="">All</option>
         <option value="started">Started</option>
         <option value="ongoing">On Going</option>
         <option value="inreview">In Review</option>
@@ -183,7 +174,7 @@ const Manage = () => {
       </div>
     </div>
     <div className="mt-4 d-flex row">
-      {filteredData.map((item ,index)=>{
+      {currentItems.map((item ,index)=>{
         return(
           <div className="col-md-6">
         <div className="card mb-3">
@@ -452,12 +443,29 @@ const Manage = () => {
               </div>
             </div> */}
           </div>
+
+
         </div>
       </div>
       
         )
       })}
      
+
+     {/* Pagination */}
+     <Pagination className="mt-3 justify-content-center">
+          <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} />
+          {[...Array(totalPages).keys()].map(number => (
+            <Pagination.Item
+              key={number + 1}
+              active={number + 1 === currentPage}
+              onClick={() => setCurrentPage(number + 1)}
+            >
+              {number + 1}
+            </Pagination.Item>
+          ))}
+          <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} />
+        </Pagination>
     </div>
    
   </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const tag = () => {
   return (
@@ -10,9 +11,9 @@ const tag = () => {
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb breadcrumb-style1">
             <li className="breadcrumb-item">
-              <a href="../assets/home">
-                Home
-              </a>
+               <Link to={'/'}>
+              Dashboard
+              </Link>
             </li>
             <li className="breadcrumb-item">
               <a href="../assets/projects">

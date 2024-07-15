@@ -265,13 +265,14 @@ const validateCity = (city) => {
   }
 };
 
-
 const validateStatus = (status) => {
- 
   if (!status) {
     return "Role is required.";
   }
- 
+
+  if (/[A-Z]/.test(status)) {
+    return "Role must not contain capital letters.";
+  }
 };
 
 

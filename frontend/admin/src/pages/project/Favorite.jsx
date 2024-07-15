@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { Link } from 'react-router-dom'
 const Pages = () => {
   return (
     <div className="container-fluid">
@@ -8,9 +8,9 @@ const Pages = () => {
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb breadcrumb-style1">
             <li className="breadcrumb-item">
-              <a href="home">
-                Home
-              </a>
+                <Link to={'/'}>
+              Dashboard
+              </Link>
             </li>
             <li className="breadcrumb-item">
               <a href="projects">

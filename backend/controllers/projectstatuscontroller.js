@@ -10,7 +10,7 @@ const { validateStatus } = require("../middlewares/Validate");
 exports.addStatus = async (req, res) => {
   try {
     const { status, preview } = req.body;
-
+    console.log("Status:", status, "Preview:", preview);
     const statusError = validateStatus(status);
     const previewError = validateStatus(preview);
 

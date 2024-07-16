@@ -24,6 +24,27 @@ const validateStatus = (status) => {
     return "Status is required.";
   }
 };
+const validateUserId = (userIds) => {
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    return "User ID array is required.";
+  }
+
+  for (const userId of userIds) {
+    // Convert userId to a number
+    const userIdNumber = Number(userId);
+
+    if (isNaN(userIdNumber)) {
+      return `User ID "${userId}" must be a valid number.`;
+    }
+
+    // Check if it's an integer
+    if (!Number.isInteger(userIdNumber)) {
+      return `User ID "${userId}" must be an integer.`;
+    }
+  }
+
+  // Optional: Return the valid user IDs
+};
 
 
 
@@ -63,4 +84,5 @@ module.exports = {
   validatePriority,
   validateBudget,
   validateDate,
+  validateUserId,
 };

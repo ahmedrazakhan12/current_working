@@ -27,7 +27,8 @@ const handleChange = (e) => {
     else if(name === "preview"){
       setPreview(value)}
   };
-  const handleAddSubmit = () => {
+  const handleAddSubmit = (e) => {
+    e.preventDefault();
     axios.post(`http://localhost:5000/projectStatus/addStatus`, {
         status,
         preview

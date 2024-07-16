@@ -6,7 +6,7 @@ const { adminModel } = require("./Adminmodel");
 const {projectModel} = require("./Projectmodel");
 const {taskModel} = require("./Taskmodel");
 const  {projectStatusModel} = require("./Projectstatusmodel");
-
+const {projectUsersModel} = require("./Projectusersmodel");
 const db = {};
 
 // Initialize models
@@ -17,6 +17,7 @@ db.adminModel = adminModel;
 db.projectModel = projectModel;
 db.taskModel = taskModel;
 db.projectStatusModel = projectStatusModel;
+db.projectUsersModel = projectUsersModel;
 
 // Add other models to db object
 // db.userModel = userModel;

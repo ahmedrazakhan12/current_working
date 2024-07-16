@@ -20,13 +20,14 @@ const EditProject = () => {
   const [tag, setTag] = useState("");
   const [note, setNote] = useState("");
   const [username, setUsername] = useState(""); 
+  const [usersID ,  setUsersID] = useState([]);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   const activeId = localStorage.getItem("id");
 
-
-
+const [newUsers , setNewUsers] = useState([]);
+const [deleteUsers , setDeleteUsers] = useState([]);
   
 
 
@@ -35,7 +36,18 @@ const EditProject = () => {
     const fetchProject = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/project/getProject/${id}`);
-        const project = response.data;
+        
+        // Log the entire response to check its structure
+        console.log('API Response:', response.data);
+        
+        const project = response.data[0].project;
+        const users = response.data[0].users;
+    
+        // Log project and users for verification
+        console.log('Project:', project);
+        console.log('Users:', users);
+    
+        // Set project data
         setProjectName(project.projectName);
         setProjectDescription(project.projectDescription);
         setStatus(project.status);
@@ -43,17 +55,24 @@ const EditProject = () => {
         setBudget(project.budget);
         setStartAt(project.startAt);
         setEndAt(project.endAt);
-        setUsers(project.users);
         setTag(project.tag);
         setNote(project.note);
+    
+        // Set users array to get IDs
+        if (users) {
+          setNewUsers(users);
+          // const userIds = users.map(user => user.name); // Assuming users is an array of user objects
+          // setNewUsers(userIds);
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to fetch project details.");
       }
     };
+    
 
     fetchProject();
-  }, [id]);
+  }, [id ]);
 
   useEffect(() => {
     axios.get(`http://localhost:5000/admin/adminInfo/`, {
@@ -108,7 +127,7 @@ const EditProject = () => {
         setEndAt(value);
         break;
       case "users":
-        setUsers(value);
+        // setUsers(value);
         break;
       case "tag":
         setTag(value);
@@ -132,8 +151,9 @@ const EditProject = () => {
         budget,
         startAt,
         endAt,
-        users,
+        usersID,
         tag,
+        deleteUsers,
         note,
         username,
         activeId
@@ -153,6 +173,93 @@ const EditProject = () => {
       console.error(err);
     }
   };
+
+
+
+  
+
+
+  const [tags1, setTags1] = useState([]);
+  console.log("tags1: " , tags1);
+  const [tags, setTags] = useState([]);
+  console.log("newusers:  " , newUsers);
+  useEffect(() => {
+    if (Array.isArray(newUsers)) {
+        setTags(newUsers);
+    }
+}, [newUsers]);
+  // console.log("tags: " , tags);
+
+  const [inputValue, setInputValue] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  const max = 10 ;
+  const duplicate = false;
+  const addTag = (tag) => {
+    if (anyErrors(tag)) return;
+
+    setTags1((prevTags) => [...prevTags, tag]);
+    setInputValue('');
+    setSuggestions([]); // Clear suggestions after adding a tag
+};
+
+const deleteTag = (index , id) => {
+  setTags1((prevTags) => prevTags.filter((_, i) => i !== index));
+  setTags((prevTags) => prevTags.filter((_, i) => i !== index));
+  
+    // Remove corresponding user ID by the same index
+    setUsersID((prevIDs) => prevIDs.filter((_, i) => i !== index));
+    setDeleteUsers((prevDeleteIDs) => [...prevDeleteIDs, id]);
+};
+
+console.log("deleteTag: ", deleteUsers);
+const anyErrors = (tag) => {
+    if (max !== null && tags.length >= max) {
+        console.log('Max tags limit reached');
+        return true;
+    }
+    if (!duplicate && tags.includes(tag)) {
+        console.log(`Duplicate found: "${tag}"`);
+        return true;
+    }
+    return false;
+};
+
+const handleKeyDown = (e) => {
+    const trimmedValue = inputValue.trim();
+    if ([9, 13, 188].includes(e.keyCode) && trimmedValue) {
+        e.preventDefault();
+        // Only add the tag if it's in the suggestions
+        if (suggestions.some(suggestion => suggestion.name === trimmedValue)) {
+            addTag(trimmedValue);
+        } else {
+            console.log(`"${trimmedValue}" is not a valid selection.`);
+        }
+    }
+};
+
+const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+
+    if (e.target.value) {
+        axios.get(`http://localhost:5000/admin/search/${e.target.value}`)
+            .then((res) => {
+                setSuggestions(res.data); // Assuming res.data is an array of user objects
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    } else {
+        setSuggestions([]); // Clear suggestions if input is empty
+    }
+};
+
+const handleSuggestionClick = (tag) => {
+    addTag(tag.name); // Add the tag name
+    setUsersID((prevIDs) => [...prevIDs, tag.id]); // Append the user ID
+};
+
+
 
   return (
     <div className="container-fluid mt-3 mb-3">
@@ -200,10 +307,53 @@ const EditProject = () => {
               <label className="form-label" htmlFor="endAt">ENDS AT</label>
               <input className="form-control" type="date" name="endAt" value={endAt} onChange={handleChange} />
             </div>
-
             <div className="mb-3 col-12">
-              <label className="form-label" htmlFor="users">SELECT USERS</label>
-              <input className="form-control" type="text" name="users" value={users} onChange={handleChange} />
+              <label className="form-label" htmlFor="tag">SELECT Users</label>
+              <div className="tags-input-wrapper form-control" onClick={() => document.getElementById('tag-input').focus()}>
+             
+            
+            {tags.map((tag, index) => (
+                <span key={index} className="tag">
+                    {tag.name}
+                    <a onClick={() => deleteTag(index , tag.id)}>&times;</a> 
+
+                </span>
+            ))}
+            {tags1.map((tag, index) => (
+                <span key={index} className="tag">
+                    {tag}
+                    <a onClick={() => deleteTag(index )}>&times;</a> 
+
+                </span>
+             ))}
+            <input
+                id="tag-input"
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Type to search"
+            />
+            {suggestions.length > 0 && (
+                <ul className="suggestions-list">
+                    {suggestions.map((suggestion, index) => (
+                        <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
+                            {suggestion.name} {/* Change to the appropriate property */}
+                        </li>
+                        
+                    ))}
+                </ul>
+            )}
+             {suggestions.length === 0 && inputValue.length > 0 && (
+                <ul className="suggestions-list">
+                        <li>
+                            No User Found
+                        </li>
+                        
+                </ul>
+            )}
+        </div>
+
             </div>
             <div className="mb-3 col-12">
               <label className="form-label" htmlFor="tag">SELECT TAGS</label>

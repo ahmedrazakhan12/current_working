@@ -4,6 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import io from "socket.io-client";
+import '../../App.css';
+import TagsInput from "../../components/TagInputs";
 
 const socket = io("http://localhost:5000");
 
@@ -20,6 +22,8 @@ const Addproject = () => {
   const [note, setNote] = useState("");
   const [username, setUsername] = useState(""); 
   const [error, setError] = useState(false);
+const [usersID ,  setUsersID] = useState([]);
+  console.log("usersID: ", usersID);
   const navigate = useNavigate();
 
   const activeId = localStorage.getItem("id");
@@ -38,13 +42,13 @@ const Addproject = () => {
 
   useEffect(() => {
     socket.on('projectAdded', (data) => {
-      console.log(`New project added by ${data.username}: ${data.projectName}`);
-      Swal.fire({
-        title: 'New Project Added',
-        text: `User ${data.username} added a new project: ${data.projectName}`,
-        icon: 'info',
-        timer: 3000
-      });
+      // console.log(`New project added by ${data.username}: ${data.projectName}`);
+      // Swal.fire({
+      //   title: 'New Project Added',
+      //   text: `User ${data.username} added a new project: ${data.projectName}`,
+      //   icon: 'info',
+      //   timer: 3000
+      // });
     });
 
     return () => {
@@ -101,7 +105,7 @@ const Addproject = () => {
         budget,
         startAt,
         endAt,
-        users,
+        usersID,
         tag,
         note,
         username,
@@ -123,6 +127,88 @@ const Addproject = () => {
     }
   };
 
+
+
+
+
+
+
+
+
+
+
+  // INPUT TAGS
+
+
+  const [tags, setTags] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  const max = 10 ;
+  const duplicate = false;
+  const addTag = (tag) => {
+    if (anyErrors(tag)) return;
+
+    setTags((prevTags) => [...prevTags, tag]);
+    setInputValue('');
+    setSuggestions([]); // Clear suggestions after adding a tag
+};
+
+const deleteTag = (index) => {
+    setTags((prevTags) => prevTags.filter((_, i) => i !== index));
+
+    // Remove corresponding user ID by the same index
+    setUsersID((prevIDs) => prevIDs.filter((_, i) => i !== index));
+};
+
+const anyErrors = (tag) => {
+    if (max !== null && tags.length >= max) {
+        console.log('Max tags limit reached');
+        return true;
+    }
+    if (!duplicate && tags.includes(tag)) {
+        console.log(`Duplicate found: "${tag}"`);
+        return true;
+    }
+    return false;
+};
+
+const handleKeyDown = (e) => {
+    const trimmedValue = inputValue.trim();
+    if ([9, 13, 188].includes(e.keyCode) && trimmedValue) {
+        e.preventDefault();
+        // Only add the tag if it's in the suggestions
+        if (suggestions.some(suggestion => suggestion.name === trimmedValue)) {
+            addTag(trimmedValue);
+        } else {
+            console.log(`"${trimmedValue}" is not a valid selection.`);
+        }
+    }
+};
+
+const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+
+    if (e.target.value) {
+        axios.get(`http://localhost:5000/admin/search/${e.target.value}`)
+            .then((res) => {
+                setSuggestions(res.data); // Assuming res.data is an array of user objects
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    } else {
+        setSuggestions([]); // Clear suggestions if input is empty
+    }
+};
+
+const handleSuggestionClick = (tag) => {
+    addTag(tag.name); // Add the tag name
+    setUsersID((prevIDs) => [...prevIDs, tag.id]); // Append the user ID
+};
+
+
+  
   return (
     <div className="container-fluid mt-3 mb-3">
       <form className="form-submit-event modal-content" onSubmit={handleSubmit}>
@@ -144,7 +230,6 @@ const Addproject = () => {
                 <option value="inreview">In Review</option>
               </select>
             </div>
-
             <div className="mb-3 col-md-6">
               <label className="form-label" htmlFor="priority">PRIORITY</label>
               <select className="form-select text-capitalize" name="priority" onChange={handleChange}>
@@ -159,7 +244,6 @@ const Addproject = () => {
               <label className="form-label" htmlFor="budget">BUDGET</label>
               <input type="number" className="form-control" name="budget" onChange={handleChange} placeholder="Budget" />
             </div>
-
             <div className="mb-3 col-md-6">
               <label className="form-label" htmlFor="startAt">STARTS AT</label>
               <input className="form-control" type="date" name="startAt" onChange={handleChange} />
@@ -170,15 +254,49 @@ const Addproject = () => {
               <input className="form-control" type="date" name="endAt" onChange={handleChange} />
             </div>
 
+         
             <div className="mb-3 col-12">
-              <label className="form-label" htmlFor="users">SELECT USERS</label>
+              <label className="form-label" htmlFor="tag">SELECT Users</label>
+              <div className="tags-input-wrapper form-control" onClick={() => document.getElementById('tag-input').focus()}>
+            {tags.map((tag, index) => (
+                <span key={index} className="tag">
+                    {tag}
+                    <a onClick={() => deleteTag(index)}>&times;</a> 
+                </span>
+            ))}
+            <input
+                id="tag-input"
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Type to search"
+            />
+            {suggestions.length > 0 && (
+                <ul className="suggestions-list">
+                    {suggestions.map((suggestion, index) => (
+                        <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
+                            {suggestion.name} {/* Change to the appropriate property */}
+                        </li>
+                        
+                    ))}
+                </ul>
+            )}
+             {suggestions.length === 0 && inputValue.length > 0 && (
+                <ul className="suggestions-list">
+                        <li>
+                            No User Found
+                        </li>
+                        
+                </ul>
+            )}
+        </div>
+
+            </div>
+            <div className="mb-3 col-12">
+              <label className="form-label" htmlFor="users">SELECT TAGS</label>
               <input className="form-control" type="text" name="users" onChange={handleChange} />
             </div>
-            <div className="mb-3 col-12">
-              <label className="form-label" htmlFor="tag">SELECT TAGS</label>
-              <input className="form-control" type="text" name="tag" onChange={handleChange} />
-            </div>
-
             <div className="mb-3">
               <label className="form-label">Project Description</label>
               <textarea className="form-control" name="projectDescription" rows={3} onChange={handleChange} placeholder="Project Description" />

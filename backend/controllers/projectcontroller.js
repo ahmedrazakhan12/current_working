@@ -2,7 +2,8 @@ const db = require("../models/index");
 const projectModel = db.projectModel;
 const projectUsersModel = db.projectUsersModel;
 const adminModel = db.adminModel;
-
+const projectTagsModel = db.projectTagsModel;
+const projectStatusModel = db.projectStatusModel;
 const {
   validateTitle,
   validateDescription,
@@ -11,6 +12,7 @@ const {
   validateBudget,
   validateDate,
   validateUserId,
+  validateTags,
 
 } = require("../middlewares/Projectvalidation");
 
@@ -27,13 +29,16 @@ exports.projectData = async (req, res) => {
       startAt, 
       endAt, 
       usersID, 
-      tag, 
+      tags, 
       note, 
       username, 
       activeId 
     } = req.body;
 
-    console.log("usersID: ", usersID);
+    console.log("tags02: ", tags);
+    const tagsArray = tags.map(tag => tag.name);
+
+
 
     const error =
     validateTitle(projectName) ||
@@ -42,6 +47,7 @@ exports.projectData = async (req, res) => {
     validatePriority(priority) ||
     validateBudget(budget) ||
     validateDate(startAt) ||
+    validateTags(tagsArray) ||
     validateDate(endAt) ||
     validateDescription(note) ||
     validateUserId(usersID);
@@ -76,6 +82,15 @@ exports.projectData = async (req, res) => {
 
     await projectUsersModel.bulkCreate(projectUserEntries);
 
+
+    const projectTagsEntries = tags.map(tags => ({
+      projectId: latestId,
+      tagName: tags.name,
+      tagColor: tags.colorName,
+    }));
+
+    await projectTagsModel.bulkCreate(projectTagsEntries);
+
     // Emit the project addition event to all connected clients
     const notification = { username, projectName, activeId };
     req.io.emit('projectAdded', notification);
@@ -104,14 +119,18 @@ exports.editProjectData = async (req, res) => {
       startAt, 
       endAt, 
       usersID, 
-      tag, 
+      tags, 
       note, 
       username, 
       activeId ,
-      deleteUsers
+      deleteUsers,
+      deleteTags
     } = req.body;
 
-    console.log("deleteUsers: ", deleteUsers);
+    const tagsArray = tags.map(tag => tag.name);
+
+    console.log("tags: " ,tagsArray );
+    console.log("delete Tags: ", deleteTags);
 
     const error =
     validateTitle(projectName) ||
@@ -121,6 +140,7 @@ exports.editProjectData = async (req, res) => {
     validateBudget(budget) ||
     validateDate(startAt) ||
     validateDate(endAt) ||
+    validateTags(tagsArray) ||
     validateDescription(note);
     // validateUserId(usersID)
 
@@ -152,6 +172,8 @@ exports.editProjectData = async (req, res) => {
 
     const latestId = id;
 
+   
+   
     const projectUserEntries = usersID.map(userId => ({
       projectId: latestId,
       userId: userId,
@@ -159,18 +181,17 @@ exports.editProjectData = async (req, res) => {
   await Promise.all(
     projectUserEntries.map(async (entry) => {
         try {
-            const [updatedCount] = await projectUsersModel.update(
-                { projectId: entry.projectId },
-                { where: { userId: entry.userId } }
+            const [updatedCount] = await projectUsersModel.create(
+                entry
             );
 
-            if (updatedCount === 0) {
-                // Entry doesn't exist, create it
-                await projectUsersModel.create(entry);
-                console.log(`Created entry for userId: ${entry.userId}`);
-            } else {
-                console.log(`Updated entry for userId: ${entry.userId}`);
-            }
+            // if (updatedCount === 0) {
+            //     // Entry doesn't exist, create it
+            //     await projectUsersModel.create(entry);
+            //     console.log(`Created entry for userId: ${entry.userId}`);
+            // } else {
+            //     console.log(`Updated entry for userId: ${entry.userId}`);
+            // }
         } catch (error) {
             console.error(`Error processing userId ${entry.userId}:`, error);
         }
@@ -178,9 +199,52 @@ exports.editProjectData = async (req, res) => {
 );
   
 
+
+// console.log("tags02: ", tags);
+
+
+const projectTagsEntries = tags.map(tag => ({
+  projectId: latestId,
+  tagName: tag.name,
+  tagColor:tag.colorName,
+
+
+}));
+await Promise.all(
+projectTagsEntries.map(async (entry) => {
+    try {
+        const [updatedCount] = await projectTagsModel.update(
+            { projectId: entry.projectId },
+            { where: { tagName: entry.tagName , tagColor: entry.tagColor } }
+        );
+
+        if (updatedCount === 0) {
+            // Entry doesn't exist, create it
+            await projectTagsModel.create(entry);
+            console.log(`Created entry for userId: ${entry.tagName}`);
+        } else {
+            console.log(`Updated entry for userId: ${entry.tagName}`);
+        }
+    } catch (error) {
+        console.error(`Error processing userId ${entry.tagName}:`, error);
+    }
+})
+);
+
 if (Array.isArray(deleteUsers) && deleteUsers.length > 0) {
   await projectUsersModel.destroy({
-    where: { userId: deleteUsers }
+    where: {
+      userId: deleteUsers, // This matches any userId in the deleteUsers array
+      projectId: id // This matches the given projectId
+    }
+  });
+}
+
+
+
+if (Array.isArray(deleteTags) && deleteTags.length > 0) {
+  await projectTagsModel.destroy({
+    where: { id: deleteTags }
   });
 }
 
@@ -229,12 +293,28 @@ exports.deleteProject = async (req, res) => {
 exports.getAllProjects = async (req, res) => {
   try {
     const projects = await projectModel.findAll();
-    res.status(200).json(projects);
+    const users = await projectUsersModel.findAll();
+    const tags = await projectTagsModel.findAll();
+
+    const data = await Promise.all(projects.map(async (project) => {
+      const filteredUsersIds = users.filter(user => user.projectId === project.id);
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+      const filteredTags = tags.filter(tag => tag.projectId === project.id);
+
+      return {
+        project: project,
+        users: filteredUsers,
+        tags: filteredTags
+      };
+    }));
+
+    res.status(200).json(data);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
   }
 }
+
 
 
 exports.getProjectById = async (req, res) => {
@@ -267,6 +347,12 @@ exports.getProjectById = async (req, res) => {
         id: userIds,
       },
     });
+
+    const Tags = await projectTagsModel.findAll({ where: { projectId: id } });
+
+    const userTag = Tags.map(user => user); // Assuming userId is a property of each user
+      console.log(userTag);
+    
     
     // if (userData.length === 0) {
     //   return res.status(404).json({
@@ -279,6 +365,7 @@ exports.getProjectById = async (req, res) => {
     const data = [{
       project: project,
       users: userData,
+      tags : userTag
     }];
     
     

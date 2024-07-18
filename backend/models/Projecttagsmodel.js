@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const projectStatusModel = sequelize.define(
-  "project-status",
+const projectTagsModel = sequelize.define(
+  "project-tags",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -11,17 +11,17 @@ const projectStatusModel = sequelize.define(
       primaryKey: true,
     },
 
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    tagName: {
+        type: DataTypes.CHAR,
+        allowNull: false,
     },
-    preview: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    tagColor: {
+        type: DataTypes.CHAR,
+        allowNull: false,
     },
-    statusName: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    projectId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
     },
   },
   {
@@ -30,5 +30,5 @@ const projectStatusModel = sequelize.define(
 );
 
 module.exports = {
-  projectStatusModel,
+  projectTagsModel,
 };

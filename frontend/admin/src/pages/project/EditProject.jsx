@@ -4,6 +4,10 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import io from "socket.io-client";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
+
 
 const socket = io("http://localhost:5000");
 
@@ -26,9 +30,40 @@ const EditProject = () => {
 
   const activeId = localStorage.getItem("id");
 
-const [newUsers , setNewUsers] = useState([]);
-const [deleteUsers , setDeleteUsers] = useState([]);
-  
+  const [newUsers , setNewUsers] = useState([]);
+  const [deleteUsers , setDeleteUsers] = useState([]);
+  const [deleteTags , setDeleteTags] = useState([]);
+    
+  const [dbTags , setDbTags] = useState([]);
+  const [tags02, setTags02] = useState([]);
+  const [inputValue02, setInputValue02] = useState('');
+  const [suggestions02, setSuggestions02] = useState([]);
+  const predefinedTags = ["Web Development", "E-commerce", "Social Networking", "Content Management", "Project Management", "Learning and Education", "Booking and Reservation"];
+  const [content, setContent] = useState('');
+  const [dbStatus , setDbStatus] = useState([]);
+  const [dbPriorities , setDbPriorities] = useState([]);
+
+
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/projectPriority/getAllPriorities`)
+    .then((res) => {
+      setDbPriorities(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/projectStatus/getAllStatus`)
+    .then((res) => {
+      setDbStatus(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
 
 
   // Fetch project details on component mount
@@ -42,10 +77,11 @@ const [deleteUsers , setDeleteUsers] = useState([]);
         
         const project = response.data[0].project;
         const users = response.data[0].users;
+        const tags = response.data[0].tags;
     
         // Log project and users for verification
-        console.log('Project:', project);
-        console.log('Users:', users);
+        // console.log('Project:', project);
+        // console.log('Users:', users);
     
         // Set project data
         setProjectName(project.projectName);
@@ -57,12 +93,16 @@ const [deleteUsers , setDeleteUsers] = useState([]);
         setEndAt(project.endAt);
         setTag(project.tag);
         setNote(project.note);
-    
+        setContent(project.projectDescription);
         // Set users array to get IDs
         if (users) {
           setNewUsers(users);
           // const userIds = users.map(user => user.name); // Assuming users is an array of user objects
           // setNewUsers(userIds);
+        }
+
+        if (tags) {
+          setDbTags(tags);
         }
       } catch (err) {
         console.error(err);
@@ -140,41 +180,6 @@ const [deleteUsers , setDeleteUsers] = useState([]);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`http://localhost:5000/project/editProject/${id}`, {
-        projectName,
-        projectDescription,
-        status,
-        priority,
-        budget,
-        startAt,
-        endAt,
-        usersID,
-        tag,
-        deleteUsers,
-        note,
-        username,
-        activeId
-      });
-      navigate("/manage");
-      Swal.fire({
-        position: 'top-end',
-        title: 'Project Edited Successfully',
-        showConfirmButton: false,
-        customClass: {
-          popup: 'custom-swal'
-        },
-        timer: 1500
-      });
-    } catch (err) {
-      setError(err.response?.data?.message || "An error occurred while updating the project.");
-      console.error(err);
-    }
-  };
-
-
 
   
 
@@ -210,9 +215,10 @@ const deleteTag = (index , id) => {
     // Remove corresponding user ID by the same index
     setUsersID((prevIDs) => prevIDs.filter((_, i) => i !== index));
     setDeleteUsers((prevDeleteIDs) => [...prevDeleteIDs, id]);
+
 };
 
-console.log("deleteTag: ", deleteUsers);
+console.log("deleteTag: ", deleteTags);
 const anyErrors = (tag) => {
     if (max !== null && tags.length >= max) {
         console.log('Max tags limit reached');
@@ -259,6 +265,107 @@ const handleSuggestionClick = (tag) => {
     setUsersID((prevIDs) => [...prevIDs, tag.id]); // Append the user ID
 };
 
+const addTag02 = (tagName) => {
+  if (anyErrors02(tagName)) return;
+  const colorIndex = getRandomColorIndex();
+  const tagObject = {
+    name: tagName,
+    colorIndex: colorIndex,
+    colorName: backgroundColor[colorIndex], // Add the color name here
+  };
+  setTags02((prevTags) => [...prevTags, tagObject]);
+  setInputValue02('');
+  setSuggestions02([]);
+};
+
+
+
+const deleteTag02 = (index , id) => {
+  setTags02((prevTags) => prevTags.filter((_, i) => i !== index));
+  setDeleteTags((prevDeleteIDs) => [...prevDeleteIDs, id]);
+  setDbTags((prevIDs) => prevIDs.filter((_, i) => i !== index));
+
+};
+
+const anyErrors02 = (tag) => {
+  // Add error handling logic if needed
+  return false;
+};
+
+const handleInputChange02 = (e) => {
+  setInputValue02(e.target.value);
+  // Implement logic to filter suggestions based on user input
+  const filteredSuggestions = predefinedTags.filter(tag =>
+    tag.toLowerCase().includes(e.target.value.toLowerCase())
+  );
+  setSuggestions02(filteredSuggestions);
+};
+
+const handleSuggestionClick02 = (tag) => {
+  addTag02(tag);
+};
+
+const handleKeyDown02 = (e) => {
+  const trimmedValue = inputValue02.trim();
+  if ([9, 13, 188].includes(e.keyCode) && trimmedValue) {
+    e.preventDefault();
+    addTag02(trimmedValue);
+  }
+};
+
+const [backgroundColor] = useState([
+  'bg-primary',
+  'bg-secondary',
+  'bg-success',
+  'bg-danger',
+  'bg-warning',
+  'bg-info',
+  'bg-dark',
+]);
+const getRandomColorIndex = () => {
+  return Math.floor(Math.random() * backgroundColor.length);
+};
+
+
+
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await axios.put(`http://localhost:5000/project/editProject/${id}`, {
+      projectName,
+      projectDescription: content,
+      status,
+      priority,
+      budget,
+      startAt,
+      endAt,
+      usersID,
+      tags:tags02,
+      deleteUsers,
+      note,
+      username,
+      activeId,
+      deleteTags
+    });
+    navigate("/manage");
+    Swal.fire({
+      position: 'top-end',
+      title: 'Project Edited Successfully',
+      showConfirmButton: false,
+      customClass: {
+        popup: 'custom-swal'
+      },
+      timer: 1500
+    });
+  } catch (err) {
+    setError(err.response?.data?.message || "An error occurred while updating the project.");
+    console.error(err);
+  }
+};
+
+
 
 
   return (
@@ -274,23 +381,24 @@ const handleSuggestionClick = (tag) => {
               <input className="form-control" type="text" name="projectName" value={projectName} placeholder="Please Enter Title" onChange={handleChange} />
             </div>
             <div className="mb-3 col-md-6">
-              <label className="form-label" htmlFor="status">Status</label>
-              <select className="form-select text-capitalize" name="status" value={status} onChange={handleChange}>
-                <option value="">Default</option>
-                <option value="started">Started</option>
-                <option value="ongoing">On Going</option>
-                <option value="inreview">In Review</option>
-              </select>
-            </div>
+                  <label className="form-label" htmlFor="status">Status</label>
+                  <select className="form-select text-capitalize" name="status" onChange={handleChange}>
+                    <option value="">Select Status</option>
+                    {dbStatus.map((item, index) => (
+                      <option key={index} value={item.status}>{item.status}</option>
+                    ))}
+                  </select>
 
+            </div>
             <div className="mb-3 col-md-6">
-              <label className="form-label" htmlFor="priority">PRIORITY</label>
-              <select className="form-select text-capitalize" name="priority" value={priority} onChange={handleChange}>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-                <option value="completed">Completed</option>
-              </select>
+              <label className="form-label" htmlFor="priority">Priority</label>
+              <select className="form-select text-capitalize" name="priority" onChange={handleChange}>
+                    <option value="">Select Status</option>
+                    {dbPriorities.map((item, index) => (
+                      <option key={index} value={item.status}>{item.status}</option>
+                    ))}
+                  </select>
+                
             </div>
 
             <div className="mb-3 col-md-6">
@@ -315,14 +423,14 @@ const handleSuggestionClick = (tag) => {
             {tags.map((tag, index) => (
                 <span key={index} className="tag">
                     {tag.name}
-                    <a onClick={() => deleteTag(index , tag.id)}>&times;</a> 
+                    <a style={{cursor: 'pointer'}} onClick={() => deleteTag(index , tag.id)}>&times;</a> 
 
                 </span>
             ))}
             {tags1.map((tag, index) => (
                 <span key={index} className="tag">
                     {tag}
-                    <a onClick={() => deleteTag(index )}>&times;</a> 
+                    <a style={{cursor: 'pointer'}} onClick={() => deleteTag(index )}>&times;</a> 
 
                 </span>
              ))}
@@ -356,13 +464,68 @@ const handleSuggestionClick = (tag) => {
 
             </div>
             <div className="mb-3 col-12">
-              <label className="form-label" htmlFor="tag">SELECT TAGS</label>
-              <input className="form-control" type="text" name="tag" value={tag} onChange={handleChange} />
+              <label className="form-label" htmlFor="tags">Select Tags</label>
+              <div className="tags-input-wrapper form-control" onClick={() => document.getElementById('tag-input-02').focus()}>
+               
+               
+              {dbTags.map((tag, index) => (
+                  <span key={index} className={`tag02 ${tag.tagColor}`}>
+                    {tag.tagName} {/* Render tag.name instead of tag */}
+                    <a style={{cursor: 'pointer'}} onClick={() => deleteTag02(index , tag.id)}>&times;</a>
+                  </span>
+                ))}
+                 {tags02.map((tag, index) => (
+                  <span key={index} className={`tag02 ${backgroundColor[tag.colorIndex]}`}>
+                    {tag.name} {/* Render tag.name instead of tag */}
+                    <a style={{cursor: 'pointer'}} onClick={() => deleteTag02(index)}>&times;</a>
+                  </span>
+                ))}
+
+                <input
+                  id="tag-input-02"
+                  type="text"
+                  value={inputValue02}
+                  onChange={handleInputChange02}
+                  onKeyDown={handleKeyDown02}
+                  placeholder="Add a tag"
+                />
+                {suggestions02.length > 0 && (
+                  <ul className="suggestions-list">
+                    {suggestions02.map((tag, index) => (
+                      <li key={index} onClick={() => handleSuggestionClick02(tag)}>
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {suggestions02.length === 0 && inputValue02.length > 0 && (
+                  <ul className="suggestions-list">
+                    <li>No Tag Found</li>
+                  </ul>
+                )}
+              </div>
             </div>
 
             <div className="mb-3">
               <label className="form-label">Project Description</label>
-              <textarea className="form-control" name="projectDescription" rows={3} value={projectDescription} onChange={handleChange} placeholder="Project Description" />
+              <div className=''>
+
+                    <div className='' >
+                 <CKEditor
+                    editor={ClassicEditor}
+                    data={content}
+                    value={projectDescription}
+                    onChange={(event, editor) => {
+                      const data = editor.getData();
+                      setContent(data);
+                    }}
+                  />
+
+                    </div>
+                    </div>
+             
+             
+              {/* <textarea className="form-control" name="projectDescription" rows={3} value={projectDescription} onChange={handleChange} placeholder="Project Description" /> */}
             </div>
 
             <div className="mb-3">

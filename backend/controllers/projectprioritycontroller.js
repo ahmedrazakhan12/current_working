@@ -7,7 +7,7 @@ const projectStatusModel = db.projectStatusModel;
 
 const { validateStatus } = require("../middlewares/Validate");
 
-exports.addStatus = async (req, res) => {
+exports.addPriority = async (req, res) => {
   try {
     const { status, preview } = req.body;
     console.log("Status:", status, "Preview:", preview);
@@ -25,8 +25,7 @@ exports.addStatus = async (req, res) => {
     const newStatus = await projectStatusModel.create({
       status: status,
       preview: preview,
-      statusName : 'status' 
-
+      statusName : 'priority'
     });
 
     console.log("Status added successfully");
@@ -50,7 +49,7 @@ exports.addStatus = async (req, res) => {
 
 
 // Update Project
-exports.updateStatus = async (req, res) => {
+exports.updatePriority = async (req, res) => {
     try {
       const { id } = req.params;
       const { status, preview } = req.body;
@@ -75,7 +74,7 @@ exports.updateStatus = async (req, res) => {
         {
           where: {
             id: id,
-            statusName : 'status'
+            statusName : 'priority'
           },
         }
       );
@@ -87,11 +86,11 @@ exports.updateStatus = async (req, res) => {
   };
   
   // Delete Task
-  exports.deleteStatus = async (req, res) => {
+  exports.deletePriority = async (req, res) => {
     try {
       const { id } = req.params;
   
-      const status = await projectStatusModel.findOne({ where: { id: id  , statusName : 'status'} });
+      const status = await projectStatusModel.findOne({ where: { id: id  , statusName : 'priority'} });
       if (!status) {
         return res.status(404).json({
           status: 404,
@@ -112,11 +111,11 @@ exports.updateStatus = async (req, res) => {
   };
   
   
-  exports.getAllStatus = async (req, res) => {
+  exports.getAllPriorities = async (req, res) => {
     try {
       const status = await projectStatusModel.findAll({
         where: {
-          statusName : 'status'
+          statusName : 'priority'
         }
       });
       res.status(200).json(status);
@@ -127,11 +126,11 @@ exports.updateStatus = async (req, res) => {
   }
   
   
-  exports.getStatusById = async (req, res) => {
+  exports.getPriorityById = async (req, res) => {
     try {
       const { id } = req.params;
       console.log("id:", id);
-      const status = await projectStatusModel.findOne({ where: { id: id  , statusName : 'status'} });
+      const status = await projectStatusModel.findOne({ where: { id: id  , statusName : 'priority'} });
       if (!status) {
         return res.status(404).json({
           status: 404,

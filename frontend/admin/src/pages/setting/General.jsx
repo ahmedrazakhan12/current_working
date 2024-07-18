@@ -50,8 +50,28 @@ const General = () => {
       </div></Link>{" "}
       <div className="dropdown-divider mt-3" />
     
-      </div>
+
+      <Link style={{ textDecoration: "none" }} to={'/priority'}>
+     <div
+        className="d-flex mt-5"
+        data-toggle="modal"
+        data-target="#exampleModal"
+      >
+        <i className="bx bx-user me-2 text-dark" />
+        <div className="d-flex flex-column justify-content-center">
+          <h6 className="mb-0 text-sm" style={{ cursor: "pointer" }}>
+            Add Priority
+          </h6>
+        </div>
+      </div></Link>{" "}
+      <div className="dropdown-divider mt-3" />
     
+
+      </div>
+
+
+      
+         
     </div>
   );
 };

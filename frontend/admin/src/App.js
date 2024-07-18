@@ -26,8 +26,8 @@ import General from './pages/setting/General';
 import Addproject from './pages/project/Addproject';
 import EditPrject from './pages/project/EditProject';
 import ChangePass from './pages/setting/ChangePass';
-import Addstatus from './pages/setting/status/Addstatus';
 import Viewstatus from './pages/setting/status/Viewstatus';
+import Priority from './pages/setting/priority/Priority';
 
 function App() {
   const { isMenuExpanded } = useAppContext();
@@ -76,8 +76,8 @@ function App() {
                   <Route path="/clients" element={<Protected Component={Clients} />} />
                   <Route path="/general" element={<Protected Component={General} />} />
                   <Route path="/changePassword" element={<Protected Component={ChangePass} />} />
-                  <Route path="/addStatus" element={<Protected Component={Addstatus} />} />
                   <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
+                  <Route path="/priority" element={<Protected Component={Priority} />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />

@@ -3,90 +3,90 @@ import axios from 'axios';
 import '../App.css'; // Assume the CSS styles are in this file
 
 const TagsInput = ({ max = null, duplicate = false, initialTags = [] }) => {
-    const [tags, setTags] = useState(initialTags);
-    const [inputValue, setInputValue] = useState('');
-    const [suggestions, setSuggestions] = useState([]);
-    const [userID , setUserID] = useState([]);
-    const addTag = (tag) => {
-        if (anyErrors(tag)) return;
+    const [tags02, setTags02] = useState(initialTags);
+    const [inputValue02, setInputValue02] = useState('');
+    const [suggestions02, setSuggestions02] = useState([]);
+    const [userID02 , setUserID02] = useState([]);
+    const addTag02 = (tag) => {
+        if (anyErrors02(tag)) return;
 
-        setTags((prevTags) => [...prevTags, tag]);
-        setInputValue('');
-        setSuggestions([]); // Clear suggestions after adding a tag
+        setTags02((prevTags) => [...prevTags, tag]);
+        setInputValue02('');
+        setSuggestions02([]); // Clear suggestions after adding a tag
     };
 
-    const deleteTag = (index) => {
-        setTags((prevTags) => prevTags.filter((_, i) => i !== index));
+    const deleteTag02 = (index) => {
+        setTags02((prevTags) => prevTags.filter((_, i) => i !== index));
     };
 
-    const anyErrors = (tag) => {
-        if (max !== null && tags.length >= max) {
+    const anyErrors02 = (tag) => {
+        if (max !== null && tags02.length >= max) {
             console.log('Max tags limit reached');
             return true;
         }
-        if (!duplicate && tags.includes(tag)) {
+        if (!duplicate && tags02.includes(tag)) {
             console.log(`Duplicate found: "${tag}"`);
             return true;
         }
         return false;
     };
 
-    const handleKeyDown = (e) => {
-        const trimmedValue = inputValue.trim();
+    const handleKeyDown02 = (e) => {
+        const trimmedValue = inputValue02.trim();
         if ([9, 13, 188].includes(e.keyCode) && trimmedValue) {
             e.preventDefault();
-            addTag(trimmedValue);
+            addTag02(trimmedValue);
         }
     };
 
-    const handleInputChange = (e) => {
-        setInputValue(e.target.value);
+    const handleInputChange02 = (e) => {
+        setInputValue02(e.target.value);
 
         if (e.target.value) {
             axios.get(`http://localhost:5000/admin/search/${e.target.value}`)
                 .then((res) => {
-                    setSuggestions(res.data); // Assuming res.data is an array of user objects
+                    setSuggestions02(res.data); // Assuming res.data is an array of user objects
                 })
                 .catch((err) => {
                     console.log(err);
                 });
         } else {
-            setSuggestions([]); // Clear suggestions if input is empty
+            setSuggestions02([]); // Clear suggestions if input is empty
         }
     };
 
-    const handleSuggestionClick = (tag) => {
-        addTag(tag.name); // Change to the property you want to display\
-        setUserID(tag.id)
+    const handleSuggestionClick02 = (tag) => {
+        addTag02(tag.name); // Change to the property you want to display\
+        setUserID02(tag.id)
     };
 
     return (
         <div className="tags-input-wrapper form-control" onClick={() => document.getElementById('tag-input').focus()}>
-            {tags.map((tag, index) => (
+            {tags02.map((tag, index) => (
                 <span key={index} className="tag">
                     {tag}
-                    <a onClick={() => deleteTag(index)}>&times;</a>
+                    <a onClick={() => deleteTag02(index)}>&times;</a>
                 </span>
             ))}
             <input
                 id="tag-input"
                 type="text"
-                value={inputValue}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
+                value={inputValue02}
+                onChange={handleInputChange02}
+                onKeyDown={handleKeyDown02}
                 placeholder="Add a tag"
             />
-            {suggestions.length > 0 && (
+            {suggestions02.length > 0 && (
                 <ul className="suggestions-list">
-                    {suggestions.map((suggestion, index) => (
-                        <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
+                    {suggestions02.map((suggestion, index) => (
+                        <li key={index} onClick={() => handleSuggestionClick02(suggestion)}>
                             {suggestion.name} {/* Change to the appropriate property */}
                         </li>
                         
                     ))}
                 </ul>
             )}
-             {suggestions.length === 0 && inputValue.length > 0 && (
+             {suggestions02.length === 0 && inputValue02.length > 0 && (
                 <ul className="suggestions-list">
                         <li>
                             No User Found

@@ -186,6 +186,19 @@ hr.hr-1 {
   margin-bottom: 5px;
   box-shadow: 0 5px 15px -2px #fea9008f;
 }
+
+
+
+.tags-input-wrapper .tag02 {
+  display: inline-block;
+  /* background-color: #FEAB00; */
+  color: white;
+  border-radius: 5px;
+  padding: 0px 3px 0px 7px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  /* box-shadow: 0 5px 15px -2px #fea9008f; */
+}
 .tags-input-wrapper .tag a {
   margin: 0 7px 3px;
   display: inline-block;
@@ -196,13 +209,14 @@ hr.hr-1 {
 
 .suggestions-list {
   border: 1px solid #ccc;
-  max-width: 400px;
+  width:95.5%;
   background: white;
   position: absolute;
   z-index: 1000;
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin-top: 8px;
+  margin-left: -10px;
 }
 
 .suggestions-list li {
@@ -212,4 +226,15 @@ hr.hr-1 {
 
 .suggestions-list li:hover {
   background-color: #f0f0f0;
+}
+
+
+.ck.ck-editor__main>.ck-editor__editable:not(.ck-focused){
+  min-height: 200px;
+  max-height: 100%;
+}
+
+
+.ck-rounded-corners .ck.ck-editor__main>.ck-editor__editable, .ck.ck-editor__main>.ck-editor__editable.ck-rounded-corners{
+  height: 200px;
 }

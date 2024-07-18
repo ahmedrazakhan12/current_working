@@ -7,6 +7,7 @@ const {projectModel} = require("./Projectmodel");
 const {taskModel} = require("./Taskmodel");
 const  {projectStatusModel} = require("./Projectstatusmodel");
 const {projectUsersModel} = require("./Projectusersmodel");
+const {projectTagsModel} = require("./Projecttagsmodel");
 const db = {};
 
 // Initialize models
@@ -18,6 +19,7 @@ db.projectModel = projectModel;
 db.taskModel = taskModel;
 db.projectStatusModel = projectStatusModel;
 db.projectUsersModel = projectUsersModel;
+db.projectTagsModel = projectTagsModel ;
 
 // Add other models to db object
 // db.userModel = userModel;

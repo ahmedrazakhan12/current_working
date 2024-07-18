@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
-const Viewstatus = () => {
+const Priority = () => {
   const [showModal, setShowModal] = useState(false);
   const [showModal1, setShowModal1] = useState(false);
   const [selectedColor, setSelectedColor] = useState('primary');
@@ -18,7 +18,7 @@ const Viewstatus = () => {
   }, []);
 
   const fetchStatusList = () => {
-    axios.get(`http://localhost:5000/projectStatus/getAllStatus`)
+    axios.get(`http://localhost:5000/projectPriority/getAllPriorities`)
       .then((res) => {
         setStatusList(res.data);
       })
@@ -43,7 +43,7 @@ const Viewstatus = () => {
 
   const handleShow1 = (id) => {
     setModalID(id);
-    axios.get(`http://localhost:5000/projectStatus/getStatus/${id}`)
+    axios.get(`http://localhost:5000/projectPriority/getPriority/${id}`)
       .then((res) => {
         setSingleData(res.data);
         setShowModal1(true);
@@ -57,7 +57,7 @@ const Viewstatus = () => {
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    axios.post(`http://localhost:5000/projectStatus/addStatus`, {
+    axios.post(`http://localhost:5000/projectPriority/addPriority`, {
         status: singleData.status,
         preview: singleData.preview
       })
@@ -73,7 +73,7 @@ const Viewstatus = () => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    axios.put(`http://localhost:5000/projectStatus/editStatus/${modalID}`, {
+    axios.put(`http://localhost:5000/projectPriority/editPriority/${modalID}`, {
         status: singleData.status,
         preview: singleData.preview
       })
@@ -105,7 +105,7 @@ const Viewstatus = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.delete(`http://localhost:5000/projectStatus/deleteStatus/${id}`)
+        axios.delete(`http://localhost:5000/projectPriority/deletePriority/${id}`)
           .then(() => {
             fetchStatusList(); // Update status list after successful deletion
             Swal.fire({
@@ -153,7 +153,7 @@ const Viewstatus = () => {
                       </div>
                     </div>
                   </div> */}
-                  <div><h5>Status</h5></div>
+                  <div><h5>Priorty</h5></div>
                   <button className="btn btn-sm nd btn-primary me-2" style={{ marginLeft: "-15px", height: "33px" }} type="button" onClick={handleShow}>
                     <i className="bx bx-plus" />
                   </button>
@@ -233,19 +233,21 @@ const Viewstatus = () => {
                 <option className="badge bg-label-info" value="info">Info</option>
                 <option className="badge bg-label-dark" value="dark">Dark</option>
               </select>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <div className="mt-3">
-            {error &&  
+
+              {error &&  
                <div className=" col-12 mb-0">
-                <div className="alert alert-warning">
+                <div className="alert alert-warning mt-4">
                  
                   <p className="mb-0 text-center">
                   {error}
                   </p>
                 </div>
               </div>}
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <div className="mt-3">
+
               <button type="submit" className="btn btn-warning float-end m-0">Add</button>
               <button type="button" className="btn btn-secondary me-2 float-end m-0" onClick={handleClose}>Cancel</button>
             </div>
@@ -278,7 +280,17 @@ const Viewstatus = () => {
                 <option className="badge bg-label-info" value="info">Info</option>
                 <option className="badge bg-label-dark" value="dark">Dark</option>
               </select>
+              {error &&  
+               <div className=" col-12 mb-0">
+                <div className="alert alert-warning mt-4">
+                 
+                  <p className="mb-0 text-center">
+                  {error}
+                  </p>
+                </div>
+              </div>}
             </div>
+            
           </Modal.Body>
           <Modal.Footer>
             <div className="mt-3">
@@ -292,4 +304,4 @@ const Viewstatus = () => {
   );
 };
 
-export default Viewstatus;
+export default Priority;

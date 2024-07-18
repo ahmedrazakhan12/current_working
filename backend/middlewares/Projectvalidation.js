@@ -25,9 +25,7 @@ const validateStatus = (status) => {
   }
 };
 const validateUserId = (userIds) => {
-  if (!Array.isArray(userIds) || userIds.length === 0) {
-    return "User ID array is required.";
-  }
+  
 
   for (const userId of userIds) {
     // Convert userId to a number
@@ -76,6 +74,35 @@ const validateDate = (date) => {
   return null; // If valid
 };
 
+const validateTags = (tags) => {
+  const maxTagLength = 20;
+
+  console.log(tags);
+  // if (!Array.isArray(tags)) {
+  //   return "Tags must be provided as an array.";
+  // }
+
+  for (let i = 0; i < tags.length; i++) {
+    let tag = tags[i];
+
+    // Convert to string if not already a string
+    if (typeof tag !== 'string') {
+      tag = String(tag); // Convert to string
+      tags[i] = tag; // Update the tags array
+    }
+    console.log("tag.length: " , tags.length);
+    // Check tag length
+    if (tag.length > maxTagLength) {
+      return `Each tag must be ${maxTagLength} characters or less.`;
+    }
+  }
+
+  // Return null or undefined if validation passes
+};
+
+
+
+
 
 module.exports = {
   validateStatus,
@@ -85,4 +112,5 @@ module.exports = {
   validateBudget,
   validateDate,
   validateUserId,
+  validateTags,
 };

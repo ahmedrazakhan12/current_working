@@ -264,16 +264,21 @@ const validateCity = (city) => {
     return `City must be between ${minLength} and ${maxLength} characters.`;
   }
 };
-
 const validateStatus = (status) => {
   if (!status) {
     return "Role is required.";
   }
 
+ 
   if (/[A-Z]/.test(status)) {
     return "Role must not contain capital letters.";
   }
-};
+  if (status.length > 20) {
+    return "Role must not exceed 20 characters.";
+  }
+
+  }
+
 
 
 

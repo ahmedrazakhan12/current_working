@@ -14,6 +14,7 @@ const Manage = () => { const navigate = useNavigate();
   useEffect(() => {
     axios.get('http://localhost:5000/project/getAllProject')
       .then((res) => {
+        console.log(res.data);
         setData(res.data);
       })
       .catch((err) => {
@@ -53,6 +54,12 @@ const Manage = () => { const navigate = useNavigate();
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+  
   return (
     <>
      
@@ -181,13 +188,14 @@ const Manage = () => { const navigate = useNavigate();
           <div className="card-body">
             <div className="mb-3">
             </div>
+            
             <div className="d-flex justify-content-between">
               <h4 className="card-title">
                 <Link
                 className='text-capitalize'
                 >
                   <strong>
-                    {item.projectName}
+                    {item.project.projectName}
                   </strong>
                 </Link>
               </h4>
@@ -206,7 +214,7 @@ const Manage = () => { const navigate = useNavigate();
                   </a>
                   <ul className="dropdown-menu">
                     <Link
-                      to={`/editProject/${item.id}`}
+                      to={`/editProject/${item.project.id}`}
                       className="edit-project"
                     >
                       <li className="dropdown-item">
@@ -222,21 +230,10 @@ const Manage = () => { const navigate = useNavigate();
                         Delete
                       </li>
                     </span>
-                    <a
-                      className="duplicate"
-                      data-id="419"
-                      data-reload="true"
-                      data-title="CAM KABİN TEMMUZ"
-                      data-type="projects"
-                      href="javascript:void(0);"
-                    >
-                      <li className="dropdown-item">
-                        <i className="menu-icon tf-icons bx bx-copy text-warning" />
-                        Duplicate
-                      </li>
-                    </a>
+                 
                   </ul>
                 </div>
+                
                 <a
                   className="quick-view"
                   data-id="419"
@@ -276,9 +273,13 @@ const Manage = () => { const navigate = useNavigate();
                 </a>
               </div>
             </div>
+            <span class="badge bg-label-primary me-1"> ₹ {item.project.budget}</span>
+
             <div className="my-2">
               <div className="row align-items-center">
-                <div className="col-md-12">
+                <div className="col-md-6">
+                {/* <h1>{item.users.name}</h1>// */}
+
                   <label
                     className="form-label"
                     htmlFor="statusSelect"
@@ -287,43 +288,17 @@ const Manage = () => { const navigate = useNavigate();
                   </label>
                   <div className="input-group">
                     <div
-                      className={item.status === "started" ? "form-select form-select-sm select-bg-label-info" : item.status === "ongoing" ? "form-select form-select-sm select-bg-label-warning"  : item.status === "inreview" ?"form-select form-select-sm select-bg-label-primary": "form-select form-select-sm select-bg-label-info"}
+                      className={"form-select form-select-sm select-bg-label-info text-capitalize"}
                       // data-original-color-class="select-bg-label-info"
-                      style={{textAlign:'center' , border:'none'}}
+                      style={{textAlign:'center' , border:'none' }}
                     >
-                      {item.status === "started" ? "Started" : item.status === "ongoing" ? "On Going" : item.status === "inreview" ?"In Review": "Started"}
+                      {item.project.status}
                      
-                      {/* <option
-                        className="badge bg-label-primary"
-                        value="1"
-                      >
-                        Started
-                      </option>
-                      <option
-                        className="badge bg-label-info"
-                        selected
-                        value="2"
-                      >
-                        On Going
-                      </option>
-                      <option
-                        className="badge bg-label-warning"
-                        value="59"
-                      >
-                        In Review
-                      </option> */}
+                     
                     </div>
                   </div>
                 </div>
-                <div className="col-md-12">
-                  <p className='mt-2'>{item.projectDescription}</p>
-                </div>
-
-                <div>
-                <p className='text-muted'> {new Date(item.createdAt).toLocaleDateString()}</p>
-
-                </div>
-                {/* <div className="col-md-6">
+                <div className="col-md-6">
                   <label
                     className="form-label"
                     htmlFor="prioritySelect"
@@ -331,6 +306,17 @@ const Manage = () => { const navigate = useNavigate();
                     Priority
                   </label>
                   <div className="input-group">
+                    <div
+                      className={"form-select form-select-sm select-bg-label-secondary text-capitalize"}
+                      // data-original-color-class="select-bg-label-info"
+                      style={{textAlign:'center' , border:'none' }}
+                    >
+                      {item.project.priority}
+                     
+                     
+                    </div>
+                  </div>
+                  {/* <div className="input-group">
                     <select
                       className="form-select form-select-sm select-bg-label-secondary"
                       data-id="419"
@@ -345,11 +331,11 @@ const Manage = () => { const navigate = useNavigate();
                         Default
                       </option>
                     </select>
-                  </div>
-                </div> */}
+                  </div> */}
+                </div>
               </div>
             </div>
-            {/* <div className="my-4 d-flex justify-content-between">
+            <div className="my-4 d-flex justify-content-between">
               <span>
                 <i className="bx bx-task text-primary" />
                 {' '}
@@ -373,75 +359,57 @@ const Manage = () => { const navigate = useNavigate();
                   Users:
                 </p>
                 <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
+                {item.users && item.users.length > 0 ? (
+                      item.users.map((user, index) => (
+                <>
                   <li
                     className="avatar avatar-sm pull-up"
-                    title="Admin Infinitie"
+                    title={user.name}
                   >
-                    <a
-                      href="/users/profile/7"
+                    <Link
+                      to={`/Userview/${user.id}`}
                       target="_blank"
                     >
-                      <img
-                        alt="Admin Infinitie"
-                        className="rounded-circle"
-                        src="storage/photos/hVyxYeEI6nCyPnh7xAnTcsO3v3nkjhAyznpoLlQ2.webp"
-                      />
-                    </a>
+                      
+                        <img className="rounded-circle" style={{objectFit:"cover"}} key={index} src={user.pfpImage} alt={user.name} />
+                     
+                    </Link>
                   </li>
-                  <li
-                    className="avatar avatar-sm pull-up"
-                    title="HAKAN YOK"
-                  >
-                    <a
-                      href="/users/profile/130"
-                      target="_blank"
-                    >
-                      <img
-                        alt="HAKAN YOK"
-                        className="rounded-circle"
-                        src="storage/photos/no-image.jpg"
-                      />
-                    </a>
-                  </li>
-                  <a
-                    className="btn btn-icon btn-sm btn-outline-primary btn-sm rounded-circle edit-project update-users-clients"
-                    data-id="419"
-                    href="javascript:void(0)"
-                  >
-                    <span className="bx bx-edit" />
-                  </a>
+                  </>
+
+                  ))
+                ) : (
+                  ''
+                )}
+                {/* {item.users && item.users.length > 0 ? (
+                      item.users.map((user, index) => (
+                  <Link
+                  to={`/editProject/${user.id}`}
+                  className="btn btn-icon btn-sm btn-outline-primary btn-sm rounded-circle edit-project update-users-clients"
+                 >
+                  <span className="bx bx-edit" />
+                </Link>
+              ))
+                ) : (
+                  ''
+                )} */}
                 </ul>
                 <p />
               </div>
               <div className="col-md-6">
-                <p className="card-text">
-                  Clients:
-                </p>
-                <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-                  <span className="badge bg-primary">
-                    Not Assigned
-                  </span>
-                  <a
-                    className="btn btn-icon btn-sm btn-outline-primary btn-sm rounded-circle edit-project update-users-clients"
-                    data-id="419"
-                    href="javascript:void(0)"
-                  >
-                    <span className="bx bx-edit" />
-                  </a>
-                </ul>
-                <p />
+                
               </div>
             </div>
             <div className="row mt-2">
               <div className="col-md-6 text-start">
                 <i className="bx bx-calendar text-success" />
-                Starts At : June 30, 2024
+                Starts At :  {formatDate(item.project.startAt)}
               </div>
               <div className="col-md-6 text-end">
                 <i className="bx bx-calendar text-danger" />
-                Ends At : June 30, 2024
+                Ends At : {formatDate(item.project.endAt)}
               </div>
-            </div> */}
+            </div>
           </div>
 
 

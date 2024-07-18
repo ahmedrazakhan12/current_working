@@ -10,6 +10,7 @@ const adminRoute = require("./routes/Adminroute");
 const ProjectRoute = require("./routes/Projectroute");
 const TaskRoute = require("./routes/Tasksroute");
 const ProjectStatusRoute = require("./routes/Projectstatusroute");
+const ProjectPriorityRoute = require("./routes/Projectpriorityroute");
 const db = require("./models"); // Adjust the path as necessary
 
 const app = express();
@@ -50,6 +51,7 @@ app.use("/admin", adminRoute);
 app.use("/project", ProjectRoute);
 app.use("/tasks", TaskRoute);
 app.use("/projectStatus", ProjectStatusRoute);
+app.use("/projectPriority", ProjectPriorityRoute);
 
 io.on('connection', (socket) => {
   console.log('New client connected');

@@ -79,7 +79,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
+              {/* <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
@@ -92,7 +92,7 @@ const Dashboard = () => {
                     <a href="/users"><small className="text-warning fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></a>
                   </div>
                 </div>
-              </div>
+              </div> */}
               
             </div>
             {/* <div className="row">

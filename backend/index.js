@@ -49,7 +49,7 @@ app.use((req, res, next) => {
 // Routes
 app.use("/admin", adminRoute);
 app.use("/project", ProjectRoute);
-app.use("/tasks", TaskRoute);
+app.use("/task", TaskRoute);
 app.use("/projectStatus", ProjectStatusRoute);
 app.use("/projectPriority", ProjectPriorityRoute);
 

@@ -75,7 +75,7 @@ const validateDate = (date) => {
 };
 
 const validateTags = (tags) => {
-  const maxTagLength = 20;
+  const maxTagLength = 30;
 
   console.log(tags);
   // if (!Array.isArray(tags)) {

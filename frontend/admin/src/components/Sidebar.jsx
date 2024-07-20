@@ -323,6 +323,46 @@ const Sidebar = () => {
                   </div>
                 </span>
               </li>
+
+
+              <li
+                className={
+                  location.pathname === "/viewStatus"
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
+                <span className="menu-link">
+                  <div>
+                    <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      to={"/viewStatus"}
+                    >
+                      Add Status
+                    </Link>
+                  </div>
+                </span>
+              </li>
+
+
+              <li
+                className={
+                  location.pathname === "/priority"
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
+                <span className="menu-link">
+                  <div>
+                    <Link
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      to={"/priority"}
+                    >
+                      Add Priority
+                    </Link>
+                  </div>
+                </span>
+              </li>
              
             </ul>
           </li>

@@ -33,9 +33,9 @@ const General = () => {
           </h6>
         </div>
       </div></Link>{" "}
-      <div className="dropdown-divider mt-3" />
+      {/* <div className="dropdown-divider mt-3" /> */}
     
-      <Link style={{ textDecoration: "none" }} to={'/viewStatus'}>
+      {/* <Link style={{ textDecoration: "none" }} to={'/viewStatus'}>
      <div
         className="d-flex mt-5"
         data-toggle="modal"
@@ -65,7 +65,7 @@ const General = () => {
         </div>
       </div></Link>{" "}
       <div className="dropdown-divider mt-3" />
-    
+     */}
 
       </div>
 

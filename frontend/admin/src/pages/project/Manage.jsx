@@ -187,12 +187,21 @@ const Manage = () => { const navigate = useNavigate();
         <div className="card mb-3">
           <div className="card-body">
             <div className="mb-3">
-            </div>
+            {item.tags.map((tagName)=>{
+              return(
+                <span className={`badge ${tagName.tagColor} mt-1 mx-1`}>
+                {tagName.tagName}
+            </span>
+
+              )
+        })}
+             </div>
             
             <div className="d-flex justify-content-between">
               <h4 className="card-title">
                 <Link
                 className='text-capitalize'
+                to={`/projectInformation/${item.project.id}`}
                 >
                   <strong>
                     {item.project.projectName}
@@ -381,6 +390,8 @@ const Manage = () => { const navigate = useNavigate();
                 ) : (
                   ''
                 )}
+                </ul>
+                <p />
                 {/* {item.users && item.users.length > 0 ? (
                       item.users.map((user, index) => (
                   <Link
@@ -393,8 +404,6 @@ const Manage = () => { const navigate = useNavigate();
                 ) : (
                   ''
                 )} */}
-                </ul>
-                <p />
               </div>
               <div className="col-md-6">
                 

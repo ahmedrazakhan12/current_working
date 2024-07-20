@@ -10,6 +10,10 @@ const taskModel = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
+    projectId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     taskName: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -18,8 +22,28 @@ const taskModel = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    projectName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     status: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    priority: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    startAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    endAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    note: {
+      type: DataTypes.TEXT,
       allowNull: false,
     },
   },

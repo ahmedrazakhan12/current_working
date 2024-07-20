@@ -283,6 +283,15 @@ const addTag02 = (tagName) => {
 const deleteTag02 = (index , id) => {
   setTags02((prevTags) => prevTags.filter((_, i) => i !== index));
   setDeleteTags((prevDeleteIDs) => [...prevDeleteIDs, id]);
+  // setDbTags((prevIDs) => prevIDs.filter((_, i) => i !== index));
+
+};
+
+
+
+const deleteDbTag02 = (index , id) => {
+  // setTags02((prevTags) => prevTags.filter((_, i) => i !== index));
+  setDeleteTags((prevDeleteIDs) => [...prevDeleteIDs, id]);
   setDbTags((prevIDs) => prevIDs.filter((_, i) => i !== index));
 
 };
@@ -468,10 +477,10 @@ const handleSubmit = async (e) => {
               <div className="tags-input-wrapper form-control" onClick={() => document.getElementById('tag-input-02').focus()}>
                
                
-              {dbTags.map((tag, index) => (
+                {dbTags.map((tag, index) => (
                   <span key={index} className={`tag02 ${tag.tagColor}`}>
                     {tag.tagName} {/* Render tag.name instead of tag */}
-                    <a style={{cursor: 'pointer'}} onClick={() => deleteTag02(index , tag.id)}>&times;</a>
+                    <a style={{cursor: 'pointer'}} onClick={() => deleteDbTag02(index , tag.id)}>&times;</a>
                   </span>
                 ))}
                  {tags02.map((tag, index) => (

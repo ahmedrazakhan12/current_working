@@ -334,26 +334,7 @@ const Tasks = () => {
                   </option>
                 </select>
               </div>
-              <div>
-                <label htmlFor="prioritySelect">
-                  Priority
-                </label>
-                <select
-                  className="form-select form-select-sm select-bg-label-secondary"
-                  data-id="550"
-                  data-original-color-class="select-bg-label-secondary"
-                  data-original-priority-id=""
-                  data-type="task"
-                  id="prioritySelect"
-                >
-                  <option
-                    className="badge bg-label-secondary"
-                    value="0"
-                  >
-                    Default
-                  </option>
-                </select>
-              </div>
+             
               <div className="mt-2">
                 <small className="text-muted">
                   Created At: July 03, 2024

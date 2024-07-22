@@ -4,6 +4,10 @@
   background-color: #4e8d79e0; /* Set the background color */
   color: white; /* Set text color to contrast with background */
 }
+.custom-modal-width .modal-dialog {
+  width: 23400px;
+}
+
 #myInput {
   width: 100%;
   font-size: 16px;

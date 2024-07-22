@@ -2,11 +2,22 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Pagination } from "react-bootstrap";
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 
+import TaskById from '../tasks/TaskById';
 const ProjectInformation = () => {
     const {id} = useParams();    
     const [data , setData] = useState([]);
+    const [dbStatus , setDbStatus] = useState([]);
     const navigate = useNavigate();
+
+
+    const [showModal, setShowModal] = useState(false);
+
+    const handleShow = () => setShowModal(true);
+    const handleClose = () => setShowModal(false);
+  
 
     useEffect(() => {
         axios.get(`http://localhost:5000/project/getProject/${id}`)
@@ -31,8 +42,8 @@ const ProjectInformation = () => {
     
       const fetchData = () => {
         axios
-          .get(`http://localhost:5000/task/getAllTasks/` , {
-            headers: { Authorization: `${id}` }
+          .get(`http://localhost:5000/task/getAllTasks/${id}` , {
+            headers: { Authorization: ` ${id}` }
           })
           .then((res) => {
             setTableData(res.data);
@@ -69,6 +80,32 @@ const ProjectInformation = () => {
   const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
 
 
+  useEffect(() => {
+    axios.get(`http://localhost:5000/projectStatus/getAllStatus`)
+    .then((res) => {
+      setDbStatus(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+  const groupedItems = dbStatus.reduce((acc, status) => {
+    acc[status.status] = currentItems.filter(item => item.task && item.task.status === status.status);
+    return acc;
+  }, {});
+  
+const handleDelete = (id) => {
+  axios
+    .delete(`http://localhost:5000/task/deleteTask/${id}`)
+    .then((res) => {
+      console.log(res.data);
+      fetchData();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
 
   return (
     <div className="container-fluid mt-3">
@@ -168,6 +205,7 @@ const ProjectInformation = () => {
                         </div>
                         <div className="col-md-6 mb-3">
                           <label className="form-label">Status</label>
+                         
                           <div
                       className={"form-select form-select-sm select-bg-label-info text-capitalize"}
                       // data-original-color-class="select-bg-label-info"
@@ -654,111 +692,135 @@ const ProjectInformation = () => {
           <div className="col-lg-12 col-md-12 col-sm-12 col-12">
             <div
               style={{ borderRadius: "6px" }}
-              className="card-body p-3  bg-white mt-4 shadow blur border-radius-lg"
+              className="card-body px-1  mt-0  border-radius-lg"
             >
-              <div className="table-responsive p-2">
-                <div
-                  className="pt-2 pb-2"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div class="searchbar">
-                    <div class="searchbar-wrapper">
-                      <div class="searchbar-left">
-                        <div class="search-icon-wrapper">
-                          <span class="search-icon searchbar-icon">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
-                            </svg>
-                          </span>
-                        </div>
-                      </div>
 
-                      <div class="searchbar-center">
-                        <div class="searchbar-input-spacer"></div>
-
-                        <input
-                          type="text"
-                          class="searchbar-input"
-                          // onChange={handleSearchChange}
-                          maxlength="2048"
-                          name="q"
-                          autocapitalize="off"
-                          autocomplete="off"
-                          title="Search"
-                          role="combobox"
-                          placeholder="Search user"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <table id="table" className="table table-bordered ">
-                  <thead>
-                    <tr>
-                      <th style={{}} data-field="id">
-                        <div className="th-inner sortable both">ID</div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{}} data-field="profile">
-                        <div className="th-inner ">Task</div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{ textAlign: "center" }} data-field="role">
-                        <div className="th-inner ">Users</div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{ textAlign: "center" }} data-field="phone">
-                        <div className="th-inner sortable both desc">
-                          Status
-                        </div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{ textAlign: "center" }} data-field="assigned">
-                        <div className="th-inner ">Priority</div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{ textAlign: "center" }} data-field="actions">
-                        <div className="th-inner ">Actions</div>
-                        <div className="fht-cell" />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentItems.map((item, index) => (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>
-                          <div className="d-flex mt-2">
                           
-                            <div className="mx-2">
-                              <h6 className="mb-1 text-capitalize">
-                              {item.task.taskName}
-
-                              </h6>
-                             
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                        <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center" style={{display:'flex', justifyContent:'center', alignItems:'center'}}>
+            <div
+              className="d-flex flex-row"
+              style={{
+                overflowX: 'auto', // Use 'auto' instead of 'scroll' for better UX
+                overflowY: 'hidden',
+                whiteSpace: 'nowrap' // Prevent items from wrapping to the next line
+              }}
+            >
+              <div className="row flex-row" style={{ display: 'flex', flexWrap: 'nowrap' }}>
+              {Object.keys(groupedItems).map((status, index) => (
+     <div key={index} className="col" style={{ display: 'inline-block' }}>
+    <h4 className="fw-bold mx-4 my-2 text-capitalize text-center">
+      {status}
+    </h4>
+    {groupedItems[status].length > 0 ? (
+      groupedItems[status].map((item, idx) => (
+        <div key={idx} className="my-4" style={{ backgroundColor: 'none', maxWidth: '300px', minWidth: '300px' }}>
+        <div
+        className="row m-2 d-flex flex-column"
+        data-status="0"
+        id="default"
+        style={{
+          height: '100%'
+        }}
+      >
+        <div
+          className="card m-2 p-0 shadow"
+          data-task-id={item.task.id}
+        >
+          <div className="card-body">
+            <div className="d-flex justify-content-between">
+              <h6 className="card-title">
+                <Link
+                onClick={handleShow}
+                >
+                  <strong>
+                    {item.task.taskName}
+                  </strong>
+                </Link>
+              </h6>
+              <div className="d-flex align-items-center justify-content-center">
+                <div className="input-group">
+                  <a
+                    aria-expanded="false"
+                    className="mx-2"
+                    data-bs-toggle="dropdown"
+                    href="javascript:void(0);"
+                  >
+                    <i className="bx bx-cog" />
+                  </a>
+                  <ul className="dropdown-menu">
+                    <Link
+                      className="edit-task"
+                      to={`/editTask/${item.task.id}`}
+                      >
+                      <li className="dropdown-item">
+                        <i className="menu-icon tf-icons bx bx-edit text-primary" />
+                        {' '}Update
+                      </li>
+                    </Link>
+                    <a
+                      className="delete"
+                      data-id="93"
+                      data-reload="true"
+                      data-type="tasks"
+                      href="javascript:void(0);"
+                    >
+                      <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
+                        <i className="menu-icon tf-icons bx bx-trash text-danger" />
+                        {' '}Delete
+                      </li>
+                    </a>
+                   
+                  </ul>
+                </div>
+                <a
+                  className="quick-view"
+                  data-id="93"
+                  data-type="task"
+                  href="javascript:void(0);"
+                >
+                  <i
+                    className="bx bx bx-info-circle text-info"
+                    data-bs-original-title="Quick View"
+                    data-bs-placement="right"
+                    data-bs-toggle="tooltip"
+                  />
+                </a>
+                <a
+                  className="mx-2"
+                  href="https://taskify.taskhub.company/chat?type=task&id=93"
+                  target="_blank"
+                >
+                  <i
+                    className="bx bx-message-rounded-dots text-danger"
+                    data-bs-original-title="Discussion"
+                    data-bs-placement="right"
+                    data-bs-toggle="tooltip"
+                  />
+                </a>
+              </div>
+            </div>
+            {data.map((item,index)=>{
+              return(
+                <div className="card-subtitle text-muted mb-3">
+            {item.project.projectName}
+            </div>
+              )
+            })}
+            <div className="row mt-2">
+              <div className="col-md-12">
+                <p className="card-text mb-1">
+                  Users:
+                </p>
+                <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
                 {item.users && item.users.length > 0 ? (
                       item.users.map((user, index) => (
                 <>
                   <li
-                    
-                    className="avatar avatar-sm pull-up "
-
+                    className="avatar avatar-sm pull-up"
                     title={user.name}
                   >
                     <Link
                       to={`/Userview/${user.id}`}
+                      target="_blank"
                     >
                       
                         <img className="rounded-circle" style={{objectFit:"cover"}} key={index} src={user.pfpImage} alt={user.name} />
@@ -769,59 +831,100 @@ const ProjectInformation = () => {
 
                   ))
                 ) : (
-                  ''
+                  <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
+                  <span className="badge bg-primary">
+                    Not Assigned
+                  </span>
+                </ul>
                 )}
                 </ul>
-                        </td>
-                        <td className="align-middle text-center text-sm">
-                          <p
-                            className=" badge bg-primary "
-                          >
-                            {item.task.status}
-
-                          </p>
-                        </td>
-                        <td className="align-middle text-center text-sm">
-                          <p
-                            className="text-xs font-weight-bold mb-0"
-                            style={{ fontSize: "15px" }}
-                          >
-                          {item.task.priority}
-
-                          </p>
-                        </td>
-                        
-                      
-                        <td style={{ textAlign: "center" }}>
-                          <Link to={`/editusers/${item.id}`}>
-                            <i className="bx bx-edit mx-2" />
-                          </Link>
-
-                          <Link to={`/changeUserpassword/${item.id}`}>
-                            <i className="bx bx-lock text-warning" />
-                          </Link>
-
-                          <button
-                            title="Delete"
-                            type="button"
-                            style={{
-                              border: "none",
-                              background: "none",
-                              margin: "0",
-                            }}
-                            // onClick={() => handleUserDelete(item.id)}
-                          >
-                            <i className="bx bx-trash text-danger " />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                
+                <p />
               </div>
+              
+            </div>
+            <div className="d-flex flex-column">
+              <div>
+             
+                  <label
+                    className="form-label"
+                    htmlFor="statusSelect"
+                  >
+                    Status
+                  </label>
+                  <div className="input-group">
+                    <div
+                      className={" form-select-sm select-bg-label-info text-capitalize w-100"}
+                      // data-original-color-class="select-bg-label-info"
+                      style={{textAlign:'center' , border:'none' }}
+                    >
+                      {item.task.status}
+                     
+                     
+                    </div>
+                  </div>
+                  
+              </div>
+              <div>
+                  <label
+                    className="form-label mt-4"
+                    htmlFor="statusSelect"
+                  >
+                    Priority
+                  </label>
+                  <div className="input-group">
+                    <div
+                      className={"w-100 form-select-sm select-bg-label-secondary text-capitalize"}
+                      // data-original-color-class="select-bg-label-info"
+                      style={{textAlign:'center' , border:'none' }}
+                    >
+                      {item.task.priority}
+                     
+                     
+                    </div>
+                  </div>
+              </div>
+              <div className="mt-3">
+              <small className="text-muted">
+              <b>Starts At:</b>   {formatDate(item.task.startAt)}
+            </small><br />
+            <small className="text-muted">
+              <b>Ends At:</b>   {formatDate(item.task.endAt)}
+            </small>
+          </div>
+            </div>
+            
+        
+            
+          </div>
+        </div>
+      </div>
+         </div>
+      ))
+    ) : (
+      <div  className="my-4" style={{ backgroundColor: 'none', maxWidth: '300px', minWidth: '300px' }}>
+      <div
+      className="card mt-2 shadow"
+      data-task-id="93"
+    >
+      <div className="card-body p-2 overflow-hidden" style={{minHeight:'375px' }}>
+        <h4 className='text-center' style={{marginTop:'5%'}}>No Tasks</h4>
+        <div style={{display:'flex' , justifyContent:'center' , alignItems:'center' , marginTop:'20%'}}>
+        <img src="/assets/images/empty-task.png" alt=""  style={{width:'150px' , height:'150px' , objectFit:"contain" }}/>
+        </div>
+      </div>
+    </div>
+    </div>
+    )}
+  </div>
+))}
 
+              </div>
+            </div>
+
+                    
               {/* Pagination */}
-              <Pagination className="mt-3 justify-content-center ">
+              {/* <Pagination className="mt-3 justify-content-center ">
                 <Pagination.Prev onClick={prevPage} disabled={currentPage === 1} />
 
                 {[...Array(Math.ceil(data.length / itemsPerPage)).keys()].map(
@@ -858,7 +961,7 @@ const ProjectInformation = () => {
                   onClick={nextPage}
                   disabled={currentPage === totalPages}
                 />
-              </Pagination>
+              </Pagination> */}
             </div>
           </div>
       </div>
@@ -1638,10 +1741,12 @@ const ProjectInformation = () => {
                 </form>
               </div>
             </div>
+            
           </div>
         )
     })}
 
+      <TaskById show={showModal} handleClose={handleClose} />
     </div>
   )
 }

@@ -314,7 +314,6 @@ console.log("tags02: ", tags02);
                       <option key={index} value={item.status}>{item.status}</option>
                     ))}
                   </select>
-                
             </div>
             <div className="mb-3 col-md-6">
               <label className="form-label" htmlFor="budget">Budget</label>

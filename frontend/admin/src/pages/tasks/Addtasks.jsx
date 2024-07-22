@@ -91,6 +91,7 @@ const Addtasks = () => {
   useEffect(()=>{
     axios.get(`http://localhost:5000/project/getProject/${id}`)
     .then((res) => {
+      console.log(res.data[0].project.id);
         setProjectDetails(res.data[0].project)
 
     })
@@ -240,6 +241,7 @@ const handleChange = (e) => {
               <input className="form-control" type="text" name="taskName" placeholder="Please Enter Title" onChange={handleChange} />
             </div>
             <div className="mb-3 col-md-6">
+              
                   <label className="form-label" htmlFor="status">Status</label>
                   <select className="form-select text-capitalize" name="status" onChange={handleChange}>
                     <option value="">Select Status</option>

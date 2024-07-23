@@ -16,11 +16,9 @@ const Addtasks = () => {
   const [taskDescription, setTaskDescription] = useState("");
   const [status, setStatus] = useState("");
   const [priority, setPriority] = useState("");
-  const [budget, setBudget] = useState("");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
   const [users, setUsers] = useState("");
-  const [tag, setTag] = useState("");
   const [note, setNote] = useState("");
   const [username, setUsername] = useState(""); 
   const [error, setError] = useState(false);
@@ -35,7 +33,7 @@ const Addtasks = () => {
 
 
   console.log(priority , status);
-  const predefinedTags = ["Web Development", "E-commerce", "Social Networking", "Content Management", "Project Management", "Learning and Education", "Booking and Reservation"];
+  // const predefinedTags = ["Web Development", "E-commerce", "Social Networking", "Content Management", "Project Management", "Learning and Education", "Booking and Reservation"];
 
   const navigate = useNavigate();
   const activeId = localStorage.getItem("id");
@@ -246,7 +244,7 @@ const handleChange = (e) => {
                   <select className="form-select text-capitalize" name="status" onChange={handleChange}>
                     <option value="">Select Status</option>
                     {dbStatus.map((item, index) => (
-                      <option key={index} value={item.status}>{item.status}</option>
+                      <option key={index} value={item.id}>{item.status}</option>
                     ))}
                   </select>
             </div>
@@ -255,7 +253,7 @@ const handleChange = (e) => {
               <select className="form-select text-capitalize" name="priority" onChange={handleChange}>
                     <option value="">Select Status</option>
                     {dbPriorities.map((item, index) => (
-                      <option key={index} value={item.status}>{item.status}</option>
+                      <option key={index} value={item.id}>{item.status}</option>
                     ))}
                   </select>
                 

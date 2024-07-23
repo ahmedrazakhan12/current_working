@@ -35,7 +35,8 @@ exports.projectData = async (req, res) => {
       activeId 
     } = req.body;
 
-    console.log("tags02: ", tags);
+    console.log("status: ", status);
+    console.log("priority: ", status);
     const tagsArray = tags.map(tag => tag.name);
 
 
@@ -295,16 +296,22 @@ exports.getAllProjects = async (req, res) => {
     const projects = await projectModel.findAll();
     const users = await projectUsersModel.findAll();
     const tags = await projectTagsModel.findAll();
+    const status = await projectStatusModel.findAll();
 
     const data = await Promise.all(projects.map(async (project) => {
       const filteredUsersIds = users.filter(user => user.projectId === project.id);
       const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+      const filteredStasus = status.filter(user => user.id === project.status);
+      const filteredPriorities = status.filter(user => user.id === project.priority);
       const filteredTags = tags.filter(tag => tag.projectId === project.id);
 
       return {
         project: project,
         users: filteredUsers,
-        tags: filteredTags
+        tags: filteredTags,
+        status:filteredStasus,
+        priority:filteredPriorities
+        
       };
     }));
 
@@ -316,6 +323,53 @@ exports.getAllProjects = async (req, res) => {
 }
 
 
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const error =
+    validateStatus(status) ;
+
+  if (error) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      message: error,
+    });
+  }
+    console.log(id ,status);
+    await projectModel.update({ status: status }, { where: { id: id } });
+    res.status(200).send("Status successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
+exports.updatePriority = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { priority } = req.body;
+    const error =
+    validateStatus(priority) ;
+
+  if (error) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      message: error,
+    });
+  }
+    console.log(id ,priority);
+    await projectModel.update({ priority: priority }, { where: { id: id } });
+    res.status(200).send("Status successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
 
 exports.getProjectById = async (req, res) => {
   try {

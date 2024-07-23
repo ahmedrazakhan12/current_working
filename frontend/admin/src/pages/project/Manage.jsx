@@ -9,9 +9,12 @@ const Manage = () => { const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [dbStatus , setDbStatus] = useState([]);
+  const [dbPriority, setDbPriority] = useState([]);
+
   const itemsPerPage = 10;
 
-  useEffect(() => {
+  const fetchData = () => {
     axios.get('http://localhost:5000/project/getAllProject')
       .then((res) => {
         console.log(res.data);
@@ -20,8 +23,39 @@ const Manage = () => { const navigate = useNavigate();
       .catch((err) => {
         console.log(err);
       });
+  };
+  useEffect(() => {
+    fetchData();
   }, []);
 
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/projectStatus/getAllStatus`)
+    .then((res) => {
+      setDbStatus(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+
+
+  
+
+const fetchPriorities = async () => {
+  try {
+    const statusRes = await axios.get('http://localhost:5000/projectPriority/getAllPriorities');
+    setDbPriority(statusRes.data);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
+useEffect(() => {
+  fetchPriorities();
+}, []);
   const deleteProject = (id) => {
     Swal.fire({
       title: 'Are you sure?',
@@ -58,6 +92,48 @@ const Manage = () => { const navigate = useNavigate();
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+
+  
+  const handleChange = async (event , id) => {
+    // alert(id)
+  
+    const selectedValue = event.target.value;
+    const selectedItem = dbStatus.find((item) => item.id === selectedValue);
+    const selectedPreview = selectedItem ? selectedItem.preview : '';
+  
+    // setSelectedPreview(selectedPreview);
+  
+    try {
+      await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
+        status: selectedValue,
+      });
+      // Re-fetch task data after update
+      fetchData();
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+  
+
+
+  const handlePriorityChange = async (event , id) => {
+    const selectedValue = event.target.value;
+    const selectedItem = dbPriority.find((item) => item.id === selectedValue);
+    const selectedPreview = selectedItem ? selectedItem.preview : '';
+  
+    // setSelectedPreview(selectedPreview);
+  
+    try {
+      await axios.put(`http://localhost:5000/project/editPriority/${id}`, {
+        priority: selectedValue,
+      });
+      // Re-fetch task data after update
+      fetchData();
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
   
   return (
@@ -296,7 +372,7 @@ const Manage = () => { const navigate = useNavigate();
                     Status
                   </label>
                   <div className="input-group">
-                    <div
+                    {/* <div
                       className={"form-select form-select-sm select-bg-label-info text-capitalize"}
                       // data-original-color-class="select-bg-label-info"
                       style={{textAlign:'center' , border:'none' }}
@@ -304,7 +380,26 @@ const Manage = () => { const navigate = useNavigate();
                       {item.project.status}
                      
                      
-                    </div>
+                    </div> */}
+
+                      <select
+                      className={`form-select form-select-sm select-bg-label-${item.status[0]?.preview } text-center text-capitalize`}
+                      id="prioritySelect"
+                      data-original-color-class="select-bg-label-secondary"
+                      name="status"
+                      onChange={(event) => handleChange(event, item.project?.id)}
+                    >
+
+                    <option className={`bg-label-${item.status[0]?.preview}`} >
+                    {item.status[0]?.status}
+                      </option>
+                      {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+                      <option className={`bg-label-${dbItem.preview}`}value={dbItem.id}>
+                        {dbItem.status}
+                      </option>
+                    ))}
+                   
+                  </select>
                   </div>
                 </div>
                 <div className="col-md-6">
@@ -315,15 +410,24 @@ const Manage = () => { const navigate = useNavigate();
                     Priority
                   </label>
                   <div className="input-group">
-                    <div
-                      className={"form-select form-select-sm select-bg-label-secondary text-capitalize"}
-                      // data-original-color-class="select-bg-label-info"
-                      style={{textAlign:'center' , border:'none' }}
+                  <select
+                      className={`form-select form-select-sm select-bg-label-${item.priority[0]?.preview } text-center text-capitalize`}
+                      id="prioritySelect"
+                      data-original-color-class="select-bg-label-secondary"
+                      name="priority"
+                      onChange={(event) => handlePriorityChange(event, item.project?.id)}
                     >
-                      {item.project.priority}
-                     
-                     
-                    </div>
+
+                    <option className={`bg-label-${item.priority[0]?.preview}`} >
+                    {item.priority[0]?.status}
+                      </option>
+                      {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+                      <option className={`bg-label-${dbItem.preview}`}value={dbItem.id}>
+                        {dbItem.status}
+                      </option>
+                    ))}
+                   
+                  </select>
                   </div>
                   {/* <div className="input-group">
                     <select

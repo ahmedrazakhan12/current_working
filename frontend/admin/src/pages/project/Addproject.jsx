@@ -247,7 +247,7 @@ const Addproject = () => {
   
 
 
-console.log("tags02: ", tags02);
+console.log("status: ", status);
 
 
 
@@ -301,7 +301,7 @@ console.log("tags02: ", tags02);
                   <select className="form-select text-capitalize" name="status" onChange={handleChange}>
                     <option value="">Select Status</option>
                     {dbStatus.map((item, index) => (
-                      <option key={index} value={item.status}>{item.status}</option>
+                      <option key={index} value={item.id}>{item.status}</option>
                     ))}
                   </select>
 
@@ -311,7 +311,7 @@ console.log("tags02: ", tags02);
               <select className="form-select text-capitalize" name="priority" onChange={handleChange}>
                     <option value="">Select Status</option>
                     {dbPriorities.map((item, index) => (
-                      <option key={index} value={item.status}>{item.status}</option>
+                      <option key={index} value={item.id}>{item.status}</option>
                     ))}
                   </select>
             </div>

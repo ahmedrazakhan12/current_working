@@ -2,6 +2,7 @@ const db = require("../models/index");
 const taskModel = db.taskModel;
 const taskUsersModel = db.taskUsersModel;
 const adminModel = db.adminModel;
+const statusModel = db.projectStatusModel
 const {
   validateTitle,
   validateDescription,
@@ -39,7 +40,7 @@ const {
     validatePriority(priority) ||
     validateDate(startAt) ||
     validateDate(endAt) ||
-    validateDescription(note) ||
+    // validateDescription(note) ||
     validateUserId(usersID);
 
     if (error) {
@@ -119,6 +120,15 @@ exports.updateTask = async (req, res) => {
       });
     }
 
+       
+if (Array.isArray(deleteUsers) && deleteUsers.length > 0) {
+  await taskUsersModel.destroy({
+    where: {
+      userId: deleteUsers, // This matches any userId in the deleteUsers array
+      taskId: id // This matches the given projectId
+    }
+  });
+}
     // Update the task
     await taskModel.update(
       {
@@ -148,15 +158,7 @@ exports.updateTask = async (req, res) => {
     await taskUsersModel.bulkCreate(taskUserEntries);
 
 
-    
-if (Array.isArray(deleteUsers) && deleteUsers.length > 0) {
-  await taskUsersModel.destroy({
-    where: {
-      userId: deleteUsers, // This matches any userId in the deleteUsers array
-      taskId: id // This matches the given projectId
-    }
-  });
-}
+ 
 
 
 
@@ -198,20 +200,24 @@ exports.deleteTask = async (req, res) => {
 exports.getAllTask = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("Headers: ", id);
   
     const tasks = await taskModel.findAll({
       where: { projectId: id },
     });
     const users = await taskUsersModel.findAll();
+    const status = await statusModel.findAll();
 
        const data = await Promise.all(tasks.map(async (task) => {
       const filteredUsersIds = users.filter(user => user.taskId === task.id);
+      const filteredStasus = status.filter(user => user.id === task.status);
+      const filteredPriorities = status.filter(user => user.id === task.priority);
       const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
 
       return {
         task: task,
         users: filteredUsers,
+        status: filteredStasus,
+        priority: filteredPriorities
       };
     }));
 
@@ -226,16 +232,30 @@ exports.getAllTask = async (req, res) => {
 exports.getTaskById = async (req, res) => {
   try {
     const { id } = req.params;
+    // const { authorization: headerId } = req.headers; // Use 'authorization' for Authorization header
+    // console.log("Headers: ", headerId);
+    
     const tasks = await taskModel.findAll({ where: { id: id } });
     const users = await taskUsersModel.findAll({ where: { taskId: id } });
+    const status = await statusModel.findAll();
 
        const data = await Promise.all(tasks.map(async (task) => {
       const filteredUsersIds = users.filter(user => user.taskId === task.id);
-      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId)
+
+       } 
+    
+
+      });
+
+      const filteredStasus = status.filter(user => user.id === task.status);
+      const filteredPriorities = status.filter(user => user.id === task.priority);
 
       return {
         task: task,
         users: filteredUsers,
+        status: filteredStasus,
+        priority: filteredPriorities
       };
     }));
 
@@ -251,9 +271,45 @@ exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    console.log(status);
+
+    const error =
+    validateStatus(status) ;
+
+  if (error) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      message: error,
+    });
+  }
+    console.log(id ,status);
     await taskModel.update({ status: status }, { where: { id: id } });
     res.status(200).send("Status successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
+exports.updatePriority = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { priority } = req.body;
+
+    const error =
+    validateStatus(priority) ;
+
+  if (error) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      message: error,
+    });
+  }
+    console.log(id ,priority);
+    await taskModel.update({ priority: priority }, { where: { id: id } });
+    res.status(200).send("priority successfully updated.");
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");

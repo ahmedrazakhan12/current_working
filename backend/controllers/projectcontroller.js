@@ -375,7 +375,7 @@ exports.getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
     const project = await projectModel.findOne({ where: { id: id } });
-
+    const status = await projectStatusModel.findAll();
     if (!project) {
       return res.status(404).json({
         status: 404,
@@ -385,17 +385,9 @@ exports.getProjectById = async (req, res) => {
     }
 
     const users = await projectUsersModel.findAll({ where: { projectId: id } });
-
-    // if (users.length === 0) {
-    //   return res.status(404).json({
-    //     status: 404,
-    //     data: null,
-    //     message: "No users found for this project",
-    //   });
-    // }
-    
     const userIds = users.map(user => user.userId); // Assuming userId is a property of each user
-    
+    const filteredStasus = status.filter(user => user.id === project.status);
+    const filteredPriorities = status.filter(user => user.id === project.priority);    
     const userData = await adminModel.findAll({
       where: {
         id: userIds,
@@ -419,7 +411,9 @@ exports.getProjectById = async (req, res) => {
     const data = [{
       project: project,
       users: userData,
-      tags : userTag
+      tags : userTag,
+      status:filteredStasus,
+      priority:filteredPriorities
     }];
     
     

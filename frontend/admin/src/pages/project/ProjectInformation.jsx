@@ -16,15 +16,18 @@ const ProjectInformation = () => {
     const [taskId, setTaskId] = useState(null);
   
    
+    const fetchProjectData = () =>{
+      axios.get(`http://localhost:5000/project/getProject/${id}`)
+      .then((res) => {
+          console.log("Reposne: ",res.data);
+          setData(res.data);
+      })
+      .catch((err) => {
+          console.log(err);
+      });
+    }
     useEffect(() => {
-        axios.get(`http://localhost:5000/project/getProject/${id}`)
-          .then((res) => {
-              // console.log(res.data);
-              setData(res.data);
-          })
-          .catch((err) => {
-              console.log(err);
-          });
+      fetchProjectData();
       }, []);
 
       const formatDate = (dateString) => {
@@ -67,7 +70,7 @@ const handleProjectChange = async (event , id) => {
 
   const selectedValue = event.target.value;
   const selectedItem = dbStatus.find((item) => item.id === selectedValue);
-  const selectedPreview = selectedItem ? selectedItem.preview : '';
+  // const selectedPreview = selectedItem ? selectedItem.preview : '';
 
   // setSelectedPreview(selectedPreview);
 
@@ -76,18 +79,18 @@ const handleProjectChange = async (event , id) => {
       status: selectedValue,
     });
     // Re-fetch task data after update
-    fetchData();
-  } catch (error) {
+    fetchProjectData();
+    } catch (error) {
     console.error('Error updating status:', error);
   }
 };
 
-
-
 const handleProjectPriorityChange = async (event , id) => {
+  // alert(id)
+
   const selectedValue = event.target.value;
-  const selectedItem = dbPriority.find((item) => item.id === selectedValue);
-  const selectedPreview = selectedItem ? selectedItem.preview : '';
+  const selectedItem = dbStatus.find((item) => item.id === selectedValue);
+  // const selectedPreview = selectedItem ? selectedItem.preview : '';
 
   // setSelectedPreview(selectedPreview);
 
@@ -96,11 +99,14 @@ const handleProjectPriorityChange = async (event , id) => {
       priority: selectedValue,
     });
     // Re-fetch task data after update
-    fetchData();
-  } catch (error) {
+    fetchProjectData();
+    } catch (error) {
     console.error('Error updating status:', error);
   }
 };
+
+
+
 
 
 
@@ -334,38 +340,52 @@ const handlePriorityChange = async (event , id) => {
                      
                     </div> */}
                     <select
-                      className={`form-select form-select-sm select-bg-label-${item.status?.preview } text-center text-capitalize`}
+                      className={`form-select form-select-sm select-bg-label-${item.status[0]?.preview} text-center text-capitalize`}
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="status"
                       onChange={(event) => handleProjectChange(event, item.project?.id)}
                     >
-
-                    <option className={`bg-label-${item.status?.preview}`} >
-                    {item.status?.status}
+                      <option className={`bg-label-${item.status[0]?.preview}`}>
+                        {item.status[0]?.status}
                       </option>
                       {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
-                      <option className={`bg-label-${dbItem.preview}`}value={dbItem.id}>
-                        {dbItem.status}
-                      </option>
-                    ))}
-                   
-                  </select>
+                        <option
+                          key={dbIndex}
+                          className={`bg-label-${dbItem.preview}`}
+                          value={dbItem?.id}
+                        >
+                          {dbItem?.status}
+                        </option>
+                      ))}
+                    </select>
+
                         </div>
                         <div className="col-md-6 mb-3">
                           <label htmlFor="prioritySelect" className="form-label">
                             Priority
                           </label>
                           <div className="input-group">
-                    <div
-                      className={"form-select form-select-sm select-bg-label-secondary text-capitalize"}
-                      // data-original-color-class="select-bg-label-info"
-                      style={{textAlign:'center' , border:'none' }}
+                          <select
+                      className={`form-select form-select-sm select-bg-label-${item.priority[0]?.preview} text-center text-capitalize`}
+                      id="prioritySelect"
+                      data-original-color-class="select-bg-label-secondary"
+                      name="status"
+                      onChange={(event) => handleProjectPriorityChange(event, item.project?.id)}
                     >
-                      {item.project.priority}
-                     
-                     
-                    </div>
+                      <option className={`bg-label-${item.priority[0]?.preview}`}>
+                        {item.priority[0]?.status}
+                      </option>
+                      {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+                        <option
+                          key={dbIndex}
+                          className={`bg-label-${dbItem.preview}`}
+                          value={dbItem?.id}
+                        >
+                          {dbItem?.status}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                         </div>
                       </div>

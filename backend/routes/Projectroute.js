@@ -12,6 +12,7 @@ router.delete("/deleteProject/:id", projectController.deleteProject);
 router.get("/getProject/:id", projectController.getProjectById);
 router.put("/editStatus/:id", projectController.updateStatus);
 router.put("/editPriority/:id", projectController.updatePriority);
+router.put("/editPriority/:id", projectController.updatePriority);
 
 module.exports = router;
 

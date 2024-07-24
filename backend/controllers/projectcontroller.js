@@ -434,9 +434,9 @@ exports.addMedia = async (req, res) => {
     const { id } = req.params;
     if (req.files && req.files.length > 0) {
       const mediaFiles = req.files.map(file => ({
-        // filename: file.filename,
+        filename: file.filename,
         file: `http://localhost:5000/${file.path}`,
-        // mimetype: file.mimetype,
+        mimetype: file.mimetype,
         projectId: id  // Assuming you have a projectId field to relate to the project
       }));
 
@@ -460,11 +460,43 @@ exports.addMedia = async (req, res) => {
 
 
 
+exports.getMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const media = await projectFilesModel.findAll({ where: { projectId: id } });
+    if (!media) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Media not found",
+      });
+    }
+    res.status(200).json(media);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
 
 
 
-
-
+exports.deleteMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const media = await projectFilesModel.destroy({ where: { id: id } });
+    if (!media) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Media not found",
+      });
+    }
+    res.status(200).json({ message: "Media deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
 
 
 

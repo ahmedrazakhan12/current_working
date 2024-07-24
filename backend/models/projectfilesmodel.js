@@ -18,6 +18,14 @@ const projectFilesModel = sequelize.define(
          type: DataTypes.STRING,
          allowNull: false,
       },
+      filename: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      mimetype: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      }
     
   },
   {

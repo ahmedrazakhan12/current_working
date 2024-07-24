@@ -13,6 +13,8 @@ router.get("/getProject/:id", projectController.getProjectById);
 router.put("/editStatus/:id", projectController.updateStatus);
 router.put("/editPriority/:id", projectController.updatePriority);
 router.put("/addMedia/:id", mediaUpload, projectController.addMedia);
+router.get("/getMedia/:id", projectController.getMedia);
+router.delete("/deleteMedia/:id", projectController.deleteMedia);
 
 module.exports = router;
 

@@ -22,13 +22,18 @@ const storage = multer.diskStorage({
   }
 });
 
-// Define file filter to accept specific file types
+// allowed file extensions
+const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv'];
+const documentExtensions = ['.sql', '.pdf', '.docx', '.zip'];
+const imageExtensions = ['.png', '.jpg', '.jpeg'];
 const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype.startsWith('image/') ||
-    file.mimetype.startsWith('video/') ||
-    file.mimetype.startsWith('application/')
-  ) {
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (file.mimetype.startsWith('image/') && imageExtensions.includes(ext)) {
+    cb(null, true);
+  } else if (file.mimetype.startsWith('video/') && videoExtensions.includes(ext)) {
+    cb(null, true);
+  } else if (file.mimetype.startsWith('application/') && documentExtensions.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error('File type not supported'));

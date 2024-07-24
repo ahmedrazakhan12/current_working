@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Pagination } from "react-bootstrap";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import Swal from 'sweetalert2';
 
 import TaskById from '../tasks/TaskById';
 const ProjectInformation = () => {
@@ -15,7 +16,7 @@ const ProjectInformation = () => {
     const [showModal, setShowModal] = useState(false);
     const [taskId, setTaskId] = useState(null);
   
-   
+ 
     const fetchProjectData = () =>{
       axios.get(`http://localhost:5000/project/getProject/${id}`)
       .then((res) => {
@@ -240,12 +241,37 @@ const handlePriorityChange = async (event , id) => {
 
 
 // MEDIA UPLOAD
+
+const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv'];
+const documentExtensions = ['.sql', '.pdf', '.docx', '.zip'];
+const imageExtensions = ['.png', '.jpg', '.jpeg'];
+const allExtensions = [...videoExtensions, ...documentExtensions, ...imageExtensions];
+
+
 const [files, setFiles] = useState([]);
 console.log("files: ", files);
 
+
 const handleFileChange = (event) => {
   const selectedFiles = Array.from(event.target.files);
-  setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+  const validFiles = selectedFiles.filter(file => {
+    const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    return allExtensions.includes(fileExtension);
+  });
+
+  if (validFiles.length !== selectedFiles.length) {
+    Swal.fire({
+      position: "top-end",
+      title: "This File type not allowed.",
+      showConfirmButton: false,
+      timer: 1500,
+      customClass: {
+        popup: 'custom-swal-danger'
+      }
+    });
+  }
+
+  setFiles((prevFiles) => [...prevFiles, ...validFiles]);
 };
 
 // Cleanup URLs when component unmounts
@@ -260,7 +286,22 @@ const formatFileSize = (size) => {
 };
 
 const modalRef = useRef(null);
+const [media , setMedia] = useState([]);
 
+const fetchMedia = ()=>{
+  axios.get(`http://localhost:5000/project/getMedia/${id}`)
+  .then((res)=>{
+    console.log("Media: ",res.data)
+    setMedia(res.data)
+  })
+  .catch((err)=>{
+    console.log(err);
+  })
+}
+
+useEffect(()=>{
+  fetchMedia();
+},[])
 
 const handleProjectMediaSubmit = (event) => {
   event.preventDefault(); // Prevent the default form submission behavior
@@ -276,6 +317,7 @@ const handleProjectMediaSubmit = (event) => {
     },
   })
     .then((res) => {
+      fetchMedia();
       setFiles([]);
       console.log("Response: ", res.data);
     })
@@ -285,6 +327,80 @@ const handleProjectMediaSubmit = (event) => {
 };
 
 
+
+const handleDownload = (url) => {
+  fetch(url)
+    .then(response => response.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'download.jpg'; 
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(error => console.error('Download error:', error));
+};
+
+
+
+
+
+
+const handleVedioDownload = (url) => {
+  fetch(url)
+    .then(response => response.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'vedio.mp4'; 
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(error => console.error('Download error:', error));
+};
+
+const handleMediaDelete = (id) => {
+  // alert(id/)
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      axios.delete(`http://localhost:5000/project/deleteMedia/${id}`)
+        .then(() => {
+          fetchMedia();
+          Swal.fire({
+            position: "top-end",
+            title: "Media deleted",
+            showConfirmButton: false,
+            timer: 1500,
+            customClass: {
+              popup: 'custom-swal'
+            }
+          });
+         
+        })
+        .catch((error) => {
+          Swal.fire(
+            'Error!',
+            'There was a problem deleting your file.',
+            'error'
+          );
+        });
+    }
+  });
+};
 
   return (
     <div className="container-fluid mt-3">
@@ -1385,78 +1501,182 @@ const handleProjectMediaSubmit = (event) => {
                       </a>
                     </div>
                     
-                    <div className="row">
-                      <div className="col-3">
-                      <div className=" mb-3" style={{background:'#f0f4f9' , borderRadius:'10px'}}>
-          <div className="card-body">
-              <div className="row">
-                <div className="col-9">
-                <h6 className="card-title">
-                
-                  <strong>
-                    Doc Name
-                  </strong>
+                    <div className="row mt-3">
+  {media.map((file, index) => {
+  // Determine file type based on URL
+  const url = file.file;
+
+function urlEndsWithAny(url, extensions) {
+  return extensions.some(ext => url.endsWith(ext));
+}
+
+// Usage examples:
+
+const isVideo = urlEndsWithAny(url, videoExtensions);
+const isDocument = urlEndsWithAny(url, documentExtensions);
+const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensions as needed
+  const cleanFilename = file.filename 
+  
+    
+  const handleDownloadClick = () => {
+    if (isVideo) {
+      handleVedioDownload(url);
+    } else if (isImage) {
+      handleDownload(url);
+    }
+  };
+  return (
+    <div key={index} className="col-lg-3 col-md-6  col-sm-6 col-12">
+      <div className="mb-3" style={{ background: '#f0f4f9', borderRadius: '10px' }}>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-9">
+              <h6 className="card-title text-capitalize">
+                <strong>
+                {cleanFilename}
+                </strong>
               </h6>
-                </div>
-                <div className="col">
-                  
+            </div>
+            <div className="col">
               <div className="input-group">
-                  <a
-                    aria-expanded="false"
-                    className="float-end"
-                    data-bs-toggle="dropdown"
-                    href="javascript:void(0);"
-                    style={{marginLeft:'10px' , color:'black'}}
-                  >
-                    <i class='bx bx-dots-vertical-rounded float-end'></i>
+                <a
+                  aria-expanded="false"
+                  className="float-end"
+                  data-bs-toggle="dropdown"
+                  href="javascript:void(0);"
+                  style={{ marginLeft: '10px', color: 'black' }}
+                >
+                  <i className='bx bx-dots-vertical-rounded float-end'></i>
+                </a>
+                <ul className="dropdown-menu">
+                {isImage  && 
+                 <a href={url} target='_blank' className="download" data-id={file.id}  data-type="projects" >
+                    <li className="dropdown-item">
+                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                      View
+                    </li>
                   </a>
-                  <ul className="dropdown-menu">
-                    <a
-                      className="edit-project"
-                      data-id="419"
-                      href="javascript:void(0);"
-                    >
-                      <li className="dropdown-item">
-                        <i className="menu-icon tf-icons bx bx-edit text-primary" />
-                        Update
-                      </li>
-                    </a>
-                    <a
-                      className="delete"
-                      data-id="419"
-                      data-reload="true"
-                      data-type="projects"
-                      href="javascript:void(0);"
-                    >
-                      <li className="dropdown-item">
-                        <i className="menu-icon tf-icons bx bx-trash text-danger" />
-                        Delete
-                      </li>
-                    </a>
-                    <a
-                      className="duplicate"
-                      data-id="419"
-                      data-reload="true"
-                      data-title="CAM KABİN TEMMUZ"
-                      data-type="projects"
-                      href="javascript:void(0);"
-                    >
-                      <li className="dropdown-item">
-                        <i className="menu-icon tf-icons bx bx-copy text-warning" />
-                        Duplicate
-                      </li>
-                    </a>
-                  </ul>
-                </div>
-                </div>
-              </div>  
-            
-          
-          
+                  }
+                  {isVideo  && 
+                 <a href={url} target='_blank' className="download" data-id={file.id}  data-type="projects" >
+                    <li className="dropdown-item">
+                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                      View
+                    </li>
+                  </a>
+                  }
+
+                 {isImage  && 
+                 <>
+                  <a  onClick={handleDownloadClick} data-id={file.id}  data-type="projects" >
+                    <li className="dropdown-item">
+                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                      Download
+                    </li>
+                  </a>
+                 </>}
+                 {isVideo  && 
+                 <>
+                  <a  onClick={handleDownloadClick} data-id={file.id}  data-type="projects" >
+                    <li className="dropdown-item">
+                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                      Download
+                    </li>
+                  </a>
+                 </>}
+
+                 {isDocument && 
+                 <>
+                  <a href={url} download >
+                    <li className="dropdown-item">
+                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                      Download
+                    </li>
+                  </a>
+                 </>}
+                
+                  <a className="delete" data-id={file.id} onClick={()=>handleMediaDelete(file.id)} data-reload="true" data-type="projects" href="javascript:void(0);">
+                    <li className="dropdown-item">
+                      <i className="menu-icon tf-icons bx bx-trash text-danger" />
+                      Delete
+                    </li>
+                  </a>
+                </ul>
+              </div>
+            </div>
           </div>
-                     </div>
-                      </div>
-                    </div>
+          {isDocument && (
+            <div>
+              <div className="document-preview">
+              <img
+                  src="/assets/images/document.jpg"
+                  alt={`Preview ${index}`}
+                  className="file-preview-image"
+
+                />
+
+                {/* <p>Document preview: <a >Download</a></p> */}
+              </div>
+            </div>
+          )}
+          {isVideo && (
+            <div>
+              <video src={url} muted autoPlay playsInline style={{width:'100%'}}></video>
+            </div>
+          )}
+          {isImage && (
+  <div>
+
+      
+
+    <img
+      src={url}
+      alt={`Preview ${index}`}
+      className="file-preview-image"
+
+    />
+
+              </div>
+)}
+
+
+        </div>
+      </div>
+    </div>
+  );
+})}
+
+{media.length === 0 && 
+  <div className="col-lg-3 col-md-6  col-sm-6 col-12">
+      <div className="mb-3" style={{ background: '#f0f4f9', borderRadius: '10px' }}>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-12">
+            <div className="document-preview">
+              <h5 className="text-center">
+                No Media
+              </h5>
+              <img
+                  src="/assets/images/no_media.jpg"
+                  className="file-preview-image"
+                  style={{margin:'auto'}}
+                />
+
+                {/* <p>Document preview: <a >Download</a></p> */}
+              </div>
+            </div>
+           
+          </div>
+        
+      </div>
+    </div>
+    </div>
+    }
+
+
+
+
+                </div>
 
                   
                   </div>

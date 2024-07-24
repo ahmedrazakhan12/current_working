@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Pagination } from "react-bootstrap";
 import Modal from 'react-bootstrap/Modal';
@@ -19,7 +19,7 @@ const ProjectInformation = () => {
     const fetchProjectData = () =>{
       axios.get(`http://localhost:5000/project/getProject/${id}`)
       .then((res) => {
-          console.log("Reposne: ",res.data);
+          // console.log("Reposne: ",res.data);
           setData(res.data);
       })
       .catch((err) => {
@@ -47,7 +47,7 @@ const ProjectInformation = () => {
           })
           .then((res) => {
             setTableData(res.data);
-            console.log("././././././././",res.data);
+            // console.log("././././././././",res.data);
           })
           .catch((err) => {
             console.log("Error fetching providers:", err);
@@ -230,6 +230,61 @@ const handlePriorityChange = async (event , id) => {
     console.error('Error updating status:', error);
   }
 };
+
+
+
+
+
+
+
+
+
+// MEDIA UPLOAD
+const [files, setFiles] = useState([]);
+console.log("files: ", files);
+
+const handleFileChange = (event) => {
+  const selectedFiles = Array.from(event.target.files);
+  setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+};
+
+// Cleanup URLs when component unmounts
+useEffect(() => {
+  return () => {
+    files.forEach(file => URL.revokeObjectURL(URL.createObjectURL(file)));
+  };
+}, [files]);
+
+const formatFileSize = (size) => {
+  return (size / (1024 * 1024)).toFixed(2) + ' MB';
+};
+
+const modalRef = useRef(null);
+
+
+const handleProjectMediaSubmit = (event) => {
+  event.preventDefault(); // Prevent the default form submission behavior
+
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('media', file); // Ensure 'media' matches the expected field name
+  });
+
+  axios.put(`http://localhost:5000/project/addMedia/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+    .then((res) => {
+      setFiles([]);
+      console.log("Response: ", res.data);
+    })
+    .catch((err) => {
+      console.log("Error: ", err);
+    });
+};
+
+
 
   return (
     <div className="container-fluid mt-3">
@@ -1310,8 +1365,9 @@ const handlePriorityChange = async (event , id) => {
                 </div>
                 <div className="tab-pane fade " id="navs-top-media" role="tabpanel">
                   <div className="col-12">
-                    <div className="d-flex justify-content-between align-items-center">
+                    <div className="d-flex justify-content-between ">
                       <div />
+                      {/* <h1>Amed raza</h1> */}
                       <a
                         href="javascript:void(0);"
                         data-bs-toggle="modal"
@@ -1328,87 +1384,81 @@ const handlePriorityChange = async (event , id) => {
                         </button>
                       </a>
                     </div>
-                    <div className="table-responsive text-nowrap">
-                      <input type="hidden" id="data_type" defaultValue="project-media" />
-                      <input
-                        type="hidden"
-                        id="data_table"
-                        defaultValue="project_media_table"
-                      />
-                      <input type="hidden" id="save_column_visibility" />
-                      <table
-                        id="project_media_table"
-                        data-toggle="table"
-                        data-loading-template="loadingTemplate"
-                        data-url="https://taskify.taskhub.company/projects/get-media/434"
-                        data-icons-prefix="bx"
-                        data-icons="icons"
-                        data-show-refresh="true"
-                        data-total-field="total"
-                        data-trim-on-search="false"
-                        data-data-field="rows"
-                        data-page-list="[5, 10, 20, 50, 100, 200]"
-                        data-search="true"
-                        data-side-pagination="server"
-                        data-show-columns="true"
-                        data-pagination="true"
-                        data-sort-name="id"
-                        data-sort-order="desc"
-                        data-mobile-responsive="true"
-                        data-query-params="queryParamsProjectMedia"
-                      >
-                        <thead>
-                          <tr>
-                            <th data-checkbox="true" />
-                            <th data-field="id" data-visible="true" data-sortable="true">
-                              ID
-                            </th>
-                            <th
-                              data-field="file"
-                              data-visible="true"
-                              data-sortable="true"
-                            >
-                              File
-                            </th>
-                            <th
-                              data-field="file_name"
-                              data-sortable="true"
-                              data-visible="false"
-                            >
-                              File Name
-                            </th>
-                            <th
-                              data-field="file_size"
-                              data-visible="true"
-                              data-sortable="true"
-                            >
-                              File Size
-                            </th>
-                            <th
-                              data-field="created_at"
-                              data-sortable="true"
-                              data-visible="false"
-                            >
-                              Created At
-                            </th>
-                            <th
-                              data-field="updated_at"
-                              data-sortable="true"
-                              data-visible="false"
-                            >
-                              Updated At
-                            </th>
-                            <th
-                              data-field="actions"
-                              data-visible="true"
-                              data-sortable="false"
-                            >
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                      </table>
+                    
+                    <div className="row">
+                      <div className="col-3">
+                      <div className=" mb-3" style={{background:'#f0f4f9' , borderRadius:'10px'}}>
+          <div className="card-body">
+              <div className="row">
+                <div className="col-9">
+                <h6 className="card-title">
+                
+                  <strong>
+                    Doc Name
+                  </strong>
+              </h6>
+                </div>
+                <div className="col">
+                  
+              <div className="input-group">
+                  <a
+                    aria-expanded="false"
+                    className="float-end"
+                    data-bs-toggle="dropdown"
+                    href="javascript:void(0);"
+                    style={{marginLeft:'10px' , color:'black'}}
+                  >
+                    <i class='bx bx-dots-vertical-rounded float-end'></i>
+                  </a>
+                  <ul className="dropdown-menu">
+                    <a
+                      className="edit-project"
+                      data-id="419"
+                      href="javascript:void(0);"
+                    >
+                      <li className="dropdown-item">
+                        <i className="menu-icon tf-icons bx bx-edit text-primary" />
+                        Update
+                      </li>
+                    </a>
+                    <a
+                      className="delete"
+                      data-id="419"
+                      data-reload="true"
+                      data-type="projects"
+                      href="javascript:void(0);"
+                    >
+                      <li className="dropdown-item">
+                        <i className="menu-icon tf-icons bx bx-trash text-danger" />
+                        Delete
+                      </li>
+                    </a>
+                    <a
+                      className="duplicate"
+                      data-id="419"
+                      data-reload="true"
+                      data-title="CAM KABİN TEMMUZ"
+                      data-type="projects"
+                      href="javascript:void(0);"
+                    >
+                      <li className="dropdown-item">
+                        <i className="menu-icon tf-icons bx bx-copy text-warning" />
+                        Duplicate
+                      </li>
+                    </a>
+                  </ul>
+                </div>
+                </div>
+              </div>  
+            
+          
+          
+          </div>
+                     </div>
+                      </div>
                     </div>
+
+                  
                   </div>
                 </div>
                 <div className="tab-pane fade" id="navs-top-activity-log" role="tabpanel">
@@ -1866,11 +1916,10 @@ const handlePriorityChange = async (event , id) => {
               <div className="modal-dialog modal-lg" role="document">
                 <form
                   className="modal-content form-horizontal"
-                  id="media-upload"
-                  action="https://taskify.taskhub.company/projects/upload-media"
                   method="POST"
                   encType="multipart/form-data"
-                >
+                  onSubmit={handleProjectMediaSubmit}
+>
                   <input
                     type="hidden"
                     name="_token"
@@ -1889,21 +1938,87 @@ const handlePriorityChange = async (event , id) => {
                     />
                   </div>
                   <div className="modal-body">
-                    <div className="alert alert-primary alert-dismissible" role="alert">
+                    {/* <div className="alert alert-primary alert-dismissible" role="alert">
                       Storage Type Set as Local Storage,{" "}
-                      <a
-                        href="https://taskify.taskhub.company/settings/media-storage"
-                        target="_blank"
-                      >
-                        Click Here to Change
-                      </a>
-                    </div>
-                    <div
-                      className="dropzone dz-clickable"
-                      id="media-upload-dropzone"
-                    ></div>
+                     
+                    </div> */}
+                    <div className="dropzone dz-clickable" id="media-upload-dropzone">
+                      <div className="file-previews">
+                    {files.length > 0 && (
+          <>
+          {files.map((file, index) => (
+            <div key={index} className="file-preview">
+              {file.type.startsWith('image/') ? (
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Preview ${index}`}
+                  className="file-preview-image"
+                />
+              ) : (
+                <div className="dz-preview dz-file-preview">
+              <h5>{formatFileSize(file.size)}</h5>
+              <p>{file.name}</p>
+                </div>
+              )}
+            </div>
+          ))}
+
+</>
+        )}
+      <label htmlFor="file" className="labelFile_Project">
+        <span>
+          <svg
+            viewBox="0 0 184.69 184.69"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            id="Capa_1"
+            version="1.1"
+            width="60px"
+            height="60px"
+          >
+            <g>
+              <g>
+                <g>
+                  <path
+                    d="M149.968,50.186c-8.017-14.308-23.796-22.515-40.717-19.813
+                      C102.609,16.43,88.713,7.576,73.087,7.576c-22.117,0-40.112,17.994-40.112,40.115c0,0.913,0.036,1.854,0.118,2.834
+                      C14.004,54.875,0,72.11,0,91.959c0,23.456,19.082,42.535,42.538,42.535h33.623v-7.025H42.538
+                      c-19.583,0-35.509-15.929-35.509-35.509c0-17.526,13.084-32.621,30.442-35.105c0.931-0.132,1.768-0.633,2.326-1.392
+                      c0.555-0.755,0.795-1.704,0.644-2.63c-0.297-1.904-0.447-3.582-0.447-5.139c0-18.249,14.852-33.094,33.094-33.094
+                      c13.703,0,25.789,8.26,30.803,21.04c0.63,1.621,2.351,2.534,4.058,2.14c15.425-3.568,29.919,3.883,36.604,17.168
+                      c0.508,1.027,1.503,1.736,2.641,1.897c17.368,2.473,30.481,17.569,30.481,35.112c0,19.58-15.937,35.509-35.52,35.509H97.391
+                      v7.025h44.761c23.459,0,42.538-19.079,42.538-42.535C184.69,71.545,169.884,53.901,149.968,50.186z"
+                    style={{ fill: '#010002' }}
+                  ></path>
+                </g>
+                <g>
+                  <path
+                    d="M108.586,90.201c1.406-1.403,1.406-3.672,0-5.075L88.541,65.078
+                      c-0.701-0.698-1.614-1.045-2.534-1.045l-0.064,0.011c-0.018,0-0.036-0.011-0.054-0.011c-0.931,0-1.85,0.361-2.534,1.045
+                      L63.31,85.127c-1.403,1.403-1.403,3.672,0,5.075c1.403,1.406,3.672,1.406,5.075,0L82.296,76.29v97.227
+                      c0,1.99,1.603,3.597,3.593,3.597c1.979,0,3.59-1.607,3.59-3.597V76.165l14.033,14.036
+                      C104.91,91.608,107.183,91.608,108.586,90.201z"
+                    style={{ fill: '#010002' }}
+                  ></path>
+      
+                </g>
+              </g>
+            </g>
+          </svg>
+        </span>
+      </label>
+      <input
+        className="input_Project"
+        name="text"
+        id="file"
+        type="file"
+        onChange={handleFileChange}
+      />
+        </div>
+      
+    </div>
                     <div className="form-group mt-4 text-center">
-                      <button className="btn btn-primary" id="upload_media_btn">
+                      <button className="btn btn-primary" type='submit' id="upload_media_btn">
                         Upload
                       </button>
                     </div>

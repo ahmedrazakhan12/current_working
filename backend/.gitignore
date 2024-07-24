@@ -6,3 +6,5 @@ node_modules/
 
 # Ignore npm/yarn package lock file
 package-lock.json
+
+public

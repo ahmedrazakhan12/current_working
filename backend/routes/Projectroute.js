@@ -1,20 +1,42 @@
+// routes/project.js
 const express = require("express");
 const router = express.Router();
 const projectController = require('../controllers/projectcontroller');
+const mediaUpload = require("../middlewares/Mediaproject");
 
 // router.post("/addProject", projectController.projectData);
 router.get("/getAllProject", projectController.getAllProjects);
-router.post("/addProject", (req, res) => {
-  projectController.projectData(req, res);
-});
+router.post("/addProject", projectController.projectData);
 router.put("/editProject/:id", projectController.editProjectData);
 router.delete("/deleteProject/:id", projectController.deleteProject);
 router.get("/getProject/:id", projectController.getProjectById);
 router.put("/editStatus/:id", projectController.updateStatus);
 router.put("/editPriority/:id", projectController.updatePriority);
-router.put("/editPriority/:id", projectController.updatePriority);
+router.put("/addMedia/:id", mediaUpload, projectController.addMedia);
 
 module.exports = router;
+
+
+
+// const express = require("express");
+// const router = express.Router();
+// const projectController = require('../controllers/projectcontroller');
+// const mediaUpload = require("../middlewares/Mediaproject");
+
+// // router.post("/addProject", projectController.projectData);
+// router.get("/getAllProject", projectController.getAllProjects);
+// router.post("/addProject", (req, res) => {
+//   projectController.projectData(req, res);
+// });
+// router.put("/editProject/:id", projectController.editProjectData);
+// router.delete("/deleteProject/:id", projectController.deleteProject);
+// router.get("/getProject/:id", projectController.getProjectById);
+// router.put("/editStatus/:id", projectController.updateStatus);
+// router.put("/editPriority/:id", projectController.updatePriority);
+// router.put("/editPriority/:id", projectController.updatePriority);
+// router.post("/addMedia/:id",mediaUpload ,  projectController.addMedia);
+
+// module.exports = router;
 
 
 

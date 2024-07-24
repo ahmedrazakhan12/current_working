@@ -4,6 +4,7 @@ const projectUsersModel = db.projectUsersModel;
 const adminModel = db.adminModel;
 const projectTagsModel = db.projectTagsModel;
 const projectStatusModel = db.projectStatusModel;
+const projectFilesModel = db.projectFilesModel
 const {
   validateTitle,
   validateDescription,
@@ -425,6 +426,35 @@ exports.getProjectById = async (req, res) => {
   }
 }
 
+
+// controllers/projectcontroller.js
+
+exports.addMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (req.files && req.files.length > 0) {
+      const mediaFiles = req.files.map(file => ({
+        // filename: file.filename,
+        file: `http://localhost:5000/${file.path}`,
+        // mimetype: file.mimetype,
+        projectId: id  // Assuming you have a projectId field to relate to the project
+      }));
+
+      console.log("Files received: ", mediaFiles);
+
+      // Save files information to the database
+      await projectFilesModel.bulkCreate(mediaFiles);
+      console.log("Files uploaded and saved successfully: ");
+
+      res.status(200).json({ message: "Files uploaded and saved successfully", files: mediaFiles });
+    } else {
+      res.status(400).json({ message: "No files received" });
+    }
+  } catch (error) {
+    console.error("Error in addMedia: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 

@@ -10,6 +10,10 @@ const projectModel = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
+    creator: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     projectName: {
       type: DataTypes.STRING,
       allowNull: false,

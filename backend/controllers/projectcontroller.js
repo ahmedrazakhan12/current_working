@@ -5,6 +5,7 @@ const adminModel = db.adminModel;
 const projectTagsModel = db.projectTagsModel;
 const projectStatusModel = db.projectStatusModel;
 const projectFilesModel = db.projectFilesModel
+const taskModel = db.taskModel;
 const {
   validateTitle,
   validateDescription,
@@ -51,7 +52,7 @@ exports.projectData = async (req, res) => {
     validateDate(startAt) ||
     validateTags(tagsArray) ||
     validateDate(endAt) ||
-    validateDescription(note) ||
+    // validateDescription(note) ||
     validateUserId(usersID);
 
     if (error) {
@@ -64,6 +65,7 @@ exports.projectData = async (req, res) => {
 
     // Create the project
     const user = await projectModel.create({
+      creator: activeId,
       projectName,
       projectDescription,
       status,
@@ -270,6 +272,7 @@ if (Array.isArray(deleteTags) && deleteTags.length > 0) {
 exports.deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("ID: ", id);
 
     const project = await projectModel.findOne({ where: { id: id } });
     if (!project) {
@@ -298,20 +301,26 @@ exports.getAllProjects = async (req, res) => {
     const users = await projectUsersModel.findAll();
     const tags = await projectTagsModel.findAll();
     const status = await projectStatusModel.findAll();
+    const creator = await adminModel.findAll();
+    const tasks = await taskModel.findAll();
 
     const data = await Promise.all(projects.map(async (project) => {
       const filteredUsersIds = users.filter(user => user.projectId === project.id);
+      const filteredCreatorIds = creator.filter(creator => creator.id === project.creator );
       const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
       const filteredStasus = status.filter(user => user.id === project.status);
       const filteredPriorities = status.filter(user => user.id === project.priority);
       const filteredTags = tags.filter(tag => tag.projectId === project.id);
+      const filterTasks = tasks.filter(task => task.projectId === project.id);
 
       return {
         project: project,
+        creator: filteredCreatorIds,
         users: filteredUsers,
         tags: filteredTags,
         status:filteredStasus,
-        priority:filteredPriorities
+        priority:filteredPriorities,
+        tasks:filterTasks
         
       };
     }));
@@ -377,6 +386,7 @@ exports.getProjectById = async (req, res) => {
     const { id } = req.params;
     const project = await projectModel.findOne({ where: { id: id } });
     const status = await projectStatusModel.findAll();
+    const creator = await adminModel.findAll();
     if (!project) {
       return res.status(404).json({
         status: 404,
@@ -389,6 +399,7 @@ exports.getProjectById = async (req, res) => {
     const userIds = users.map(user => user.userId); // Assuming userId is a property of each user
     const filteredStasus = status.filter(user => user.id === project.status);
     const filteredPriorities = status.filter(user => user.id === project.priority);    
+    const createrData = creator.filter(user => user.id === project.creator );
     const userData = await adminModel.findAll({
       where: {
         id: userIds,
@@ -398,19 +409,11 @@ exports.getProjectById = async (req, res) => {
     const Tags = await projectTagsModel.findAll({ where: { projectId: id } });
 
     const userTag = Tags.map(user => user); // Assuming userId is a property of each user
-      console.log(userTag);
-    
-    
-    // if (userData.length === 0) {
-    //   return res.status(404).json({
-    //     status: 404,
-    //     data: null,
-    //     message: "Users not found",
-    //   });
-    // }
-    
+        
+ 
     const data = [{
       project: project,
+      creator: createrData,
       users: userData,
       tags : userTag,
       status:filteredStasus,
@@ -483,7 +486,7 @@ exports.getMedia = async (req, res) => {
 exports.deleteMedia = async (req, res) => {
   try {
     const { id } = req.params;
-    const media = await projectFilesModel.destroy({ where: { id: id } });
+    const media = await db.taskFilesModel.destroy({ where: { id: id } });
     if (!media) {
       return res.status(404).json({
         status: 404,

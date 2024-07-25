@@ -4,13 +4,26 @@
   background-color: #4e8d79e0; /* Set the background color */
   color: white; /* Set text color to contrast with background */
 }
+/* In your CSS file or inside a <style> tag in your HTML */
+.custom-swal-popup {
+  z-index: 9999 !important;
+}
 
 .custom-swal-danger {
   font-size: 8px;
   width: 20%; /* Adjust the font size as needed */
   background-color: #ab4646e0; /* Set the background color */
   color: white; /* Set text color to contrast with background */
-  z-index: 20000;
+  z-index: 9999 !important;
+
+}
+
+.custom-swal45 {
+  width: 20%; /* Adjust the font size as needed */
+  background-color: #ab4646e0; /* Set the background color */
+  color: white; /* Set text color to contrast with background */
+  z-index: 9922299 !important;
+
 }
 .custom-modal-width .modal-dialog {
   width: 23400px;
@@ -333,4 +346,26 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
 .file-preview-video{
   width: 130px;
   height: auto;
+}
+
+.labelFile_Task{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 130px;
+  height: 130px;
+  cursor: pointer;
+  border: 2px dashed #ccc;
+  align-items: center;
+  text-align: center;
+  padding: 5px;
+  color: #404040;
+  cursor: pointer; 
+}
+
+
+.input_Task {
+  max-width: 190px;
+  cursor: pointer;
+  display: none;
 }

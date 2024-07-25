@@ -315,3 +315,86 @@ exports.updatePriority = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 }
+
+
+
+
+exports.addMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {taskId} = req.body;
+    if (req.files && req.files.length > 0) {
+      const mediaFiles = req.files.map(file => ({
+        filename: file.filename,
+        file: `http://localhost:5000/${file.path}`,
+        mimetype: file.mimetype,
+        projectId: id ,
+        taskId: taskId // Assuming you have a projectId field to relate to the project
+      }));
+
+      console.log("Files received: ", mediaFiles);
+
+      // Save files information to the database
+      await db.taskFilesModel.bulkCreate(mediaFiles);
+      console.log("Files uploaded and saved successfully: ");
+
+      res.status(200).json({ message: "Files uploaded and saved successfully", files: mediaFiles });
+    } else {
+      res.status(400).json({ message: "No files received" });
+    }
+  } catch (error) {
+    console.error("Error in addMedia: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+
+exports.getMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { authorization: taskId } = req.headers;
+    
+    console.log("Headers: ", taskId , id);
+
+    const media = await db.taskFilesModel.findAll({ 
+      where: { 
+        projectId: id, 
+        taskId: taskId 
+      } 
+    });
+    
+    if (!media) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Media not found",
+      });
+    }
+    res.status(200).json(media);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
+
+exports.deleteMedia = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const media = await db.taskFilesModel.destroy({ where: { id: id } });
+    if (!media) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Media not found",
+      });
+    }
+    res.status(200).json({ message: "Media deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}

@@ -68,6 +68,7 @@ useEffect(() => {
           .then(() => {
             Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
             setData(prevData => prevData.filter(item => item.id !== id));
+            fetchData();
           })
           .catch(err => console.log(err));
       }
@@ -310,7 +311,7 @@ useEffect(() => {
                     <span
                       className="delete"
                     >
-                      <li className="dropdown-item cursor-pointer" onClick={() => deleteProject(item.id)}>
+                      <li className="dropdown-item cursor-pointer" onClick={() => deleteProject(item.project.id)}>
                         <i className="menu-icon tf-icons bx bx-trash text-danger" />
                         Delete
                       </li>
@@ -358,7 +359,8 @@ useEffect(() => {
                 </a>
               </div>
             </div>
-            <span class="badge bg-label-primary me-1"> ₹ {item.project.budget}</span>
+            {/* <span class="badge bg-label-warning me-1"> Creator</span> */}
+            <span class="badge bg-label-primary me-1 "> ₹ {item.project.budget}</span>
 
             <div className="my-2">
               <div className="row align-items-center">
@@ -453,7 +455,7 @@ useEffect(() => {
                 <i className="bx bx-task text-primary" />
                 {' '}
                 <b>
-                  2
+                 {item.tasks && item.tasks.length}
                 </b>
                 {' '}Tasks
               </span>
@@ -494,23 +496,42 @@ useEffect(() => {
                 ) : (
                   ''
                 )}
+
+                {item.users && item.users.length === 0 && (
+                  <span className="badge bg-primary">Not Assigned</span>
+                )}
                 </ul>
                 <p />
-                {/* {item.users && item.users.length > 0 ? (
-                      item.users.map((user, index) => (
-                  <Link
-                  to={`/editProject/${user.id}`}
-                  className="btn btn-icon btn-sm btn-outline-primary btn-sm rounded-circle edit-project update-users-clients"
-                 >
-                  <span className="bx bx-edit" />
-                </Link>
-              ))
-                ) : (
-                  ''
-                )} */}
+               
               </div>
               <div className="col-md-6">
-                
+              <p className="card-text">
+                  Creator:
+                </p>
+
+                <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
+                {item.creator && item.creator.length > 0 && 
+  <li
+    className="avatar avatar-sm pull-up"
+    title={item.creator[0]?.name}
+    key={index}
+  >
+    <Link
+      to={`/Userview/${item.creator[0]?.id}`}
+      target="_blank"
+    >
+      <img
+        className="rounded-circle"
+        style={{ objectFit: "cover" }}
+        src={item.creator[0]?.pfpImage}
+        alt={item.creator[0]?.name}
+      />
+    </Link>
+  </li>
+}
+                </ul>
+                <p />
+
               </div>
             </div>
             <div className="row mt-2">
@@ -532,6 +553,36 @@ useEffect(() => {
         )
       })}
      
+
+     {currentItems.length === 0 &&
+      <div className="row">
+        <div className="col-5">
+        <div className="card mb-3" >
+        <div className="card-body">
+        
+          <div className="d-flex flex-column align-items-center text-center">
+            <h4 className="card-title">
+              <a
+                href="projects/information/419"
+                target="_blank"
+              >
+                
+                <strong>
+                  No Projects Found
+                </strong>
+              </a>
+            </h4>
+
+            <img src="./assets/images/no_media.jpg" alt="" />
+           
+          </div>
+        
+        
+        </div>
+      </div>
+        </div>
+      </div> 
+      }
 
      {/* Pagination */}
      <Pagination className="mt-3 justify-content-center">

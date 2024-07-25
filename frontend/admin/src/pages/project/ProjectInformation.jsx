@@ -20,7 +20,7 @@ const ProjectInformation = () => {
     const fetchProjectData = () =>{
       axios.get(`http://localhost:5000/project/getProject/${id}`)
       .then((res) => {
-          // console.log("Reposne: ",res.data);
+          console.log("Reposne: ",res.data);
           setData(res.data);
       })
       .catch((err) => {
@@ -311,7 +311,7 @@ const handleProjectMediaSubmit = (event) => {
     formData.append('media', file); // Ensure 'media' matches the expected field name
   });
 
-  axios.put(`http://localhost:5000/project/addMedia/${id}`, formData, {
+  axios.post(`http://localhost:5000/project/addMedia/${id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -484,19 +484,30 @@ const handleMediaDelete = (id) => {
                           </ul>
                         </div>
                         <div className="col-md-6  mt-3 mb-3">
-                          {/* <label className="form-label" htmlFor="end_date">
-                            Clients
+                        <label className="form-label" htmlFor="start_date">
+                            Creator
                           </label>
-                          <p>
-                            <span className="badge bg-primary">Not Assigned</span>
-                            <a
-                              href="javascript:void(0)"
-                              className="btn btn-icon btn-sm btn-outline-primary btn-sm rounded-circle edit-project update-users-clients"
-                              data-id={434}
-                            >
-                              <span className="bx bx-edit" />
-                            </a>
-                          </p> */}
+                          <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
+                {item.creator && item.creator.length > 0 && 
+  <li
+    className="avatar avatar-sm pull-up"
+    title={item.creator[0]?.name}
+    key={index}
+  >
+    <Link
+      to={`/Userview/${item.creator[0]?.id}`}
+      target="_blank"
+    >
+      <img
+        className="rounded-circle"
+        style={{ objectFit: "cover" }}
+        src={item.creator[0]?.pfpImage}
+        alt={item.creator[0]?.name}
+      />
+    </Link>
+  </li>
+}
+                </ul>
                         </div>
                         <div className="col-md-6 mb-3">
                           <label className="form-label">Status</label>
@@ -760,7 +771,7 @@ const handleMediaDelete = (id) => {
                     Tasks{" "}
                   </button>
                 </li>
-                <li className="nav-item">
+                {/* <li className="nav-item">
                   <button
                     type="button"
                     className="nav-link "
@@ -772,7 +783,7 @@ const handleMediaDelete = (id) => {
                     <i className="menu-icon tf-icons bx bx-list-check text-warning" />
                     Milestones{" "}
                   </button>
-                </li>
+                </li> */}
                 <li className="nav-item">
                   <button
                     type="button"
@@ -786,7 +797,7 @@ const handleMediaDelete = (id) => {
                     Media{" "}
                   </button>
                 </li>
-                <li className="nav-item">
+                {/* <li className="nav-item">
                   <button
                     type="button"
                     className="nav-link"
@@ -798,7 +809,7 @@ const handleMediaDelete = (id) => {
                     <i className="menu-icon tf-icons bx bx-line-chart text-info" />
                     Activity Log{" "}
                   </button>
-                </li>
+                </li> */}
               </ul>
               <div className="tab-content">
                 <div
@@ -1871,7 +1882,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                 </div>
               </div>
             </div>
-            <div
+            {/* <div
               className="modal fade"
               id="create_milestone_modal"
               tabIndex={-1}
@@ -1988,8 +1999,8 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                   </div>
                 </form>
               </div>
-            </div>
-            <div
+            </div> */}
+            {/* <div
               className="modal fade"
               id="edit_milestone_modal"
               tabIndex={-1}
@@ -2126,7 +2137,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                   </div>
                 </form>
               </div>
-            </div>
+            </div> */}
             <div
               className="modal fade"
               id="add_media_modal"

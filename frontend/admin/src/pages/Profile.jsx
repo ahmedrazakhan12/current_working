@@ -140,18 +140,7 @@ const Profile = () => {
     <>
      
     <div className="container-fluid">
-    <div className="d-flex justify-content-between mb-2 mt-4">
-      <div>
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb breadcrumb-style1">
-            <li className="breadcrumb-item">
-              <Link to="/">Home</Link>
-            </li>
-            <li className="breadcrumb-item active">Profile </li>
-          </ol>
-        </nav>
-      </div>
-    </div>
+  
     <div className="row">
       <div className="col-md-12">
         <div className="card mb-4">

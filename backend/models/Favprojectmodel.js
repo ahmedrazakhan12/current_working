@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const taskUsersModel = sequelize.define(
-  "task-users",
+const favoriteProjectModel = sequelize.define(
+  "favorite-projects",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -15,16 +15,10 @@ const taskUsersModel = sequelize.define(
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    taskId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
     projectId: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-
-    
   },
   {
     // Additional model options can be defined here
@@ -32,5 +26,5 @@ const taskUsersModel = sequelize.define(
 );
 
 module.exports = {
-  taskUsersModel,
+  favoriteProjectModel,
 };

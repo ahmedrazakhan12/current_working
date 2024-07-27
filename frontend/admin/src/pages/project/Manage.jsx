@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -80,9 +82,15 @@ useEffect(() => {
     setCurrentPage(1); // Reset to the first page on filter change
   };
 
+  // Debug: Check statusFilter value
+  console.log('Current statusFilter:', statusFilter);
+
   const filteredData = statusFilter
-    ? data.filter(item => item.status === statusFilter)
+    ? data.filter(item => item.status[0].status === statusFilter)
     : data;
+
+  // Debug: Check filtered data
+  console.log('Filtered data:', filteredData);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -137,75 +145,105 @@ useEffect(() => {
     }
   };
   
+
+  const [favId, setFavId] = useState({});
+  const activeId = localStorage.getItem("id");
+
+  const fetchFavData = () => {
+    axios.get(`http://localhost:5000/project/getFavProjectId/`, {
+      params: { id: activeId  }
+    })
+      .then((res) => {
+        console.log("Favorite Projects:", res.data.map((item) => item.projectId));
+        setFavId(res.data.map((item) => item.projectId));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    fetchFavData();
+  }, [activeId]);
+
+  const [fav, setFav] = useState({});
+  
+  const handleFavorite = async (id) => {
+    const userId = localStorage.getItem("id");
+    
+    const isCurrentlyFav = fav[id];
+  
+    try {
+      // Optimistic UI update
+      setFav((prevFav) => ({
+        ...prevFav,
+        [id]: !prevFav[id],
+      }));
+  
+      if (!isCurrentlyFav) {
+        // If the project is not currently favorited, favorite it
+        await axios.post(`http://localhost:5000/project/favProject`, {
+          projectId: id,
+          userId: userId,
+        });
+      } else {
+        // If the project is currently favorited, unfavorite it
+        await axios.delete(`http://localhost:5000/project/favProject`, {
+          data: {
+            projectId: id,
+            userId: userId,
+          },
+        });
+      }
+      // Refresh favorite data after the operation
+      fetchFavData();
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+      // Revert the optimistic UI update if there's an error
+      setFav((prevFav) => ({
+        ...prevFav,
+        [id]: isCurrentlyFav,
+      }));
+    }
+  };
+
+  
+
   return (
     <>
      
     <div className="container-fluid">
-    <div className="d-flex justify-content-between mb-2 mt-4">
-      <div>
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb breadcrumb-style1">
-            <li className="breadcrumb-item">
-                <Link to={'/'}>
-              Dashboard
-              </Link>
-             
-            </li>
-            <li className="breadcrumb-item">
-              <a href="projects">
-                Projects
-              </a>
-            </li>
-            <li className="breadcrumb-item active">
-              Favorite
-            </li>
-          </ol>
-        </nav>
-      </div>
-      <div>
-
-      </div>
-      <div>
-        <a href="projects/list/favorite">
-          
-        </a>
-      </div>
-    </div>
+    
     <div className="row">
       <div className="col-md-3 mb-3">
       <select
         aria-label="Default select example"
-        className="form-select"
+        className="form-select text-capitalize"
         id="status_filter"
         onChange={handleStatusChange}
       >
         <option value="">All</option>
-        <option value="started">Started</option>
-        <option value="ongoing">On Going</option>
-        <option value="inreview">In Review</option>
+        {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+          <option className={`bg-label-${dbItem.preview} text-capitalize`}value={dbItem.status}>
+            {dbItem.status}
+          </option>
+        ))}   
       </select>
       </div>
       <div className="col-md-3 mb-3">
         <select
           aria-label="Default select example"
           className="form-select"
-          id="sort"
+          id="sort" 
         >
           <option value="">
             Sort By
           </option>
-          <option value="newest">
-            Newest
+          {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+          <option className={`bg-label-${dbItem.preview} text-capitalize`}value={dbItem.status}>
+            {dbItem.status}
           </option>
-          <option value="oldest">
-            Oldest
-          </option>
-          <option value="recently-updated">
-            Most Recently Updated
-          </option>
-          <option value="earliest-updated">
-            Least Recently Updated
-          </option>
+        ))}   
         </select>
       </div>
       <div className="col-md-5 mb-3">
@@ -287,9 +325,27 @@ useEffect(() => {
               </h4>
               <div className="d-flex align-items-center justify-content-center">
                 <div className="input-group">
+                <a
+                  className=" cursor-pointer"
+                  onClick={()=> handleFavorite(item.project.id)}
+                >
+                  <i
+  className={
+    favId.includes(item.project.id)
+      ? 'bx bxs-star favorite-icon text-warning m-0' 
+      : 'bx bx-star favorite-icon text-warning m-0'
+  }
+  data-bs-original-title="Click to Remove from Favorite"
+  data-bs-placement="right"
+  data-bs-toggle="tooltip"
+  data-favorite="1"
+  data-id="419"
+/>
+
+                </a>
                   <a
                     aria-expanded="false"
-                    className="mx-2"
+                    className="mx-1"
                     data-bs-toggle="dropdown"
                     href="javascript:void(0);"
                   >
@@ -320,43 +376,9 @@ useEffect(() => {
                   </ul>
                 </div>
                 
-                <a
-                  className="quick-view"
-                  data-id="419"
-                  data-type="project"
-                  href="javascript:void(0);"
-                >
-                  <i
-                    className="bx bx bx-info-circle text-info"
-                    data-bs-original-title="Quick View"
-                    data-bs-placement="right"
-                    data-bs-toggle="tooltip"
-                  />
-                </a>
-                <a
-                  className="mx-2"
-                  href="javascript:void(0);"
-                >
-                  <i
-                    className="bx bxs-star favorite-icon text-warning"
-                    data-bs-original-title="Click to Remove from Favorite"
-                    data-bs-placement="right"
-                    data-bs-toggle="tooltip"
-                    data-favorite="1"
-                    data-id="419"
-                  />
-                </a>
-                <a
-                  href="chat?type=project&id=419"
-                  target="_blank"
-                >
-                  <i
-                    className="bx bx-message-rounded-dots text-danger"
-                    data-bs-original-title="Discussion"
-                    data-bs-placement="right"
-                    data-bs-toggle="tooltip"
-                  />
-                </a>
+               
+                
+               
               </div>
             </div>
             {/* <span class="badge bg-label-warning me-1"> Creator</span> */}
@@ -459,7 +481,7 @@ useEffect(() => {
                 </b>
                 {' '}Tasks
               </span>
-              <a href="projects/tasks/draggable/419">
+              <a >
                 <button
                   className="btn btn-sm rounded-pill btn-outline-primary"
                   type="button"
@@ -606,3 +628,7 @@ useEffect(() => {
 }
 
 export default Manage
+
+
+
+

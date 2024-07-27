@@ -5,6 +5,7 @@ const mediaUpload = require("../middlewares/Mediaproject");
 
 
 router.get("/getAllTasks/:id", taskController.getAllTask);
+router.get("/tasks", taskController.tasks);
 router.post("/addTask", taskController.addTask);
 router.put("/editTask/:id", taskController.updateTask);
 router.put("/editStatus/:id", taskController.updateStatus);

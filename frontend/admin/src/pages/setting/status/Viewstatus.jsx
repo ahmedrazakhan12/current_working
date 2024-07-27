@@ -91,7 +91,9 @@ const Viewstatus = () => {
         setShowModal1(false);
         fetchStatusList(); // Update status list after successful edit
       })
-      .catch((err) => console.log(err));
+      .catch((err)=>{
+        setError(err.response.data.message)
+      })
   };
 
   const handleDelete = (id) => {
@@ -130,6 +132,8 @@ const Viewstatus = () => {
 
   return (
     <div>
+
+
       <div className="container-fluid">
         <div className="row">
           <div className="col-lg-12 col-md-12 col-sm-12 col-12">
@@ -234,9 +238,6 @@ const Viewstatus = () => {
                 <option className="badge bg-label-dark" value="dark">Dark</option>
               </select>
             </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <div className="mt-3">
             {error &&  
                <div className=" col-12 mb-0">
                 <div className="alert alert-warning">
@@ -246,6 +247,9 @@ const Viewstatus = () => {
                   </p>
                 </div>
               </div>}
+          </Modal.Body>
+          <Modal.Footer>
+            <div className="mt-3">
               <button type="submit" className="btn btn-warning float-end m-0">Add</button>
               <button type="button" className="btn btn-secondary me-2 float-end m-0" onClick={handleClose}>Cancel</button>
             </div>
@@ -279,6 +283,15 @@ const Viewstatus = () => {
                 <option className="badge bg-label-dark" value="dark">Dark</option>
               </select>
             </div>
+            {error &&  
+               <div className=" col-12 mb-0">
+                <div className="alert alert-warning">
+                 
+                  <p className="mb-0 text-center">
+                  {error}
+                  </p>
+                </div>
+              </div>}
           </Modal.Body>
           <Modal.Footer>
             <div className="mt-3">

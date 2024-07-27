@@ -31,7 +31,8 @@ import Priority from './pages/setting/priority/Priority';
 import ProjectInformation from './pages/project/ProjectInformation';
 import Addtasks from './pages/tasks/Addtasks';
 import UpdateTasks from './pages/tasks/UpdateTasks';
-
+import Breadcrumb from './components/Breadcrumb';
+import SingleTask from './pages/tasks/SingleTask';
 function App() {
   const { isMenuExpanded } = useAppContext();
 
@@ -64,6 +65,7 @@ function App() {
              <Sidebar />
             <div className="layout-page">
               <Navbar />
+              <Breadcrumb   />
               <div className="content-wrapper">
                 <Routes>
                   <Route path="/" element={<Protected Component={Dashboard} />} />
@@ -84,6 +86,7 @@ function App() {
                   <Route path="/projectInformation/:id" element={<Protected Component={ProjectInformation} />} />
                   <Route path="/addTask/:id" element={<Protected Component={Addtasks} />} />
                   <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
+                  <Route path="/viewTask/:id" element={<Protected Component={SingleTask} />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />

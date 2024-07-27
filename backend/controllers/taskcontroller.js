@@ -31,7 +31,7 @@ const {
     } = req.body;
 
 
-
+    console.log("projectId" , projectId);
 
     const error =
     validateTitle(taskName) ||
@@ -70,6 +70,7 @@ const {
     const taskUserEntries = usersID.map(userId => ({
       taskId: latestId,
       userId: userId,
+      projectId: projectId
     }));
 
     await taskUsersModel.bulkCreate(taskUserEntries);
@@ -94,11 +95,12 @@ exports.updateTask = async (req, res) => {
       endAt,
       usersID,
       note,
-      deleteUsers
+      deleteUsers,
+      projectId
     } = req.body;
 
     console.log(
-      deleteUsers
+      "projectId",projectId
     );
 
     // Validate input
@@ -109,7 +111,7 @@ exports.updateTask = async (req, res) => {
       validatePriority(priority) ||
       validateDate(startAt) ||
       validateDate(endAt) ||
-      validateDescription(note) ||
+      // validateDescription(note) ||
       validateUserId(usersID);
 
     if (error) {
@@ -153,6 +155,7 @@ if (Array.isArray(deleteUsers) && deleteUsers.length > 0) {
     const taskUserEntries = usersID.map(userId => ({
       taskId: id,
       userId: userId,
+      projectId: projectId
     }));
 
     await taskUsersModel.bulkCreate(taskUserEntries);
@@ -187,6 +190,9 @@ exports.deleteTask = async (req, res) => {
 
     // Delete the admin
     await taskModel.destroy({ where: { id: id } });
+    await taskUsersModel.destroy({ where: { taskId: id } });
+    await db.taskFilesModel.destroy({ where: { taskId: id } });
+
     console.log("Project successfully deleted.");
     res.status(200).json({ message: "Project deleted successfully" });
     
@@ -393,6 +399,40 @@ exports.deleteMedia = async (req, res) => {
       });
     }
     res.status(200).json({ message: "Media deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
+
+
+
+
+
+exports.tasks = async (req, res) => {
+  try {
+  
+    const tasks = await taskModel.findAll();
+    const users = await taskUsersModel.findAll();
+    const status = await statusModel.findAll();
+
+       const data = await Promise.all(tasks.map(async (task) => {
+      const filteredUsersIds = users.filter(user => user.taskId === task.id);
+      const filteredStasus = status.filter(user => user.id === task.status);
+      const filteredPriorities = status.filter(user => user.id === task.priority);
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+
+      return {
+        task: task,
+        users: filteredUsers,
+        status: filteredStasus,
+        priority: filteredPriorities
+      };
+    }));
+
+    res.status(200).json(data);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");

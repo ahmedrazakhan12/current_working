@@ -17,6 +17,8 @@ const {
   validateTags,
 
 } = require("../middlewares/Projectvalidation");
+const { taskUsersModel } = require("../models/taskUsersModel");
+const { taskFilesModel } = require("../models/Taskfilemodel");
 
 
 
@@ -78,13 +80,41 @@ exports.projectData = async (req, res) => {
 
     const latestId = user.id;
 
-    // Iterate over each userID and create a new entry in projectUsersModel
-    const projectUserEntries = usersID.map(userId => ({
+    const existingEntries = await projectUsersModel.findAll({
+      where: {
+        projectId: latestId,
+      },
+      attributes: ['userId']
+    });
+    
+    // Extract existing user IDs
+    const existingUserIds = existingEntries.map(entry => entry.userId);
+    
+    // Filter out user IDs that are already associated with the project
+    const newUsersId = usersID.filter(userId => !existingUserIds.includes(userId));
+    
+    // Create new entries for users that are not yet associated with the project
+    const projectUserEntries = newUsersId.map(userId => ({
       projectId: latestId,
       userId: userId,
     }));
-
+    
+    // Bulk create new entries
     await projectUsersModel.bulkCreate(projectUserEntries);
+    // const existingEntries = await projectUsersModel.findAll({
+    //   where: {
+    //     projectId: latestId,
+    //   },
+    // });
+    
+    
+    // // Iterate over each userID and create a new entry in projectUsersModel
+    // const projectUserEntries = usersID.map(userId => ({
+    //   projectId: latestId,
+    //   userId: userId,
+    // }));
+
+    // await projectUsersModel.bulkCreate(projectUserEntries);
 
 
     const projectTagsEntries = tags.map(tags => ({
@@ -133,8 +163,8 @@ exports.editProjectData = async (req, res) => {
 
     const tagsArray = tags.map(tag => tag.name);
 
-    console.log("tags: " ,tagsArray );
-    console.log("delete Tags: ", deleteTags);
+    // console.log("tags: " ,tagsArray );
+    console.log("deleteUsers: ", deleteUsers);
 
     const error =
     validateTitle(projectName) ||
@@ -144,8 +174,8 @@ exports.editProjectData = async (req, res) => {
     validateBudget(budget) ||
     validateDate(startAt) ||
     validateDate(endAt) ||
-    validateTags(tagsArray) ||
-    validateDescription(note);
+    validateTags(tagsArray);
+    // validateDescription(note);
     // validateUserId(usersID)
 
     if (error) {
@@ -156,6 +186,30 @@ exports.editProjectData = async (req, res) => {
       });
     }
 
+
+    if (Array.isArray(deleteUsers) && deleteUsers.length > 0) {
+      await projectUsersModel.destroy({
+        where: {
+          userId: deleteUsers, // This matches any userId in the deleteUsers array
+          projectId: id // This matches the given projectId
+        }
+      });
+
+      await taskUsersModel.destroy({
+        where: {
+          userId: deleteUsers, // This matches any userId in the deleteUsers array
+          projectId: id // This matches the given projectId
+        }
+      });
+    }
+    
+    
+    
+    if (Array.isArray(deleteTags) && deleteTags.length > 0) {
+      await projectTagsModel.destroy({
+        where: { id: deleteTags }
+      });
+    }
     // Create the project
     await projectModel.update(
       {
@@ -235,22 +289,7 @@ projectTagsEntries.map(async (entry) => {
 })
 );
 
-if (Array.isArray(deleteUsers) && deleteUsers.length > 0) {
-  await projectUsersModel.destroy({
-    where: {
-      userId: deleteUsers, // This matches any userId in the deleteUsers array
-      projectId: id // This matches the given projectId
-    }
-  });
-}
 
-
-
-if (Array.isArray(deleteTags) && deleteTags.length > 0) {
-  await projectTagsModel.destroy({
-    where: { id: deleteTags }
-  });
-}
 
 
     // Emit the project addition event to all connected clients
@@ -285,6 +324,14 @@ exports.deleteProject = async (req, res) => {
 
     // Delete the admin
     await projectModel.destroy({ where: { id: id } });
+    await projectUsersModel.destroy({ where: { projectId: id } });
+    await projectFilesModel.destroy({ where: { projectId: id } });
+    await db.favoriteProjectModel.destroy({ where: { projectId: id } });
+    await projectTagsModel.destroy({ where: { projectId: id } });
+    await taskFilesModel.destroy({ where: { projectId: id } });
+    await taskModel.destroy({ where: { projectId: id } });
+    await taskUsersModel.destroy({ where: { projectId: id } });
+
     console.log("Project successfully deleted.");
     res.status(200).json({ message: "Project deleted successfully" });
     
@@ -501,6 +548,184 @@ exports.deleteMedia = async (req, res) => {
   }
 }
 
+
+
+
+
+exports.favProject = async (req, res) => {
+  try {
+    const { userId , projectId } = req.body;
+    console.log(userId , projectId);
+
+    await db.favoriteProjectModel.create({  userId: userId , projectId: projectId });
+    res.status(200).send("Fav successfully updated.");
+    console.log("fav successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
+
+exports.deleteFavProject = async (req, res) => {
+  try {
+    const { userId , projectId } = req.body;
+    console.log(userId , projectId);
+    await db.favoriteProjectModel.destroy({ where: { userId: userId , projectId: projectId } });
+    res.status(200).send("Fav successfully updated.");
+    console.log("fav successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+} 
+
+exports.getFavProject = async (req, res) => {
+  try {
+    const { id } = req.query; // Get id from query parameters
+    console.log(id);
+    if (!id) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Please log in first!",
+      });
+    }
+    const projectId = await db.favoriteProjectModel.findAll({ where: { userId: id } });
+    const projects = await projectModel.findAll({where : { id: projectId.map(project => project.projectId) } });
+
+    if (!projects) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Projects not found",
+      });
+    }
+    const users = await projectUsersModel.findAll();
+    const tags = await projectTagsModel.findAll();
+    const status = await projectStatusModel.findAll();
+    const creator = await adminModel.findAll();
+    const tasks = await taskModel.findAll();
+
+    const data = await Promise.all(projects.map(async (project) => {
+      const filteredUsersIds = users.filter(user => user.projectId === project.id);
+      const filteredCreatorIds = creator.filter(creator => creator.id === project.creator );
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+      const filteredStasus = status.filter(user => user.id === project.status);
+      const filteredPriorities = status.filter(user => user.id === project.priority);
+      const filteredTags = tags.filter(tag => tag.projectId === project.id);
+      const filterTasks = tasks.filter(task => task.projectId === project.id);
+
+      return {
+        projectId : projectId,
+        project: project,
+        creator: filteredCreatorIds,
+        users: filteredUsers,
+        tags: filteredTags,
+        status:filteredStasus,
+        priority:filteredPriorities,
+        tasks:filterTasks
+        
+      };
+    }));
+
+    res.status(200).json(data);
+  
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+
+
+
+
+exports.getFavProjectByID = async (req, res) => {
+  try {
+    const { id } = req.query;
+    console.log(id);
+    if (!id) {
+      return res.status(404).json({
+        status: 404,
+        data: null,
+        message: "Please log in first!",
+      });
+    }
+    const result = await db.favoriteProjectModel.findAll({ where: { userId: id } });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+exports.getFilterProject = async (req, res) => {
+  try {
+    const { status, priority, tags } = req.query;
+
+    let whereClause = {};
+
+    if (status && status !== 'all' && status !== 'none') {
+      whereClause.status = status;
+    }
+
+    if (priority && priority !== 'all' && priority !== 'none') {
+      whereClause.priority = priority;
+    }
+
+    let projects;
+    if (Object.keys(whereClause).length > 0) {
+      projects = await projectModel.findAll({ where: whereClause });
+    } else {
+      projects = await projectModel.findAll();
+    }
+
+    const users = await projectUsersModel.findAll();
+    const tagsModel = await projectTagsModel.findAll();
+    const statusModel = await projectStatusModel.findAll();
+    const creator = await adminModel.findAll();
+    const tasks = await taskModel.findAll();
+
+    const data = await Promise.all(projects.map(async (project) => {
+      const filteredUsersIds = users.filter(user => user.projectId === project.id);
+      const filteredCreatorIds = creator.filter(creator => creator.id === project.creator);
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+      const filteredStatus = statusModel.filter(user => user.id === project.status);
+      const filteredPriorities = statusModel.filter(user => user.id === project.priority);
+      const filteredTags = tagsModel.filter(tag => tag.projectId === project.id);
+      const filterTasks = tasks.filter(task => task.projectId === project.id);
+
+      return {
+        project: project,
+        creator: filteredCreatorIds,
+        users: filteredUsers,
+        tags: filteredTags,
+        status: filteredStatus,
+        priority: filteredPriorities,
+        tasks: filterTasks
+      };
+    }));
+
+    if (tags && tags !== 'all') {
+      const tagsArray = tags.split(',');
+      const filteredData = data.filter(item =>
+        item.tags.some(tag => tagsArray.includes(tag.tagName))
+      );
+      return res.status(200).json(filteredData);
+    }
+
+    res.status(200).json(data);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
 
 
 

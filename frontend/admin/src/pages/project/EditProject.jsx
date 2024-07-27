@@ -209,27 +209,53 @@ const EditProject = () => {
 };
 
 const deleteTag = (index , id) => {
-  setTags1((prevTags) => prevTags.filter((_, i) => i !== index));
-  setTags((prevTags) => prevTags.filter((_, i) => i !== index));
+  
   
     // Remove corresponding user ID by the same index
-    setUsersID((prevIDs) => prevIDs.filter((_, i) => i !== index));
-    setDeleteUsers((prevDeleteIDs) => [...prevDeleteIDs, id]);
 
+    // setDeleteUsers((prevDeleteIDs) => [...prevDeleteIDs, id]);
+  // Show SweetAlert for confirmation before setting delete users
+      Swal.fire({
+        title: 'Are you sure?',
+        text: `If you delete the user it will be removed from the assigned tasks`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, keep it'
+    }).then((result) => {
+    if (result.isConfirmed) {
+        // If the user confirms, proceed with setting delete users
+        setTags1((prevTags) => prevTags.filter((_, i) => i !== index));
+        setTags((prevTags) => prevTags.filter((_, i) => i !== index));
+    setUsersID((prevIDs) => prevIDs.filter((_, i) => i !== index));
+
+        setDeleteUsers((prevDeleteIDs) => [...prevDeleteIDs, id]);
+
+        // Show success message
+      
+    }
+});
 };
 
 console.log("deleteTag: ", deleteTags);
 const anyErrors = (tag) => {
-    if (max !== null && tags.length >= max) {
-        console.log('Max tags limit reached');
-        return true;
-    }
-    if (!duplicate && tags.includes(tag)) {
-        console.log(`Duplicate found: "${tag}"`);
-        return true;
-    }
-    return false;
-};
+        if (max !== null && tags.length >= max) {
+            console.log('Max tags limit reached');
+            return true;
+        }
+        const dbTag = tags.map(tag => tag.name);
+        const mytag = tags1;
+        
+        if (dbTag.includes(tag)) {
+            console.log(`Duplicate found: "${tag}"`);
+            return true;
+        }
+        if (mytag.includes(tag)) {
+          console.log(`Duplicate found: "${tag}"`);
+          return true;
+      }
+        return false;
+      };
 
 const handleKeyDown = (e) => {
     const trimmedValue = inputValue.trim();

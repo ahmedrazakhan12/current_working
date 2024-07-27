@@ -32,7 +32,7 @@ const UpdateTasks = () => {
     const [dbPriorities, setDbPriorities] = useState([]);
     const [projectDetails, setProjectDetails] = useState(null); 
     const [tags1, setTags1] = useState([]);
-    console.log("tags1: ",tags1);
+    console.log("projectDetailsprojectDetailsprojectDetailsprojectDetailsprojectDetails: ",projectDetails);
   
     const navigate = useNavigate();
     const activeId = localStorage.getItem("id");
@@ -238,7 +238,8 @@ const UpdateTasks = () => {
           note,
           username,
           activeId,
-          deleteUsers
+          deleteUsers,
+          projectId: projectDetails.projectId
         });
         navigate(-1);
         Swal.fire({

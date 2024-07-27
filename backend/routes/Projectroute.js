@@ -15,6 +15,12 @@ router.put("/editPriority/:id", projectController.updatePriority);
 router.post("/addMedia/:id", mediaUpload, projectController.addMedia);
 router.get("/getMedia/:id", projectController.getMedia);
 router.delete("/deleteMedia/:id", projectController.deleteMedia);
+router.post("/favProject/", projectController.favProject);
+router.delete("/favProject/", projectController.deleteFavProject);
+router.get("/getFavProject/", projectController.getFavProject);
+router.get("/getFavProjectId/", projectController.getFavProjectByID);
+router.get("/filter", projectController.getFilterProject);
+
 
 module.exports = router;
 

@@ -115,7 +115,7 @@ const Sidebar = () => {
                   </div>
                 </span>
               </li>
-              <li
+              {/* <li
                 className={
                   location.pathname === "/tag"
                     ? "menu-item active"
@@ -132,7 +132,7 @@ const Sidebar = () => {
                     </Link>
                   </div>
                 </span>
-              </li>
+              </li> */}
             </ul>
           </li>
 

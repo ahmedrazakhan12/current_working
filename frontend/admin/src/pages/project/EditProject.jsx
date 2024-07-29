@@ -384,7 +384,7 @@ const handleSubmit = async (e) => {
       activeId,
       deleteTags
     });
-    navigate("/manage");
+    navigate(-1);
     Swal.fire({
       position: 'top-end',
       title: 'Project Edited Successfully',
@@ -577,7 +577,7 @@ const handleSubmit = async (e) => {
             )}
 
             <div className="modal-footer m-0 p-0">
-              <button type="button" className="m-0 me-2 btn btn-secondary" onClick={() => navigate("/manage")}>Close</button>
+              <button type="button" className="m-0 me-2 btn btn-secondary" onClick={() => navigate(-1)}>Close</button>
               <button type="submit" id="submit_btn" className="m-0 me-2 btn btn-warning">Update</button>
             </div>
           </div>

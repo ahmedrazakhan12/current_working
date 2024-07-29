@@ -33,6 +33,7 @@ import Addtasks from './pages/tasks/Addtasks';
 import UpdateTasks from './pages/tasks/UpdateTasks';
 import Breadcrumb from './components/Breadcrumb';
 import SingleTask from './pages/tasks/SingleTask';
+import Chat from './chat/Chat';
 function App() {
   const { isMenuExpanded } = useAppContext();
 
@@ -87,6 +88,7 @@ function App() {
                   <Route path="/addTask/:id" element={<Protected Component={Addtasks} />} />
                   <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
                   <Route path="/viewTask/:id" element={<Protected Component={SingleTask} />} />
+                  <Route path="/chat" element={<Protected Component={Chat} />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />

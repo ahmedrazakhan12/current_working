@@ -15,5 +15,6 @@ router.get("/getTask/:id", taskController.getTaskById);
 router.post("/addMedia/:id", mediaUpload, taskController.addMedia);
 router.get("/getMedia/:id", taskController.getMedia);
 router.delete("/deleteMedia/:id", taskController.deleteMedia);
+router.get("/filter", taskController.getFilterProject);
 
 module.exports = router;

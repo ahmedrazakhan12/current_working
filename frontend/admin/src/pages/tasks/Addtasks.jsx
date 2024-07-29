@@ -230,7 +230,7 @@ const handleChange = (e) => {
     <div className="container-fluid mt-3 mb-3">
       <form className="form-submit-event modal-content" onSubmit={handleSubmit}>
         <div className="modal-header">
-          <h5 className="modal-title" id="exampleModalLabel1">Create Project</h5>
+          <h5 className="modal-title" id="exampleModalLabel1">Create Task</h5>
         </div>
         <div className="modal-body">
           <div className="row">

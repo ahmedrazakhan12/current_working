@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import axios from 'axios';
@@ -7,8 +7,6 @@ import { Pagination } from "react-bootstrap";
 
 const Favorite = () => { const navigate = useNavigate();
   const [data, setData] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [dbStatus , setDbStatus] = useState([]);
   const [dbPriority, setDbPriority] = useState([]);
   const activeId  = localStorage.getItem("id");
@@ -80,19 +78,7 @@ useEffect(() => {
     });
   };
 
-  const handleStatusChange = (e) => {
-    setStatusFilter(e.target.value);
-    setCurrentPage(1); // Reset to the first page on filter change
-  };
-
-  const filteredData = statusFilter
-    ? data.filter(item => item.status === statusFilter)
-    : data;
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  
 
 
   const formatDate = (dateString) => {
@@ -170,70 +156,101 @@ useEffect(() => {
       console.error('Error updating favorite:', error);
     }
   };
+    const statusRef = useRef(null);
+  const priorityRef = useRef(null);
+  const searchRef = useRef(null);
+
+  const handleStatusChange = (e) => {
+    const status = e.target.value;
+    if (priorityRef.current) {
+      priorityRef.current.value = "";
+    }
+    if (searchRef.current) {
+      searchRef.current.value = "";
+    }
+    axios.get(`http://localhost:5000/project/filter/`, { params: { status } })  
+    .then((res) => {
+      setData(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  };
+
+  const handlePriorityFilterChange = (e) => {
+    const priority = e.target.value;
+    if (statusRef.current) {
+      statusRef.current.value = "";
+    }
+    if (searchRef.current) {
+      searchRef.current.value = "";
+    }
+    axios.get(`http://localhost:5000/project/filter/`, { params: { priority } })
+    .then((res) => {
+      setData(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  };
+
+  const handleSearchChange = (e) => {
+    const search = e.target.value;
+    if (statusRef.current) {
+      statusRef.current.value = "";
+    }
+    if (priorityRef.current) {
+      priorityRef.current.value = "";
+    }
+    axios.get(`http://localhost:5000/project/filter/`, { params: { search } })
+    .then((res) => {
+      setData(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  };
   return (
     <>
      
     <div className="container-fluid">
- 
     <div className="row">
       <div className="col-md-3 mb-3">
       <select
         aria-label="Default select example"
-        className="form-select"
+        className="form-select text-capitalize"
         id="status_filter"
+        ref={statusRef}
         onChange={handleStatusChange}
       >
         <option value="">All</option>
-        <option value="started">Started</option>
-        <option value="ongoing">On Going</option>
-        <option value="inreview">In Review</option>
+        {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+          <option className={`bg-label-${dbItem.preview} text-capitalize`}value={dbItem.id}>
+            {dbItem.status}
+          </option>
+        ))}   
       </select>
       </div>
       <div className="col-md-3 mb-3">
         <select
           aria-label="Default select example"
           className="form-select"
-          id="sort"
+          id="sort" 
+          ref={priorityRef}
+          onChange={handlePriorityFilterChange}
         >
           <option value="">
             Sort By
           </option>
-          <option value="newest">
-            Newest
+          {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+          <option className={`bg-label-${dbItem.preview} text-capitalize`}value={dbItem.id}>
+            {dbItem.status}
           </option>
-          <option value="oldest">
-            Oldest
-          </option>
-          <option value="recently-updated">
-            Most Recently Updated
-          </option>
-          <option value="earliest-updated">
-            Least Recently Updated
-          </option>
+        ))}   
         </select>
       </div>
       <div className="col-md-5 mb-3">
-      <select
-          aria-label="Default select example"
-          className="form-select w-100"
-          id="status_filter"
-        >
-          <option value="">
-            Filter by Tags
-          </option>
-          <option value="0">
-            Default
-          </option>
-          <option value="1">
-            Started
-          </option>
-          <option value="2">
-            On Going
-          </option>
-          <option value="59">
-            In Review
-          </option>
-        </select>
+          <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
       </div>
       <div className="col-md-1 d-flex w-10 h-100 mt-1">
       <button
@@ -261,8 +278,9 @@ useEffect(() => {
         
       </div>
     </div>
+ 
     <div className="mt-4 d-flex row">
-      {currentItems.map((item ,index)=>{
+      {data.map((item ,index)=>{
         return(
           <div className="col-md-6">
         <div className="card mb-3">
@@ -542,7 +560,7 @@ useEffect(() => {
       })}
      
 
-     {currentItems.length === 0 &&
+     {data.length === 0 &&
       <div className="row">
         <div className="col-5">
         <div className="card mb-3" >
@@ -573,7 +591,7 @@ useEffect(() => {
       }
 
      {/* Pagination */}
-     <Pagination className="mt-3 justify-content-center">
+     {/* <Pagination className="mt-3 justify-content-center">
           <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} />
           {[...Array(totalPages).keys()].map(number => (
             <Pagination.Item
@@ -585,7 +603,7 @@ useEffect(() => {
             </Pagination.Item>
           ))}
           <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} />
-        </Pagination>
+        </Pagination> */}
     </div>
    
   </div>

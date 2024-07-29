@@ -5,13 +5,24 @@ import { Link, useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const [project , setProject] = useState([])
   const [users , setUsers] = useState([])
-
+  const [task , setTask] = useState([])
 
  
   useEffect(() => {
     axios.get('http://localhost:5000/project/getAllProject')
     .then((res) => {
       setProject(res.data);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/task/tasks/`)
+
+    .then((res) => {
+      setTask(res.data);
     })
     .catch((err) => {
       console.log(err);
@@ -60,7 +71,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Tasks</span>
-                    <h3 className="card-title mb-2">352</h3>
+                    <h3 className="card-title mb-2">{task.length}</h3>
                     <a href="/tasks/draggable"><small className="text-primary fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></a>
                   </div>
                 </div>

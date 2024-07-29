@@ -663,27 +663,29 @@ exports.getFavProjectByID = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+const { Op } = require("sequelize");
 
 exports.getFilterProject = async (req, res) => {
   try {
-    const { status, priority, tags } = req.query;
+    const { status, priority, search } = req.query;
+    console.log(status, priority, search);
 
-    let whereClause = {};
-
-    if (status && status !== 'all' && status !== 'none') {
-      whereClause.status = status;
-    }
-
-    if (priority && priority !== 'all' && priority !== 'none') {
-      whereClause.priority = priority;
-    }
-
+  
     let projects;
-    if (Object.keys(whereClause).length > 0) {
-      projects = await projectModel.findAll({ where: whereClause });
+    if (status) {
+      projects = await projectModel.findAll({ where: {status: status} });
+    } else if (priority) {
+      projects = await projectModel.findAll({ where: {priority: priority} });
+    } else if (search) {
+      const users = await adminModel.findAll({   where: {
+        [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+      },});
+      const userId = await projectUsersModel.findAll({ where: {userId: users.map(user => user.id)} });
+      projects = await projectModel.findAll({ where: {id: userId.map(user => user.projectId)} });
+      console.log(users);
     } else {
       projects = await projectModel.findAll();
-    }
+    } 
 
     const users = await projectUsersModel.findAll();
     const tagsModel = await projectTagsModel.findAll();
@@ -711,21 +713,18 @@ exports.getFilterProject = async (req, res) => {
       };
     }));
 
-    if (tags && tags !== 'all') {
-      const tagsArray = tags.split(',');
-      const filteredData = data.filter(item =>
-        item.tags.some(tag => tagsArray.includes(tag.tagName))
-      );
-      return res.status(200).json(filteredData);
-    }
+    let filteredData = data;
 
-    res.status(200).json(data);
+   
+
+    res.status(200).json(filteredData);
 
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
   }
 };
+
 
 
 

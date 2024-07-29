@@ -66,7 +66,7 @@ const {
 
     const latestId = user.id;
 
-    // Iterate over each userID and create a new entry in projectUsersModel
+    // Iterate over each userID and create a new entry in taskUsersModel
     const taskUserEntries = usersID.map(userId => ({
       taskId: latestId,
       userId: userId,
@@ -438,3 +438,79 @@ exports.tasks = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 }
+
+exports.getFilterCountProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("id: ", id);
+
+    const tasks = await taskModel.findAll({ where: { projectId: id } });
+    const status = await statusModel.findAll({where : {id : tasks.map(task => task.status)}});
+    const result = {
+      tasks: tasks.length,
+      status: status
+    }
+    res.status(200).json({ count: result });
+
+  }catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
+
+const { Op } = require("sequelize");
+
+exports.getFilterProject = async (req, res) => {
+  try {
+    const { status, priority, search } = req.query;
+    console.log(status, priority, search);
+
+  
+    let tasks;
+  
+    const users = await taskUsersModel.findAll();
+    const statusDb = await statusModel.findAll();
+
+    if (status) {
+      tasks = await taskModel.findAll({ where: {status: status} });
+    } else if (priority) {
+      tasks = await taskModel.findAll({ where: {priority: priority} });
+    } else if (search) {
+      const users = await adminModel.findAll({   where: {
+        [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+      },});
+      const userId = await taskUsersModel.findAll({ where: {userId: users.map(user => user.id)} });
+      tasks = await taskModel.findAll({ where: {id: userId.map(user => user.taskId)} });
+      console.log(users);
+    } else {
+      tasks = await taskModel.findAll();
+    } 
+
+
+       const data = await Promise.all(tasks.map(async (task) => {
+      const filteredUsersIds = users.filter(user => user.taskId === task.id);
+      const filteredStasus = statusDb.filter(user => user.id === task.status);
+      const filteredPriorities = statusDb.filter(user => user.id === task.priority);
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+
+      return {
+        task: task,
+        users: filteredUsers,
+        status: filteredStasus,
+        priority: filteredPriorities
+      };
+    }));
+
+    let filteredData = data;
+
+   
+
+    res.status(200).json(filteredData);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};

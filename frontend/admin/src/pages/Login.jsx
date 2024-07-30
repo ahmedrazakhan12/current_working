@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import '../App.css'
+// Your Socket.IO code here
+import { io } from "socket.io-client";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordType, setPasswordType] = useState("password");
+  const activeId = localStorage.getItem("id");
   
   const handleEyePassword = () => {
     setPasswordType(passwordType === "password" ? "text" : "password");
@@ -31,6 +35,8 @@ const Login = () => {
       })
       .then((res) => {
         localStorage.setItem("token", res.data.token);
+
+
         localStorage.setItem("id", res.data.data.id);
         navigate("/");
         // window.location.reload();
@@ -44,6 +50,35 @@ const Login = () => {
           }
         });
        
+          // const decodeToken = (token) => {
+          //   const base64Url = token.split(".")[1];
+          //   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          //   const jsonPayload = decodeURIComponent(
+          //     atob(base64)
+          //       .split("")
+          //       .map(function (c) {
+          //         return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          //       })
+          //       .join("")
+          //   );
+          
+          //   return JSON.parse(jsonPayload);
+          // };
+       
+          // if(res.data){
+            // const decodedToken = decodeToken(res.data);
+          // console.log("decodedToken: ",decodedToken);
+          
+          const socket = io("http://localhost:5000");
+          if(res.data){
+            socket.on("connect", () => {
+              console.log("Connected to WebSocket server");
+            })
+         }else{
+            socket.disconnect()
+          }
+          // }
+         
         
 
         console.log(res.data);
@@ -53,7 +88,33 @@ const Login = () => {
         console.log(err);
       
       });
+
+
+      if (!activeId) {
+        navigate("/login"); // Redirect to login
+      } else {
+        axios
+          .get(`http://localhost:5000/admin/adminInfo/`, {
+            headers: { Authorization: `${activeId}` },
+          })
+          .then((res) => {
+            // setData(res.data);
+          })
+          .catch((err) => {
+            console.error(err);
+            if (err.response && err.response.status === 404) {
+              navigate("/login"); // Redirect to login on 404
+            }
+          });
+      }
+  
+     
   };
+
+   
+
+
+
 
   return (
     <div className="container-fluid ">

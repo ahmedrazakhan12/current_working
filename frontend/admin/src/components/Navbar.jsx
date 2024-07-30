@@ -30,42 +30,46 @@ const Navbar = () => {
         });
     }
 
-    const socket = io("http://localhost:5000");
 
-    socket.on("connect", () => {
-      console.log("Connected to WebSocket server");
-    });
+    // socket.on("connect", () => {
+    //   console.log("Connected to WebSocket server");
+    // });
 
-    socket.on("projectAdded", (notification) => {
-      if (notification.activeId !== activeId) {
-        setNotifications((prevNotifications) => [
-          notification,
-          ...prevNotifications,
-        ]);
-      }
-      console.log("Notification received:", notification);
+    // socket.on("projectAdded", (notification) => {
+    //   if (notification.activeId !== activeId) {
+    //     setNotifications((prevNotifications) => [
+    //       notification,
+    //       ...prevNotifications,
+    //     ]);
+    //   }
+    //   console.log("Notification received:", notification);
 
-      // Check if browser supports notifications
-      if ("Notification" in window && notification.activeId !== activeId) {
-        // Request permission to show notifications
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            // Show notification
-            new Notification("New Project Added", {
-              body: `${notification.username} added a new project: ${notification.projectName}`,
-            });
-          }
-        });
-      }
-    });
+    //   // Check if browser supports notifications
+    //   if ("Notification" in window && notification.activeId !== activeId) {
+    //     // Request permission to show notifications
+    //     Notification.requestPermission().then((permission) => {
+    //       if (permission === "granted") {
+    //         // Show notification
+    //         new Notification("New Project Added", {
+    //           body: `${notification.username} added a new project: ${notification.projectName}`,
+    //         });
+    //       }
+    //     });
+    //   }
+    // });
 
-    return () => {
-      socket.disconnect();
-    };
+    // return () => {
+    //   socket.disconnect();
+    // };
   }, [activeId]);
 
   const handleLogout = () => {
+    const socket = io("http://localhost:5000");
+
     localStorage.removeItem("token");
+     localStorage.clear();
+     socket.disconnect()
+
     navigate("/login");
   };
 
@@ -240,15 +244,13 @@ const Navbar = () => {
                     <div className="dropdown-divider" />
                   </li>
                   <li>
-                    <form className="dropdown-item">
                       <button
-                        type="submit"
+                        type="button"
                         onClick={handleLogout}
                         className="btn btn-sm btn-outline-danger"
                       >
                         <i className="bx bx-log-out-circle" /> Logout
                       </button>
-                    </form>
                   </li>
                 </ul>
               </li>

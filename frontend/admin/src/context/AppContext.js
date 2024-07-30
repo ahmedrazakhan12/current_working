@@ -5,6 +5,10 @@ import React, {
     useEffect
   } from "react";
 import axios from 'axios';
+import io from 'socket.io-client';
+import { useNavigate } from "react-router-dom";
+
+
 const AppContext = createContext();
   export const AppProvider = ({ children }) => {
     const [isMenuExpanded, setIsMenuExpanded] = useState(false);
@@ -35,8 +39,8 @@ const AppContext = createContext();
       console.log(err);
     }
   };
-
-
+  const activeId = localStorage.getItem("id");
+  
   // Fetch statuses on component mount
   useEffect(() => {
     fetchStatuses();

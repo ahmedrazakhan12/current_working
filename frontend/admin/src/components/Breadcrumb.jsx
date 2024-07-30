@@ -44,8 +44,8 @@ const Breadcrumbs = () => {
 
   return (
     <>
-    {location.pathname === "/" ? "" :<div className="container-fluid">
-      <div className="d-flex justify-content-between mb-2 mt-4">
+    {location.pathname === "/" ? "" :<div className="container-fluid ">
+      <div className="d-flex justify-content-between mt-3 " style={{marginLeft:'10px'}}>
         <div>
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb breadcrumb-style1 " >

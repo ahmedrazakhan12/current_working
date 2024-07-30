@@ -21,7 +21,7 @@ const {
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Email:", email, "Password:", password);
+    // console.log("Email:", email, "Password:", password);
     const emailError = validateEmail(email);
     // const passwordError = validatePassword(password);
 
@@ -45,7 +45,7 @@ exports.adminLogin = async (req, res) => {
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (isPasswordMatch) {
-      console.log("Password matched. Successfully logged in!");
+      // console.log("Password matched. Successfully logged in!");
 
       const token = jwt.sign(
         { id: user.id, name: user.name, email: user.email },

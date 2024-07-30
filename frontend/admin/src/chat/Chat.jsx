@@ -1,8 +1,9 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faFaceSmile, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
+import { Link, useNavigate } from 'react-router-dom';
+import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+
 
 
 
@@ -10,7 +11,32 @@ const Chat = () => {
   const [loggedUser, setLoggedUser] = useState([]);
   const activeId = localStorage.getItem("id");
   const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  const [isSearchData , setIsSearchData] = useState(false);
   
+  const handleSearchChange = (e) => {
+    // const search = 
+    const searchTerm =e.target.value;
+    if(searchTerm.length > 0){
+      setIsSearchData(true);
+    }
+    
+    if(searchTerm.length === 0){
+      setData([])
+      setIsSearchData(false);
+
+      return;
+    }
+    axios
+      .get(`http://localhost:5000/admin/search/${searchTerm}`)
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.log("Error searching providers:", err);
+      });
+  };
+
   useEffect(() => {
     if (!activeId) {
       navigate("/login"); // Redirect to login
@@ -41,23 +67,15 @@ const Chat = () => {
 
   return (
     <>
-  <style>
-        {`
-              .layout-content-navbar .layout-navbar , .container, .container-fluid, .container-sm, .container-md, .container-lg, .container-xl, .container-xxl ,.bg-menu-theme.menu-vertical{
-            display: none;
-          }
-            .layout-menu-fixed:not(.layout-menu-collapsed) .layout-page, .layout-menu-fixed-offcanvas:not(.layout-menu-collapsed) .layout-page{
-            padding: 0;
-            }
-        `}
-      </style>
-  <div style={{maxHeight:'' }}>
+  
+ <div className="container-fluid">
+ <div className='card p-3'>
   <div className="messenger">
     <input type="hidden" id="chat_type" defaultValue="" />
     <input type="hidden" id="chat_type_id" defaultValue="" />
     <div className={display === true ? " d-none" : "messenger-listView"}>
 
-      <div className="m-header">
+      <div className="m-header" >
         <nav style={{background:'#f7f7f7'}} className='mb-2'>
           <div className="row">
             <div className="col">
@@ -69,9 +87,35 @@ const Chat = () => {
             </div>
           </div>
         </nav>
-        <input type="text" className="messenger-search" placeholder="Search" />
+        <input type="text" className="messenger-search" onChange={handleSearchChange} placeholder="Search" />
       </div>
-      <div className="m-body contacts-container mt-3">
+      <div className="m-body contacts-container " >
+        <div className="row mx-2" style={{background:'#f7f7f7' }}>
+          <div className="col-12">
+          
+             <table className="messenger-list-item " data-contact={7}>
+            <tbody>
+            {data.map((item, index) => (
+          <tr key={index} onClick={()=>navigate(`/chat/${item.id}`)} style={{cursor:'pointer'}}>
+           {/* <td></td> */}
+            <td>
+              {/* <Link style={{ background: 'red', width: '100%', height: '100%'  }} to={`/chat/${item.id}`}> */}
+                <div className="saved-messages avatar av-m">
+                  <img src={item.pfpImage} style={{ objectFit: 'cover' }} alt="" />
+                </div>
+              {/* </Link> */}
+            </td>
+            <td className="text-capitalize">
+              {item.name}
+              <span className="d-block m-0 p-0">Click to chat.</span>
+            </td>
+          </tr>
+        ))}
+            </tbody>
+                 </table>
+                
+          </div>
+        </div>
         <div
           className="show messenger-tab users-tab app-scroll"
           data-view="users"
@@ -85,9 +129,12 @@ const Chat = () => {
           <p className="messenger-title">
             <span />
           </p> */}
-          <table className="messenger-list-item" data-contact={7}>
+          {data.length === 0 && isSearchData === false && (
+            <>
+            <table className="messenger-list-item mt-3" data-contact={7}>
             <tbody>
-              <tr  data-action={0}>
+
+              <tr  data-action={0} onClick={()=>navigate(`/chat/${loggedUser.id}`)} style={{cursor:'pointer'}}>
                 <td >
                   <div className="saved-messages avatar av-m">
                     <img src={loggedUser.pfpImage} style={{objectFit:'cover'}} alt="" />
@@ -106,6 +153,7 @@ const Chat = () => {
           <p className="messenger-title">
             <span>All Messages</span>
           </p>
+              {/* Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nobis laboriosam reprehenderit rerum qui at necessitatibus, quasi saepe iusto suscipit incidunt aperiam dicta? Error consequatur itaque commodi ipsa tempora perspiciatis autem, optio, quasi, sapiente hic officia! Sed, nobis. Aut consequatur inventore velit! Ipsa distinctio magni saepe cum eligendi. Quisquam assumenda odit ratione rem provident? Sapiente, tempore beatae. Ratione dignissimos perferendis ea sapiente magni aliquam odio impedit fugit nostrum harum atque numquam, suscipit omnis temporibus quisquam expedita mollitia voluptatum rem dolores? At dolore dignissimos nobis! Veniam delectus accusamus voluptates cum recusandae quidem deleniti reprehenderit molestias maxime nesciunt molestiae quo magni incidunt ex dicta, consequuntur sapiente. Corrupti aperiam aliquid voluptatibus cum, dolorem quisquam harum quis, reprehenderit nesciunt molestiae sunt est id quasi iste vero nemo ducimus architecto fugiat? Placeat, dolorum. Architecto, aperiam ullam vel veniam nisi totam natus? Sed aperiam incidunt quas, ullam quos sint similique, deserunt officiis illum iste vel qui reprehenderit numquam non voluptatum nisi, labore culpa sapiente ea ex quaerat recusandae. Iusto dolor doloremque sit ipsum officiis doloribus voluptatum itaque. Culpa excepturi est distinctio obcaecati maiores ipsam iusto praesentium earum mollitia, quam, minima sed repellendus rerum aliquam labore. Rerum sint deserunt necessitatibus laboriosam vel, repellat corporis labore nihil! Eum, sint ab ullam quibusdam numquam maiores eveniet assumenda quas qui amet facere sequi est nihil reprehenderit tempore incidunt veniam debitis aspernatur optio totam labore libero reiciendis! Praesentium quibusdam quod fugit, perferendis commodi distinctio natus quisquam iure repellat expedita error maiores tenetur sunt eius porro molestias. Alias officia aut placeat dolor facilis aspernatur quas velit doloremque praesentium minus numquam tenetur vero sit, ut quia debitis, nostrum repellat unde veniam consequatur id consectetur aliquam rem autem. Maxime, dolores debitis. Id expedita alias nisi possimus. Perspiciatis blanditiis, accusantium autem et nobis eligendi qui similique. Voluptatibus, quisquam deserunt autem doloremque sed illo impedit reiciendis, dolore error quaerat molestias animi, laudantium laborum iure? Odit, magnam temporibus explicabo perferendis, eos consequatur voluptatum unde sapiente iusto vitae labore accusantium autem deserunt ullam animi quod sunt, assumenda dicta corporis aliquam aut exercitationem. Excepturi consequuntur molestias inventore culpa quisquam nam vel reiciendis soluta accusamus nemo et dolores minus fugiat voluptatibus sapiente enim similique, repellendus nostrum rerum quia repudiandae dignissimos maiores voluptas! Sed, at provident. Enim perferendis quos eveniet quis voluptates doloremque ipsam beatae nostrum officia aliquam quibusdam totam a inventore distinctio ipsum maiores molestiae, hic eum consequuntur illum soluta veniam necessitatibus quo. Dolor, corrupti, laborum, odio hic quod possimus quas tenetur eos illum omnis asperiores? Quidem explicabo a, optio cum rerum nobis? Dolorum iste veritatis odit natus corrupti accusantium alias eligendi cupiditate eaque, maxime quae tempore nam doloribus ex nostrum officia aliquam, voluptates molestias vitae consequatur mollitia! Voluptates ut inventore sunt numquam eveniet ducimus id harum reprehenderit ipsa! Consequuntur labore eum eaque iusto nemo debitis, quia, a ullam praesentium vitae tempora blanditiis sint accusamus, repudiandae molestiae! Reiciendis provident praesentium sed maxime maiores voluptas est corporis eligendi quasi veritatis facilis a nemo placeat mollitia dolorum reprehenderit sapiente voluptatum tempore, alias porro dicta? Nobis incidunt consectetur aperiam harum eius voluptatem, consequatur magnam fugit hic cum dolore non ab rerum. Laboriosam illum aut laudantium impedit voluptate temporibus dolore aperiam sit dolorem! Corrupti minus enim quo aspernatur, quod nemo beatae? Corporis optio perferendis corrupti dolorum rerum impedit hic, a et. Enim qui corrupti vel beatae natus quasi vero quibusdam molestiae, est exercitationem dolores? Magni suscipit optio porro obcaecati cumque doloribus expedita quaerat voluptatum nesciunt eum, quia inventore tenetur, voluptas architecto? Ullam voluptatibus, odio magnam aut incidunt officia modi eum dignissimos obcaecati facilis autem sit, maiores quo tempore! Doloribus dolor nihil atque quos sapiente beatae dicta unde ab saepe, cupiditate eligendi praesentium dolorem modi dignissimos, minus aspernatur ipsam, aut id iste tenetur est recusandae. Id minus praesentium sint assumenda ratione cupiditate magni fuga neque itaque quasi omnis, consequatur aliquid officiis laudantium rem delectus fugiat animi autem ipsam qui eveniet. Quibusdam quod doloribus unde, quis mollitia debitis consequatur, expedita eaque voluptatem molestiae illo voluptate, ipsam dolore sequi ratione quo dignissimos minus quisquam magnam? Sit nesciunt, molestias expedita similique reprehenderit ad impedit libero rerum dignissimos, eius vel distinctio? In provident unde tempore officia? Veritatis laudantium expedita voluptas? Nam dolorem amet, mollitia doloribus a exercitationem corporis, eligendi delectus ipsa, impedit at ut voluptas quo autem sint? Nemo rerum dolorum placeat consequatur neque, esse harum animi? Nostrum ex ea minima ipsam, itaque sapiente a nemo architecto accusantium repellat odit at repudiandae perferendis cumque nam inventore perspiciatis ad iusto placeat voluptas possimus modi incidunt! Fugiat sit suscipit hic culpa. Blanditiis culpa natus, quidem alias unde sunt nostrum atque provident, odio dolor ea debitis molestias saepe soluta hic asperiores qui corrupti ipsam doloremque accusantium quia autem vero. Molestiae voluptate cum nesciunt exercitationem eligendi voluptates, neque minus vitae expedita recusandae placeat aliquid cupiditate beatae dicta ratione ducimus temporibus possimus sed atque. Commodi dicta in ipsam minus sequi, numquam optio fugiat aut ipsum quibusdam ea itaque asperiores non nam nostrum quidem corporis doloremque. Reiciendis reprehenderit repellendus voluptatibus esse eius temporibus vitae tempore suscipit perferendis veritatis exercitationem totam molestiae accusamus cum nisi, accusantium laudantium et inventore neque, qui assumenda earum dolores ad distinctio. Explicabo dolorum dolores autem suscipit ab impedit illo non corrupti officiis molestiae. Beatae, vero quasi? Vitae placeat, debitis reprehenderit rerum repellendus dignissimos ipsam distinctio labore atque ratione doloribus delectus cum recusandae, rem eum amet iste voluptatem soluta? Labore hic reiciendis architecto aut, perspiciatis excepturi quaerat quam eveniet ipsum accusantium inventore. Reprehenderit iste laboriosam fugiat, deleniti ad sequi expedita animi corrupti, fugit laborum ullam architecto facere distinctio. Mollitia fuga dolorum inventore doloribus in iste possimus eaque sunt autem quaerat minima dignissimos libero maiores atque quos aut, pariatur quibusdam veritatis necessitatibus! Officiis, maiores soluta fugit expedita, facere sequi commodi ducimus deserunt quas fugiat voluptate incidunt rerum facilis quod mollitia repellendus itaque molestiae voluptatibus. Vel blanditiis tempora itaque alias, reiciendis, animi magni assumenda laudantium perspiciatis numquam aliquid corporis quod quia rem laboriosam eaque fugit repellat, ipsum nisi magnam dolorum. Dolores, non facere? Quos, iste maxime modi eos temporibus voluptatem laboriosam eius non voluptas alias adipisci ducimus reprehenderit odio dolor distinctio debitis est sint. Commodi! */}
           <div
             className="listOfContacts"
             style={{
@@ -114,6 +162,20 @@ const Chat = () => {
               position: "relative"
             }}
           />
+
+
+
+
+
+          </>
+          )}
+          {data.length === 0 && isSearchData === true && (
+            <>
+            <p>No user found</p>
+            </>
+          )}
+
+
         </div>
         <div className="messenger-tab search-tab app-scroll" data-view="search">
           <p className="messenger-title">
@@ -286,6 +348,7 @@ const Chat = () => {
     </div>
   </div>
   </div>
+ </div>
 </>
 
   )

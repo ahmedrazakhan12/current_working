@@ -307,6 +307,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
 
   return (
     <>
+      <div >
       <Modal show={show} onHide={handleClose} fullscreen={true}>
         <Modal.Header closeButton>
           <Modal.Title style={{ marginLeft: "4%" }}>
@@ -854,6 +855,7 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
           </Button>
         </Modal.Footer> */}
       </Modal>
+      </div>
     </>
   );
 };

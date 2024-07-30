@@ -53,18 +53,45 @@ app.use("/task", TaskRoute);
 app.use("/projectStatus", ProjectStatusRoute);
 app.use("/projectPriority", ProjectPriorityRoute);
 
+var activeId = [];
+var clients = 0;
 io.on('connection', (socket) => {
-  console.log('New client connected');
+    
+    console.log('A user connected');
+    clients++;
+    
+    io.sockets.emit('broadcast', { description: clients +' ' + socket.id + ' clients connected!'  });
+    
+    socket.on('receiveActiveId', (id) => {
+        console.log('Id of login user: ', id);
+        activeId.push(id);
+        // io.emit('sendactiveId', data);
+    });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
+    // Example event listener for receiving a message
+    socket.on('sendMsg', (msg) => {
+        console.log('Message received:', msg);        
+        io.emit('receiveMsg', msg);
+    });
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+        clients--;
+        io.sockets.emit('broadcast', { description: clients + ' clients connected!' });
+    });
+
+    // const socketId = socket.id;
+    // socket.emit('sendSocketId', socketId);
+
+
 });
-
 const port = process.env.PORT || 5000;
 server.listen(port, () => {
   console.log("Server running on port: " + port);
 });
+
+
 
 
 

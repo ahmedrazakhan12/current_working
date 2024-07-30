@@ -3,13 +3,13 @@ import Navbar from "../../components/Navbar";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 
 
-const socket = io("http://localhost:5000");
+// const socket = io("http://localhost:5000");
 
 const EditProject = () => {
   const { id } = useParams();
@@ -126,21 +126,21 @@ const EditProject = () => {
     });
   }, [activeId]);
 
-  useEffect(() => {
-    socket.on('projectAdded', (data) => {
-      console.log(`New project added by ${data.username}: ${data.projectName}`);
-      Swal.fire({
-        title: 'New Project Added',
-        text: `User ${data.username} added a new project: ${data.projectName}`,
-        icon: 'info',
-        timer: 3000
-      });
-    });
+  // useEffect(() => {
+  //   socket.on('projectAdded', (data) => {
+  //     console.log(`New project added by ${data.username}: ${data.projectName}`);
+  //     Swal.fire({
+  //       title: 'New Project Added',
+  //       text: `User ${data.username} added a new project: ${data.projectName}`,
+  //       icon: 'info',
+  //       timer: 3000
+  //     });
+  //   });
 
-    return () => {
-      socket.off('projectAdded');
-    };
-  }, []);
+  //   return () => {
+  //     socket.off('projectAdded');
+  //   };
+  // }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

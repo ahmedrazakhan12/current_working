@@ -242,6 +242,23 @@ const Sidebar = () => {
               <div>Todos </div>
             </span>
           </li> */}
+           <li
+            className={
+              location.pathname === "/chat" ? "menu-item active" : "menu-item"
+            }
+          >
+            <span className="menu-link">
+            <i className="menu-icon tf-icons bx bx-chat text-warning" />
+              <div>
+                <Link
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  to={"/chat"}
+                >
+                  Chat
+                </Link>
+              </div>
+            </span>
+          </li>
           <li
             className={
               location.pathname === "/meeting"
@@ -271,7 +288,7 @@ const Sidebar = () => {
               <div><Link style={{textDecoration:'none' , color:'inherit'}} to="/register">Register</Link></div>
             </span>
           </li> */}
-          <li
+          {/* <li
             className={
               location.pathname === "/clients"
                 ? "menu-item active"
@@ -293,7 +310,7 @@ const Sidebar = () => {
                 </Link>
               </div>
             </Link>
-          </li>
+          </li> */}
          
 
           <li className={`${isOpen2 ? "menu-item open" : "menu-item"}`}>

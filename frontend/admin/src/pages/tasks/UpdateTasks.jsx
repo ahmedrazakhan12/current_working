@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import '../../App.css';
 
-const socket = io("http://localhost:5000");
+// const socket = io("http://localhost:5000");
 
 const UpdateTasks = () => {
     const { id } = useParams();
@@ -97,16 +97,16 @@ const UpdateTasks = () => {
         });
     }, [activeId]);
   
-    useEffect(() => {
-      socket.on('projectAdded', (data) => {
-        // Handle projectAdded event
-      });
+    // useEffect(() => {
+    //   socket.on('projectAdded', (data) => {
+    //     // Handle projectAdded event
+    //   });
   
-      return () => {
-        socket.off('projectAdded');
-      };
+    //   return () => {
+    //     socket.off('projectAdded');
+    //   };
   
-    }, []);
+    // }, []);
   
     const handleChange = (e) => {
       const { name, value } = e.target;

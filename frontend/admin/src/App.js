@@ -34,6 +34,13 @@ import UpdateTasks from './pages/tasks/UpdateTasks';
 import Breadcrumb from './components/Breadcrumb';
 import SingleTask from './pages/tasks/SingleTask';
 import Chat from './chat/Chat';
+import ChatById from './chat/ChatById';
+
+
+import io from "socket.io-client";
+
+
+
 function App() {
   const { isMenuExpanded } = useAppContext();
 
@@ -41,7 +48,7 @@ function App() {
 
   const [data, setData] = useState([]);
   const activeId = localStorage.getItem("id");
-
+  
 
   useEffect(() => {
      
@@ -89,6 +96,7 @@ function App() {
                   <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
                   <Route path="/viewTask/:id" element={<Protected Component={SingleTask} />} />
                   <Route path="/chat" element={<Protected Component={Chat} />} />
+                  <Route path="/chat/:id" element={<Protected Component={ChatById} />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />

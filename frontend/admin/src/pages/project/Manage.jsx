@@ -367,7 +367,7 @@ if (searchRef.current) {
                 >
                   <i
   className={
-    favId?.includes(item.project.id)
+    favId?.includes(item?.project?.id)
       ? 'bx bxs-star favorite-icon text-warning m-0' 
       : 'bx bx-star favorite-icon text-warning m-0'
   }

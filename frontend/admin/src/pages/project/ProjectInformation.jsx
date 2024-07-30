@@ -431,7 +431,15 @@ const handleMediaDelete = (id) => {
   });
 };
 
+const [openTaskIds, setOpenTaskIds] = useState([]);
 
+  const handleFullTasks = (id) => {
+    setOpenTaskIds(prevOpenTaskIds =>
+      prevOpenTaskIds.includes(id) 
+        ? prevOpenTaskIds.filter(taskId => taskId !== id) 
+        : [...prevOpenTaskIds, id]
+    );
+  };
 
   return (
     <div className="container-fluid mt-3 mb-5">
@@ -1023,65 +1031,369 @@ const handleMediaDelete = (id) => {
              {Object.keys(groupedItems).map((status, index) => (
     <div key={status} className="col" style={{ display: 'inline-block' }}>
         <h4 className="fw-bold  text-capitalize text-center mb-5">{status}</h4>
-        
         {groupedItems[status].length > 0 ? (
-            groupedItems[status].map((item) => (
-                <div key={item.task.id} style={{ backgroundColor: 'none', maxWidth: '100%', minWidth: '252px' }}>
-                    <div className=" m-2 " data-status="0" id="default" style={{ height: '' }}>
-                        <div className="card  p-0 shadow" data-task-id={item.task.id}>
-                            <div className="card-body px-3 py-3">
-                                <div className="d-flex justify-content-between">
-                                    <h6 className="card-title">
-                                        <Link onClick={() => handleShow(item.task.id)}>
-                                            <strong>{item.task?.taskName}</strong>
-                                        </Link>
-                                    </h6>
-                                    <div style={{ marginTop: '-6px' }}>
-                                        <div className="input-group m-0 p-0">
-                                            <a aria-expanded="false" className="m-0 p-0" data-bs-toggle="dropdown" href="javascript:void(0);">
-                                                <i className="bx bx-cog" />
-                                            </a>
-                                            <ul className="dropdown-menu">
-                                                <Link className="edit-task" to={`/editTask/${item.task.id}`}>
-                                                    <li className="dropdown-item">
-                                                        <i className="menu-icon tf-icons bx bx-edit text-primary" /> Update
-                                                    </li>
-                                                </Link>
-                                                <a className="delete" data-id="93" data-reload="true" data-type="tasks" href="javascript:void(0);">
-                                                    <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
-                                                        <i className="menu-icon tf-icons bx bx-trash text-danger" /> Delete
-                                                    </li>
-                                                </a>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="d-flex flex-column m-0 p-0">
-                                    <div>
-                                        <div className="input-group mt-2 m-0">
-                                            <select
-                                                className={`form-select form-select-sm select-bg-label-${item.status[0]?.preview} text-center text-capitalize`}
-                                                id="prioritySelect"
-                                                data-original-color-class="select-bg-label-secondary"
-                                                name="status"
-                                                onChange={(event) => handleChange(event, item.task.id)}
-                                            >
-                                                <option className={`bg-label-${item.status[0]?.preview}`}>
-                                                    {item.status[0]?.status}
-                                                </option>
-                                                {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
-                                                    <option key={dbIndex} className={`bg-label-${dbItem.preview}`} value={dbItem.id}>
-                                                        {dbItem.status}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+        groupedItems[status].map((item) => (
+          <div
+            key={item.task.id}
+            onDoubleClick={() => handleFullTasks(item.task.id)}
+            style={{ backgroundColor: 'none', maxWidth: '100%', minWidth: '252px' , cursor:"pointer"}}
+          >
+            {openTaskIds.includes(item.task.id) ? (
+              <div className=" m-2 " data-status="0" id="default" style={{ height: '' }}>
+              <div
+    className="card cursor-pointer m-2 p-0 shadow"
+    data-task-id={item.task.id}
+  >
+    <div className="card-body">
+      <div className="d-flex justify-content-between">
+        <h6 className="card-title">
+          <Link
+          to={`/viewTask/${item.task.id}`}
+          >
+            <strong>
+              {item.task.taskName}
+            </strong>
+          </Link>
+        </h6>
+        <div className="d-flex align-items-center justify-content-center">
+          <div className="input-group">
+            <a
+              aria-expanded="false"
+              className="mx-2"
+              data-bs-toggle="dropdown"
+              href="javascript:void(0);"
+            >
+              <i className="bx bx-cog" />
+            </a>
+            <ul className="dropdown-menu">
+              <Link
+                className="edit-task"
+                to={`/editTask/${item.task.id}`}
+                >
+                <li className="dropdown-item">
+                  <i className="menu-icon tf-icons bx bx-edit text-primary" />
+                  {' '}Update
+                </li>
+              </Link>
+              <a
+                className="delete"
+                data-id="93"
+                data-reload="true"
+                data-type="tasks"
+                href="javascript:void(0);"
+              >
+                <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
+                  <i className="menu-icon tf-icons bx bx-trash text-danger" />
+                  {' '}Delete
+                </li>
+              </a>
+             
+            </ul>
+          </div>
+          <a
+            className="quick-view"
+            data-id="93"
+            data-type="task"
+            href="javascript:void(0);"
+          >
+            <i
+              className="bx bx bx-info-circle text-info"
+              data-bs-original-title="Quick View"
+              data-bs-placement="right"
+              data-bs-toggle="tooltip"
+            />
+          </a>
+          <a
+            className="mx-2"
+            href="https://taskify.taskhub.company/chat?type=task&id=93"
+            target="_blank"
+          >
+            <i
+              className="bx bx-message-rounded-dots text-danger"
+              data-bs-original-title="Discussion"
+              data-bs-placement="right"
+              data-bs-toggle="tooltip"
+            />
+          </a>
+        </div>
+      </div>
+      {data.map((item,index)=>{
+        return(
+          <div className="card-subtitle text-muted mb-3">
+      {item.project.projectName}
+      </div>
+        )
+      })}
+      <div className="row mt-2">
+        <div className="col-md-12">
+          <p className="card-text mb-1">
+            Users:
+          </p>
+          <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
+          {item.users && item.users.length > 0 ? (
+                item.users.map((user, index) => (
+          <>
+            <li
+              className="avatar avatar-sm pull-up"
+              title={user.name}
+            >
+              <Link
+                to={`/Userview/${user.id}`}
+                target="_blank"
+              >
+                
+                  <img className="rounded-circle" style={{objectFit:"cover"}} key={index} src={user.pfpImage} alt={user.name} />
+               
+              </Link>
+            </li>
+            </>
+
+            ))
+          ) : (
+            <ul className="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
+            <span className="badge bg-primary">
+              Not Assigned
+            </span>
+          </ul>
+          )}
+          </ul>
+          
+          <p />
+        </div>
+        
+      </div>
+      <div className="d-flex flex-column">
+        <div>
+       
+            <label
+              className="form-label"
+              htmlFor="statusSelect"
+            >
+              Status
+            </label>
+            <div className="input-group">
+              {/* <div
+                className={`form-select-sm select-bg-label-${item.status[0]?.preview} text-capitalize w-100 `}
+                // data-original-color-class="select-bg-label-info"
+                style={{textAlign:'center' , border:'none' }}
+              >
+                {item.status[0]?.status}
+               
+               
+              </div> */}
+               <select
+                className={`form-select form-select-sm select-bg-label-${item.status[0]?.preview } text-center text-capitalize`}
+                id="prioritySelect"
+                data-original-color-class="select-bg-label-secondary"
+                name="status"
+                onChange={(event) => handleChange(event, item.task.id)}
+              >
+
+              <option className={`bg-label-${item.status[0]?.preview}`} >
+              {item.status[0]?.status}
+                </option>
+                {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+                <option className={`bg-label-${dbItem.preview}`}value={dbItem.id}>
+                  {dbItem.status}
+                </option>
+              ))}
+             
+            </select>
+           
+            </div>
+            
+        </div>
+        <div>
+            <label
+              className="form-label mt-4"
+              htmlFor="statusSelect"
+            >
+              Priority
+            </label>
+            <div className="input-group">
+                    <select
+                className={`form-select form-select-sm select-bg-label-${item.priority[0]?.preview } text-center text-capitalize`}
+                id="prioritySelect"
+                data-original-color-class="select-bg-label-secondary"
+                name="priority"
+                onChange={(event) => handlePriorityChange(event, item.task.id)}
+              >
+                <option className={`bg-label-${item.priority[0]?.preview}`} value={item.priority[0]?.id}>
+                 {item.priority[0]?.status}
+                </option>
+                {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+                  <option className={`bg-label-${dbItem.preview}`} key={dbIndex} value={dbItem.id}>
+                    {dbItem.status}
+                  </option>
+                ))}
+              </select>
+            </div>
+        </div>
+        <div className="mt-3">
+        <small className="text-muted">
+        <b>Starts At:</b>   {formatDate(item.task.startAt)}
+      </small><br />
+      <small className="text-muted">
+        <b>Ends At:</b>   {formatDate(item.task.endAt)}
+      </small>
+    </div>
+      </div>
+      
+  
+      
+    </div>
+  </div>
+              </div>
+            ) : (
+              <div className="m-2" data-status="0" id="default" style={{ height: '' }}>
+                <div className="card cursor-pointer p-0 shadow" data-task-id={item.task.id}>
+                  <div className="card-body px-3 py-3">
+                    <div className="d-flex justify-content-between">
+                      <h6 className="card-title">
+                        <Link onClick={() => handleShow(item.task.id)}>
+                          <strong>{item.task?.taskName}</strong>
+                        </Link>
+                      </h6>
+                      <div style={{ marginTop: '-6px' }}>
+                        <div className="input-group m-0 p-0">
+                          <a
+                            aria-expanded="false"
+                            className="m-0 p-0"
+                            data-bs-toggle="dropdown"
+                            href="javascript:void(0);"
+                          >
+                            <i className="bx bx-cog" />
+                          </a>
+                          <ul className="dropdown-menu">
+                            <Link className="edit-task" to={`/editTask/${item.task.id}`}>
+                              <li className="dropdown-item">
+                                <i className="menu-icon tf-icons bx bx-edit text-primary" /> Update
+                              </li>
+                            </Link>
+                            <a
+                              className="delete"
+                              data-id="93"
+                              data-reload="true"
+                              data-type="tasks"
+                              href="javascript:void(0);"
+                            >
+                              <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
+                                <i className="menu-icon tf-icons bx bx-trash text-danger" /> Delete
+                              </li>
+                            </a>
+                          </ul>
                         </div>
+                      </div>
                     </div>
+                    <div className="d-flex flex-column m-0 p-0">
+                      <div>
+                        <div className="input-group mt-2 m-0">
+                          <select
+                            className={`form-select form-select-sm select-bg-label-${item.status[0]?.preview} text-center text-capitalize`}
+                            id="prioritySelect"
+                            data-original-color-class="select-bg-label-secondary"
+                            name="status"
+                            onChange={(event) => handleChange(event, item.task.id)}
+                          >
+                            <option className={`bg-label-${item.status[0]?.preview}`}>
+                              {item.status[0]?.status}
+                            </option>
+                            {dbStatus &&
+                              dbStatus.length > 0 &&
+                              dbStatus.map((dbItem, dbIndex) => (
+                                <option key={dbIndex} className={`bg-label-${dbItem.preview}`} value={dbItem.id}>
+                                  {dbItem.status}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div className="mt-4 mb-1" style={{ backgroundColor: 'none', maxWidth: '100%', minWidth: '250px' }}>
+          <div className="card mt-3 shadow mx-2" data-task-id="93">
+            <div className="card-body p-2 overflow-hidden" style={{ maxHeight: '100px' }}>
+              <h5 className="text-center" style={{ marginTop: '2%' }}>No Tasks</h5>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '-7%' }}>
+                <img src="/assets/images/empty-task.png" alt="" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+ 
+        {/* {groupedItems[status].length > 0 ? (
+            groupedItems[status].map((item) => (
+              <>
+               {fullTask === false ? <div onClick={()=>handleFullTasks(item.task.id)} key={item.task.id} style={{ backgroundColor: 'none', maxWidth: '100%', minWidth: '252px' }}>
+              <div className=" m-2 " data-status="0" id="default" style={{ height: '' }}>
+                  <div className="card  p-0 shadow" data-task-id={item.task.id}>
+                      <div className="card-body px-3 py-3">
+                          <div className="d-flex justify-content-between">
+                              <h6 className="card-title">
+                                  <Link onClick={() => handleShow(item.task.id)}>
+                                      <strong>{item.task?.taskName}</strong>
+                                  </Link>
+                              </h6>
+                              <div style={{ marginTop: '-6px' }}>
+                                  <div className="input-group m-0 p-0">
+                                      <a aria-expanded="false" className="m-0 p-0" data-bs-toggle="dropdown" href="javascript:void(0);">
+                                          <i className="bx bx-cog" />
+                                      </a>
+                                      <ul className="dropdown-menu">
+                                          <Link className="edit-task" to={`/editTask/${item.task.id}`}>
+                                              <li className="dropdown-item">
+                                                  <i className="menu-icon tf-icons bx bx-edit text-primary" /> Update
+                                              </li>
+                                          </Link>
+                                          <a className="delete" data-id="93" data-reload="true" data-type="tasks" href="javascript:void(0);">
+                                              <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
+                                                  <i className="menu-icon tf-icons bx bx-trash text-danger" /> Delete
+                                              </li>
+                                          </a>
+                                      </ul>
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="d-flex flex-column m-0 p-0">
+                              <div>
+                                  <div className="input-group mt-2 m-0">
+                                      <select
+                                          className={`form-select form-select-sm select-bg-label-${item.status[0]?.preview} text-center text-capitalize`}
+                                          id="prioritySelect"
+                                          data-original-color-class="select-bg-label-secondary"
+                                          name="status"
+                                          onChange={(event) => handleChange(event, item.task.id)}
+                                      >
+                                          <option className={`bg-label-${item.status[0]?.preview}`}>
+                                              {item.status[0]?.status}
+                                          </option>
+                                          {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+                                              <option key={dbIndex} className={`bg-label-${dbItem.preview}`} value={dbItem.id}>
+                                                  {dbItem.status}
+                                              </option>
+                                          ))}
+                                      </select>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div> : 
+        <div onClick={()=>handleFullTasks(item.task.id)} key={item.task.id} style={{ backgroundColor: 'none', maxWidth: '100%', minWidth: '252px' }}>
+        <div className=" m-2 " data-status="0" id="default" style={{ height: '' }}>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum quia ab, labore repellendus ex cupiditate, non nesciunt alias, recusandae deserunt rerum natus veniam aut vel. Quasi, id ducimus! Eius voluptate vitae eum quisquam culpa. Iure quam corrupti culpa, aliquam odit itaque molestiae dolores, cumque omnis praesentium architecto, voluptates nulla. Officia enim dolorem, corporis accusamus tenetur unde iusto perspiciatis libero debitis, distinctio optio? Doloribus magnam doloremque laborum, nobis amet inventore ea voluptas dolore unde maiores? Nulla obcaecati, odit, optio sit nostrum id rem sequi voluptate provident corporis nihil non repellendus quod. Deleniti id quis voluptates consequuntur laborum aliquam nisi consectetur iure?
+        </div>
+    </div>}
+              </>
             ))
         ) : (
             <div className="mt-4 mb-1" style={{ backgroundColor: 'none', maxWidth: '100%', minWidth: '250px' }}>
@@ -1094,9 +1406,9 @@ const handleMediaDelete = (id) => {
                     </div>
                 </div>
             </div>
-        )}
+        )} */}
     </div>
-))}
+          ))}
 
 
             </div>

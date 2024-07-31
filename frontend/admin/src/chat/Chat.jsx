@@ -69,8 +69,8 @@ const Chat = () => {
     <>
   
  <div className="container-fluid">
- <div className='card p-3'>
-  <div className="messenger">
+ <div className='card p-3'  style={{height:'80vh'}}>
+  <div className="messenger"  style={{height:'100%'}}>
     <input type="hidden" id="chat_type" defaultValue="" />
     <input type="hidden" id="chat_type_id" defaultValue="" />
     <div className={display === true ? " d-none" : "messenger-listView"}>
@@ -201,6 +201,7 @@ const Chat = () => {
     <span className="imageModal-close">×</span>
     <img className="imageModal-content" id="imageModalBoxSrc" />
   </div>
+
   <div className="app-modal" data-name="delete">
     <div className="app-modal-container">
       <div className="app-modal-card" data-name="delete" data-modal={0}>

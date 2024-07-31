@@ -6,11 +6,14 @@ import '../App.css'
 // Your Socket.IO code here
 import { io } from "socket.io-client";
 
+const socket = io("http://localhost:5000");
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordType, setPasswordType] = useState("password");
   const activeId = localStorage.getItem("id");
+  const token = localStorage.getItem("token");  
+
   
   const handleEyePassword = () => {
     setPasswordType(passwordType === "password" ? "text" : "password");
@@ -26,6 +29,26 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    if (!activeId) {
+      navigate("/login");
+    } else {
+      axios
+        .get(`http://localhost:5000/admin/adminInfo/`, {
+          headers: { Authorization: `${activeId}` },
+        })
+        .then((res) => {
+          // setData(res.data);
+        })
+        .catch((err) => {
+          console.error(err);
+          if (err.response && err.response.status === 404) {
+            navigate("/login");
+          }
+        });
+    }
+  }, [activeId, navigate]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
@@ -35,7 +58,6 @@ const Login = () => {
       })
       .then((res) => {
         localStorage.setItem("token", res.data.token);
-
 
         localStorage.setItem("id", res.data.data.id);
         navigate("/");
@@ -50,33 +72,7 @@ const Login = () => {
           }
         });
        
-          // const decodeToken = (token) => {
-          //   const base64Url = token.split(".")[1];
-          //   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          //   const jsonPayload = decodeURIComponent(
-          //     atob(base64)
-          //       .split("")
-          //       .map(function (c) {
-          //         return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-          //       })
-          //       .join("")
-          //   );
           
-          //   return JSON.parse(jsonPayload);
-          // };
-       
-          // if(res.data){
-            // const decodedToken = decodeToken(res.data);
-          // console.log("decodedToken: ",decodedToken);
-          
-          const socket = io("http://localhost:5000");
-          if(res.data){
-            socket.on("connect", () => {
-              console.log("Connected to WebSocket server");
-            })
-         }else{
-            socket.disconnect()
-          }
           // }
          
         
@@ -87,31 +83,55 @@ const Login = () => {
         setError(err.response.data.message);
         console.log(err);
       
-      });
-
-
-      if (!activeId) {
-        navigate("/login"); // Redirect to login
-      } else {
-        axios
-          .get(`http://localhost:5000/admin/adminInfo/`, {
-            headers: { Authorization: `${activeId}` },
-          })
-          .then((res) => {
-            // setData(res.data);
-          })
-          .catch((err) => {
-            console.error(err);
-            if (err.response && err.response.status === 404) {
-              navigate("/login"); // Redirect to login on 404
-            }
-          });
-      }
-  
-     
+      })     
   };
 
-   
+ 
+  const decodeToken = (token) => {
+    if (!token) {
+      alert("Token is undefined or empty");
+    }
+    const base64Url = token.split(".")[1];
+    if (!base64Url) {
+      alert("Invalid token format");
+    }
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+
+    return JSON.parse(jsonPayload);
+  };
+
+  // console.log("tokenDb: ", tokenDb);
+  useEffect(() => {
+    
+    // if (token) {
+      try {
+        const decodedToken = decodeToken(token);
+        console.log("decodedToken: ", decodedToken);
+        socket.emit('receiveActiveId', activeId);
+
+        socket.on("connect", () => {
+          console.log("Connected to WebSocket server");
+        });
+      } catch (error) {
+        console.error("Failed to decode token:", error.message);
+        // socket.disconnect(); get
+      }
+    // }
+
+    return () => {
+      socket.on("disconnect", () => {
+        console.log("Disconnected from WebSocket server");
+      })
+    };
+  }, []);
 
 
 

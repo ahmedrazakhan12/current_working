@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { io } from "socket.io-client";
 
 const Navbar = () => {
   const { setIsMenuExpanded, isMenuExpanded } = useAppContext();
@@ -64,11 +63,10 @@ const Navbar = () => {
   }, [activeId]);
 
   const handleLogout = () => {
-    const socket = io("http://localhost:5000");
+    // const socket = io("http://localhost:5000");
 
     localStorage.removeItem("token");
      localStorage.clear();
-     socket.disconnect()
 
     navigate("/login");
   };

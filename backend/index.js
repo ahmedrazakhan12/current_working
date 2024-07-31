@@ -5,13 +5,16 @@ const bodyParser = require('body-parser');
 const http = require('http'); // Import http
 const socketIo = require('socket.io'); // Import socket.io
 
+
 // Routes Import
 const adminRoute = require("./routes/Adminroute");
 const ProjectRoute = require("./routes/Projectroute");
 const TaskRoute = require("./routes/Tasksroute");
 const ProjectStatusRoute = require("./routes/Projectstatusroute");
 const ProjectPriorityRoute = require("./routes/Projectpriorityroute");
+const chatRoute = require("./routes/Chatroute");
 const db = require("./models"); // Adjust the path as necessary
+const chatModel = db.chatModel;
 
 const app = express();
 const server = http.createServer(app); // Create HTTP server
@@ -52,40 +55,112 @@ app.use("/project", ProjectRoute);
 app.use("/task", TaskRoute);
 app.use("/projectStatus", ProjectStatusRoute);
 app.use("/projectPriority", ProjectPriorityRoute);
+app.use("/chat", chatRoute);
 
-var activeId = [];
-var clients = 0;
+
+
+// Function
+
+const saveMessageToDatabase = async (msg) => {
+  try {
+      const data = await chatModel.create({
+          fromId: msg.fromId,
+          toId: msg.toId,
+          text: msg.text,
+          time: new Date()
+      });
+      return data;
+  } catch (error) {
+      console.error('Error saving message to database:', error);
+      throw error;
+  }
+};
+
+
+
+const users = new Map(); // Use a Map to store user data with socket IDs as keys
+
 io.on('connection', (socket) => {
-    
     console.log('A user connected');
-    clients++;
-    
-    io.sockets.emit('broadcast', { description: clients +' ' + socket.id + ' clients connected!'  });
-    
+
+    // Handle when the active user ID is received
     socket.on('receiveActiveId', (id) => {
-        console.log('Id of login user: ', id);
-        activeId.push(id);
-        // io.emit('sendactiveId', data);
+        console.log('Id of login user:', id);
+
+        // Remove existing entry for the user, if any
+        users.forEach((user, key) => {
+            if (user.id === id) {
+                users.delete(key);
+            }
+        });
+
+        // Add the new entry for the user
+        users.set(socket.id, { id, socketId: socket.id });
+
+        console.log('Current users:', Array.from(users.values()));
     });
 
-    // Example event listener for receiving a message
-    socket.on('sendMsg', (msg) => {
-        console.log('Message received:', msg);        
-        io.emit('receiveMsg', msg);
+    // Handle when paramsId is received
+    socket.on('paramsId', (paramsId) => {
+        console.log('Received paramsId:', paramsId);
+        // Store paramsId with the user's socket ID
+        if (users.has(socket.id)) {
+            users.get(socket.id).paramsId = paramsId;
+        }
     });
 
-    // Handle disconnection
+    // Handle sending messages
+    socket.on('sendMsg', async (msg, callback) => {
+      console.log('Message received:', msg);
+
+      try {
+          // Save the message to the database
+          const data = await saveMessageToDatabase(msg);
+          console.log('Message saved to database:', data);
+
+          // Retrieve paramsId for the sender
+          const sender = users.get(socket.id);
+          const paramsId = sender ? sender.paramsId : null;
+
+          console.log('Sender paramsId:', paramsId);
+
+          // Find the recipient's socket
+          const recipient = Array.from(users.values()).find(user => user.id === msg.toId && user.paramsId === msg.fromId);
+
+          if (recipient) {
+              io.to(recipient.socketId).emit('receiveMsg', msg);
+          } else {
+              console.log('Recipient not found');
+          }
+
+          // Send the message to the sender as well
+          if (sender) {
+              io.to(sender.socketId).emit('receiveMsg', msg);
+          }
+
+          // Acknowledge receipt of the message
+          if (callback) {
+              callback({ status: 'ok', msg: 'Message sent' });
+          }
+      } catch (error) {
+          console.error('Error handling message:', error);
+          if (callback) {
+              callback({ status: 'error', msg: 'Failed to send message' });
+          }
+      }
+  });
+    // Handle user disconnection
     socket.on('disconnect', () => {
         console.log('A user disconnected');
-        clients--;
-        io.sockets.emit('broadcast', { description: clients + ' clients connected!' });
+        // Remove the user from the users map
+        users.delete(socket.id);
+        console.log('Current users after disconnection:', Array.from(users.values()));
     });
-
-    // const socketId = socket.id;
-    // socket.emit('sendSocketId', socketId);
-
-
 });
+
+
+
+
 const port = process.env.PORT || 5000;
 server.listen(port, () => {
   console.log("Server running on port: " + port);
@@ -93,6 +168,25 @@ server.listen(port, () => {
 
 
 
+
+
+ // console.log('Recipient found:', recipient);
+        // if (recipient) {
+        //     io.to(recipient.socketId).emit('receiveMsg', msg);
+        // } else {
+        //     console.log('Recipient not found');
+        // }
+
+        // // Send the message to the sender as well
+        // const sender = users.find(user => user.id === msg.fromId);
+        // if (sender) {
+        //     io.to(sender.socketId).emit('receiveMsg', msg);
+        // }
+
+        // // Acknowledge receipt of the message
+        // if (callback) {
+        //     callback({ status: 'ok', msg: 'Message received' });
+        // }
 
 
 

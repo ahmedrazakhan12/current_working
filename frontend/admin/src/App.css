@@ -369,3 +369,41 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
   cursor: pointer;
   display: none;
 }
+
+
+
+
+.right{
+  float: left;
+  clear: both;
+  background: rgb(63, 122, 249);
+  display: flex;
+  justify-content: center;
+  max-width: 500px;
+  align-items: center;
+  padding: 6px 20px ;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 20px;
+  margin: 4px;
+  color: white;
+}
+
+
+.left{
+  float: right;
+  clear: both;
+  background: rgb(109, 109, 109);
+  display: flex;
+  justify-content: center;
+  max-width: 500px;
+  align-items: center;
+  padding: 6px 20px ;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  margin: 4px;
+  color: white;
+}

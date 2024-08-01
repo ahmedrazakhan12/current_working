@@ -36,13 +36,13 @@ import SingleTask from './pages/tasks/SingleTask';
 import Chat from './chat/Chat';
 import ChatById from './chat/ChatById';
 
-
 import io from "socket.io-client";
 
-
-
 function App() {
+  
   const { isMenuExpanded } = useAppContext();
+  // const sockclsetUrl = "http://localhost:4000";
+
 
 
 
@@ -96,7 +96,7 @@ function App() {
                   <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
                   <Route path="/viewTask/:id" element={<Protected Component={SingleTask} />} />
                   <Route path="/chat" element={<Protected Component={Chat} />} />
-                  <Route path="/chat/:id" element={<Protected Component={ChatById} />} />
+                  <Route path="/chat/:id" element={<Protected Component={ChatById}  />} />
                   {data && data.role === "super-admin" &&
                     <>
                       <Route path="/register" element={<Protected Component={Register} />} />
@@ -114,7 +114,7 @@ function App() {
         </div>
       </div>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login  />} />
       </Routes>
     </Router>
   );

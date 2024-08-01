@@ -3,13 +3,17 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faFaceSmile, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
+import { useAppContext } from '../context/AppContext';
 
-import io from 'socket.io-client';
-const Socket = io('http://localhost:5000');
+// import io from 'socket.io-client';
+// const Socket = io('http://localhost:4000' , {
+//   autoConnect: false,
+// });
 
 
 
 const Chat = () => {
+  const { socket } = useAppContext();
   const { id } = useParams();
   const [userDataById, setUserDataById] = useState([]);
   const [loggedUser, setLoggedUser] = useState([]);
@@ -28,7 +32,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (!activeId) {
-      navigate("/login"); // Redirect to login
+      navigate("/login");
     } else {
       axios
         .get(`http://localhost:5000/admin/adminInfo/`, {
@@ -40,7 +44,7 @@ const Chat = () => {
         .catch((err) => {
           console.error(err);
           if (err.response && err.response.status === 404) {
-            navigate("/login"); // Redirect to login on 404
+            navigate("/login");
           }
         });
     }
@@ -48,7 +52,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (!id) {
-      navigate("/"); // Redirect to home
+      navigate("/");
     } else {
       axios
         .get(`http://localhost:5000/admin/team/${id}`)
@@ -58,49 +62,70 @@ const Chat = () => {
         .catch((err) => {
           console.error(err);
           if (err.response && err.response.status === 404) {
-            navigate("/"); // Redirect to home on 404
+            navigate("/");
           }
         });
     }
   }, [id, navigate]);
 
   useEffect(() => {
-    // Initialize socket connection and listeners
-    Socket.connect();
-    Socket.emit('receiveActiveId', activeId);
-    Socket.emit('paramsId', id);
+    if (socket) {
+      socket.connect();
 
-    Socket.on('receiveMsg', (msg) => {
-      console.log('Message received:', msg);
-      setRecieveMessages(prevMessages => [...prevMessages, msg]);
-    });
+      socket.emit('receiveActiveId', activeId);
+      socket.emit('paramsId', id);
 
-    // Fetch existing chat messages from the database
-    axios.get(`http://localhost:5000/chat/getChat`, {
-      params: {
-        fromId: activeId,
-        toId: id
-      }
-    })
-    .then((res) => {
-      console.log(res.data);
-      setRecieveDbMessages(res.data);
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+      socket.on('receiveMsg', (msg) => {
+        console.log('Message received:', msg);
+        setRecieveMessages(prevMessages => [...prevMessages, msg]);
+      });
 
-    // Cleanup on component unmount or route change
-    return () => {
-      Socket.off('receiveMsg');
-      Socket.disconnect();
-      setRecieveMessages([]);
-    };
-  }, [activeId, id]);
+      axios.get(`http://localhost:5000/chat/getChat`, {
+        params: {
+          fromId: activeId,
+          toId: id
+        }
+      })
+      .then((res) => {
+        console.log(res.data);
+        setRecieveDbMessages(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
+      return () => {
+        socket.off('receiveMsg');
+        socket.disconnect();
+        setRecieveMessages([]);
+      };
+    }
+  }, [activeId, id, socket]);
 
   useEffect(() => {
     scrollToBottom();
   }, [recieveMessages, recieveDbMessages]);
+
+  const scrollToBottom = () => {
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (text.trim()) {
+      const messageData = { fromId: activeId, toId: id, text, timestamp: new Date() };
+      setText('');
+      socket.emit('sendMsg', messageData, (response) => {
+        if (response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed');
+        }
+      });
+    }
+  };
 
   const handleSearchChange = (e) => {
     const searchTerm = e.target.value;
@@ -126,46 +151,27 @@ const Chat = () => {
     navigate(`/chat/${id}`);
     setData([]);
     setSearchValue("");
+    setDisplay(false);
     setIsSearchData(false);
   };
 
-  const scrollToBottom = () => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (text.trim()) {
-      const messageData = { fromId: activeId, toId: id, text, timestamp: new Date() };
-      setText('');
-      Socket.emit('sendMsg', messageData, (response) => {
-        if (response.status === 'ok') {
-          console.log(response.msg);
-          scrollToBottom();
-        } else {
-          console.error('Message delivery failed');
-        }
-      });
-    }
-  };
-
   const filteredMessages = recieveMessages.filter(msg => 
-    (msg.fromId === id && msg.toId === activeId) || (msg.fromId === activeId && msg.toId === id)
+    (msg.fromId === id && msg.toId === activeId) || (msg.fromId === activeId && msg.toId === id && msg.fromId !== msg.toId)
   );
 
 
   return (
     <>
   
-       <div className="container-fluid">
+       <div className="container-fluid" style={{  overflow:'hidden'}}>
        <div className="card p-3" style={{height:'80vh'}}>
         <div className="messenger" style={{height:'100%'}}>
     <input type="hidden" id="chat_type" defaultValue="" />
     <input type="hidden" id="chat_type_id" defaultValue="" />
-    <div className={display === true ? " d-none" : "messenger-listView"}>
-
+    <div className={display === true ? " d-block chatbar  " : "messenger-listView"}>
+  
     <div className="m-header" >
-        <nav style={{background:'#f7f7f7'}} className='mb-2'>
+        <nav  className='mb-2'>
           <div className="row">
             <div className="col">
               <img src={loggedUser.pfpImage} style={{objectFit:'cover' , width:'35px'  , height:'35px' , borderRadius:'50%'}} alt="" />
@@ -216,7 +222,7 @@ const Chat = () => {
             <table className="messenger-list-item mt-3" data-contact={7}>
             <tbody>
 
-              <tr  data-action={0} onClick={()=>navigate(`/chat/${loggedUser.id}`)} style={{cursor:'pointer'}}>
+              <tr  data-action={0} onClick={()=>handleChatUser(loggedUser.id)} style={{cursor:'pointer'}}>
                 <td >
                   <div className="saved-messages avatar av-m">
                     <img src={loggedUser.pfpImage} style={{objectFit:'cover'}} alt="" />
@@ -271,8 +277,10 @@ const Chat = () => {
         </div>
       </div>
     </div>
-    <div className="messenger-messagingView">
-      <div className="m-header m-header-messaging">
+
+    
+    <div className={display === true ? "  messenger-messagingView  dynamic-display"  : "messenger-messagingView"} >
+    <div className="m-header m-header-messaging viewheaderBigscreen">
         <nav className="chatify-d-flex chatify-justify-content-between chatify-align-items-center">
           <div className="chatify-d-flex chatify-justify-content-between chatify-align-items-center">
             <a href="#" className="show-listView">
@@ -314,73 +322,64 @@ const Chat = () => {
           <span className="ic-noInternet">No Internet Access</span>
         </div>
       </div> 
-      <div className="m-body messages-container app-scroll" style={{maxHeight:"81vh" , overflow:'scroll' , padding:'0px 30px'}}>
-      
-     <div className='mt-5' style={{marginBottom:'300px'}}>
-     <div className='d-flex justify-content-center'>
-        <img src={userDataById?.pfpImage} alt="" style={{width:'140px' , height:'140px' , borderRadius:'50%' , objectFit:'cover'}}/>
-      </div>
-      <h5 className='text-center text-capitalize mt-2'>{userDataById?.name}</h5>
-      <p style={{ fontSize: '12px', marginBottom: '5px', color: "grey" , textAlign:'center'}}>You are now connected on GMG Messenger</p>
-      <p style={{ fontSize: '12px', marginBottom: '5px', color: "grey" , textAlign:'center'}}>You're friends on Gmg Solutions chatting Hub.</p>
-     </div>
 
- 
-     {recieveDbMessages.map((msg) => (
-  <p key={msg.id} className={Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}>
-    {msg.text}
-  </p>
-))}
-    {filteredMessages.map((msg, index) => (
-  <li key={index} className={msg.fromId === activeId ? 'left' : 'right'}>
-    {msg.text}
-  </li>
-))}
+
+      
+      <div className="m-body messages-container app-scroll" style={{ height: "81vh", overflow: 'scroll', padding: '0px 30px' }}>
+      <div className='mt-5' style={{ marginBottom: '300px' }}>
+        <div className='d-flex justify-content-center'>
+          <img src={userDataById?.pfpImage} alt="" style={{ width: '140px', height: '140px', borderRadius: '50%', objectFit: 'cover' }} />
+        </div>
+        <h5 className='text-center text-capitalize mt-2'>{userDataById?.name}</h5>
+        <p style={{ fontSize: '12px', marginBottom: '5px', color: "grey", textAlign: 'center' }}>You are now connected on GMG Messenger</p>
+        <p style={{ fontSize: '12px', marginBottom: '5px', color: "grey", textAlign: 'center' }}>You're friends on Gmg Solutions chatting Hub.</p>
+      </div>
+            
+   
+
+                  <div className="messages" id="messages">
+                {recieveDbMessages.map((msg, index) => (
+                  <div key={index} >
+                      <p className={Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}>{msg.text}</p>
+                      {/* <span className="message-time">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span> */}
+                  </div>
+                ))}
+                {filteredMessages.map((msg, index) => (
+                  <div key={index} >
+                      <p className={` ${msg.fromId === activeId ? 'left' : 'right'}`}>{msg.text}</p>
+                      {/* <span className="message-time">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span> */}
+                  </div>
+                ))}
                 <div ref={messageEndRef} />
 
+              </div>
 
-   
-   
-   
-      {/* {recieveMessages.map((msg, index) => (
-          <div key={index}>
-            <div style={{background:'red'}}>
-            <strong>{msg.fromId}</strong>: {msg.text}
-            </div>
-          </div>
-        ))} */}
- {/* {recieveMessages?.map((message, index) => (
-  <div key={index} className="col message-container">
-    {message.fromId === id && message.toId === activeId && (
-      <p className={message.fromId === id && message.toId === activeId ? 'right' : null}>{message.text}</p>
-      
-    )}
 
-   
-  </div>
-))} */}
 
-        <div className="typing-indicator">
-      
-          <div className="message-card typing">
-      
-            <div className="message">
-              <span className="typing-dots">
-                <span className="dot dot-1" />
-                <span className="dot dot-2" />
-                <span className="dot dot-3" />
-              </span>
-            </div>
+      <div className="typing-indicator">
+        <div className="message-card typing">
+          <div className="message">
+            <span className="typing-dots">
+              <span className="dot dot-1" />
+              <span className="dot dot-2" />
+              <span className="dot dot-3" />
+            </span>
           </div>
         </div>
       </div>
 
+    </div>
 
 
 
 
 
-      <div className="messenger-sendCard" style={{ display: "block" }}>
+
+    <div className="messenger-sendCard" >
   <form
     id="message-form"
     method="POST"
@@ -417,8 +416,11 @@ const Chat = () => {
       <span className="fas fa-paper-plane" />{" "}
     </button>
   </form>
-      </div>
+</div>      
     </div>
+
+
+    
     <div className={display2 === false ? "d-none" : "messenger-infoView app-scroll"}>
       <nav>
         <p>User Details</p>

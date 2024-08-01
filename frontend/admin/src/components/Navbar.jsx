@@ -20,6 +20,7 @@ const Navbar = () => {
         })
         .then((res) => {
           setData(res.data);
+          console.log("Navbar: ",res.data);
         })
         .catch((err) => {
           console.error(err);

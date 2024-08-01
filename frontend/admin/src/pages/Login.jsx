@@ -3,11 +3,24 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import '../App.css'
+import { useAppContext } from "../context/AppContext";
 // Your Socket.IO code here
-import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
 const Login = () => {
+  const {
+  socket
+  } = useAppContext();
+  // console.log("login socket : " , socket);
+
+  // useEffect(() => {
+  //   if (socket) {
+  //     alert(`Socket is connected: ${socket.connected}`);  // Example usage of socket
+  //   } else {
+  //     alert('Socket is not available');
+  //   }
+
+  // }, [socket]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordType, setPasswordType] = useState("password");
@@ -49,6 +62,8 @@ const Login = () => {
     }
   }, [activeId, navigate]);
 
+
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     axios

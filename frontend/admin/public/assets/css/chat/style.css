@@ -555,7 +555,6 @@ body {
   display: none;
 }
 .messenger-sendCard {
-  display: none;
   margin: 10px;
   margin-bottom: 1rem;
   border-radius: 8px;
@@ -1041,7 +1040,7 @@ div.loadingPlaceholder-date {
 */
 @media (max-width: 1060px) {
   .messenger-infoView {
-    position: fixed;
+    /* position: fixed; */
     right: 0;
     top: 0;
     bottom: 0;
@@ -1053,7 +1052,7 @@ div.loadingPlaceholder-date {
     display: none;
   }
   .messenger-listView {
-    position: fixed;
+    /* position: fixed; */
     left: 0;
     top: 0;
     bottom: 0;
@@ -1066,39 +1065,82 @@ div.loadingPlaceholder-date {
     display: inline-block;
   }
 }
+
+
+
 @media (max-width: 680px) {
-  .messenger-messagingView {
+  /* .messenger-messagingView {
     position: fixed;
     top: 0;
     left: 0;
     height: 100%;
+  } */
+   .navbar-toggler{
+    display: block;
+   }
+  .messenger-listView {
+    display: none;
+    /* width: 100%; */
+    /* max-width: unset; */
+  }
+  .dynamic-display{
+    display: none;
   }
   .messenger-infoView {
-    display: none;
-    width: 100%;
-    max-width: unset;
-  }
-  .messenger-listView {
-    width: 100%;
-    max-width: unset;
-  }
-  .listView-x {
-    display: none;
-  }
-  .app-modal-container {
-    transform: unset;
-  }
-  .app-modal-card {
-    max-width: unset;
-    position: fixed;
-    left: 0;
+    /* position: fixed; */
     right: 0;
     top: 0;
     bottom: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 0px;
+    max-width: 334px;
   }
+  
+  .chatbar {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 1;
+    background: transparent;
+    width: 100%;
+    /* min-width: 200px; */
+    /* overflow: auto; */
+  }
+}
+
+
+@media (min-width: 680px) {
+.navbar-toggler{
+  display: none;
+}
+
+
+  
+
+  .messenger-sendCard{
+    display: 
+    block;
+  }
+
+  .chatbar{
+    display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 1;
+  background: transparent;
+  width: 45%;
+  min-width: 200px;
+  /* overflow: auto; */
+  }
+ .messenger-sendCard{
+  display: block;
+ }
 }
 @media (min-width: 680px) {
   .messenger-listView {
@@ -1199,4 +1241,16 @@ div.loadingPlaceholder-date {
 .emoji-picker__emojis::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background: transparent;
+}
+
+
+
+
+
+.messages-container23 {
+  display: flex;
+  flex-direction: column-reverse;
+  height: 81vh;
+  overflow-y: scroll;
+  padding: 0px 30px;
 }

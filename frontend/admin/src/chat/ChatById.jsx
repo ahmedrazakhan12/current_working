@@ -26,7 +26,11 @@ const Chat = () => {
   const [recieveDbMessages, setRecieveDbMessages] = useState([]);
   const [text, setText] = useState('');
   const messageEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
+  const handleIconClick = () => {
+    fileInputRef.current.click();
+  };
   const activeId = localStorage.getItem("id");
   const navigate = useNavigate();
 
@@ -76,7 +80,7 @@ const Chat = () => {
       socket.emit('paramsId', id);
 
       socket.on('receiveMsg', (msg) => {
-        console.log('Message received:', msg);
+        // console.log('Message received:', msg);
         setRecieveMessages(prevMessages => [...prevMessages, msg]);
       });
 
@@ -87,7 +91,7 @@ const Chat = () => {
         }
       })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         setRecieveDbMessages(res.data);
       })
       .catch((err) => {
@@ -112,20 +116,117 @@ const Chat = () => {
     }
   };
 
-  const handleSendMessage = (e) => {
+  const [isTyping , setIsTyping] = useState(false);
+  
+  const handleSendText = (e) => {
+    setText(e.target.value);
+    
+    if (e.target.value.length !== 0) {
+      scrollToBottom();
+      const messageData = { fromId: activeId, toId: id, status: 1 };
+      socket.emit('typing', messageData, (response) => {
+        if (response && response.status === 'ok') {
+          // console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
+
+    }else{
+      const messageData = { fromId: activeId, toId: id, status: 0 };
+
+      socket.emit('typing', messageData, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
+    }
+  };
+  
+  socket.on('receiveTyping', (res) => {
+    // console.log('Typing Response:', res);
+    if(res.status === 1 && Number(res.fromId) === Number(id)){
+      setIsTyping(true)
+    }
+    if(res.status === 0 ){
+      setIsTyping(false)
+    }
+    scrollToBottom();
+  });
+  
+  const [activeUsers, setActiveUsers] = useState([]);
+  const [activeStatus, setActiveStatus] = useState(false);
+// console.log("activeUsers: " , activeUsers);
+//   socket.on('allusers', (res) => {
+//     console.log('allusers:', res);
+//     setActiveUsers(res.id);
+//     const filter = res.filter((user) => Number(user.paramsId) === Number(id));
+//     console.log('filter:', filter);
+//     if (filter.length > 0) {
+//       setActiveStatus(true);
+//     } else {
+//       setActiveStatus(false);
+//     }
+     
+   
+//     }
+// );
+
+socket.on('allusers', (res) => {
+  // console.log('allusers:', res);
+
+  // Ensure `res` is an array
+  if (Array.isArray(res)) {
+      // Extract and set active user IDs
+      setActiveUsers(res);
+      
+      // Convert `id` to a number for comparison
+      const numericId = Number(id);
+
+      // Filter users based on the matching `paramsId`
+      const filter = res.filter((user) => Number(user.id) === numericId);
+      // console.log('filter:', filter);
+      
+      // Update active status based on filter results
+      if (filter.length > 0) {
+          setActiveStatus(true);
+      } else {
+          setActiveStatus(false);
+      }
+  } else {
+      console.error('Expected an array but received:', res);
+  }
+});
+
+
+  const handleSendMessage  = (e) => {
     e.preventDefault();
     if (text.trim()) {
       const messageData = { fromId: activeId, toId: id, text, timestamp: new Date() };
       setText('');
       socket.emit('sendMsg', messageData, (response) => {
         if (response.status === 'ok') {
-          console.log(response.msg);
+          // console.log(response.msg);
         } else {
           console.error('Message delivery failed');
         }
       });
+
+      const typingData = { fromId: activeId, toId: id, status: 0 };
+
+      socket.emit('typing', typingData, (response) => {
+        if (response && response.status === 'ok') {
+          // console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
     }
   };
+
+
 
   const handleSearchChange = (e) => {
     const searchTerm = e.target.value;
@@ -159,6 +260,65 @@ const Chat = () => {
     (msg.fromId === id && msg.toId === activeId) || (msg.fromId === activeId && msg.toId === id && msg.fromId !== msg.toId)
   );
 
+const [chatBarUsers , setChatBarUsers] = useState([])
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/chat/getChatbarUser/${loggedUser.id}`)
+    .then((res) => {
+      setChatBarUsers(res.data);
+      // console.log("Users:", res.data);
+    })
+    .catch((err) => {
+      console.log("Error getting users:", err);
+    });
+  }, [loggedUser]);
+
+
+
+  // file upload
+
+  const [file, setFile] = useState(null);
+  console.log(file);
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    setFile(file);
+
+  };
+
+
+  const handleSendFile = (e) => {
+    e.preventDefault();
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const buffer = event.target.result;
+        socket.emit('sendFile', { fileName: file.name, fileData: buffer }, (response) => {
+          if (response.status === 'ok') {
+            console.log('File sent successfully');
+          } else {
+            console.error('File delivery failed');
+          }
+        });
+        setFile(null); // Reset file input after sending
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  };
+      
+useEffect(() => {
+    socket.on('fileSaved', (data) => {
+      const { fileName, filePath } = data;
+      console.log('File saved at:', filePath);
+
+      // Example: Display the file URL or perform any other action
+      // For example, you might update state to show the file or its URL
+      // setFileUrl(filePath);
+    });
+
+    return () => {
+      socket.off('fileSaved');
+    };
+  }, []);
 
   return (
     <>
@@ -168,7 +328,7 @@ const Chat = () => {
         <div className="messenger" style={{height:'100%'}}>
     <input type="hidden" id="chat_type" defaultValue="" />
     <input type="hidden" id="chat_type_id" defaultValue="" />
-    <div className={display === true ? " d-block chatbar  " : "messenger-listView"}>
+    <div className={display === true ? " d-block chatbar  " : "messenger-listView"} >
   
     <div className="m-header" >
         <nav  className='mb-2'>
@@ -242,6 +402,40 @@ const Chat = () => {
             <span>All Messages</span>
           </p>
 
+        {chatBarUsers?.map((item, index) => (
+           <table className="messenger-list-item mt-3" data-contact={7}>
+           <tbody>
+
+             <tr  data-action={0} onClick={()=>handleChatUser(item.id)} style={{cursor:'pointer'}}>
+               <td >
+                 <div className="saved-messages avatar av-m">
+                   {/* <img src={item.pfpImage} style={{objectFit:'cover'}} alt="" /> */}
+                 
+                   <div className="">
+                   <div className="saved-messages avatar av-m">
+                    <img src={item.pfpImage} style={{objectFit:'cover'}} alt="" />
+                  </div>
+                  <div className={activeUsers.find(data => Number(data.id) === Number(item.id)) ? 'avatar-online-status' : 'avatar-offline-status'}></div>
+
+                </div>
+
+                 </div>
+               </td>
+               <td className='text-capitalize '>
+                 <p data-id={7} data-type="user">
+                   {/* <span>You</span> */}
+                 </p>
+                 {item.name}
+                 <span className='d-block m-0 p-0'>click to chat</span>
+                 {/* <p>{activeUsers.filter(data => Number(data.id) === Number(item.id) ? 'id' : 'not')}</p> */}
+               
+
+                  {/* <p>{ activeUsers.map(e => \e.id == item.id) ? 'online': 'ofline'}</p> */}
+               </td>
+             </tr>
+           </tbody>
+         </table>
+        ))}
           <div
             className="listOfContacts"
             style={{
@@ -290,25 +484,30 @@ const Chat = () => {
                         <i class='bx bx-arrow-back'></i>
               </button>
               
-            <div
-              className="avatar av-s header-avatar"
-              style={{
-                margin: "0px 10px",
-                marginTop: "-5px",
-                marginBottom: "-5px"
-              }}
-            >
-              <img src={userDataById?.pfpImage} style={{objectFit:'cover'}} alt="" />
-            </div>
-            <a className="user-name text-capitalize">
-              {userDataById?.name}
-            </a>
+              <div className="">
+                   <div className="saved-messages avatar av-m">
+                    <img src={userDataById.pfpImage} style={{objectFit:'cover'}} alt="" />
+                  <div className={activeStatus === true ? 'avatar-online-status' : 'avatar-offline-status'}></div>
+                  </div>
+
+                </div>
+
+            <a className="user-name text-capitalize" style={{marginTop:'-10px'}}>
+  {userDataById?.name}
+  {/* <p>s</p> */}
+</a>
+ <br />
+  <p  className={isTyping ? 'd-block text-primary typing-text' : 'd-none text-primary'} style={{ fontSize: '12px' }}>
+    Typing...
+  </p>
+  <p className={isTyping ? ' d-none' : 'd-block typing-text'}>{activeStatus === true ? <span className='text-success'>Online</span> : <span className='text-secondary'>Offline</span>}</p>
+
           </div>
           <nav className="m-header-right">
             <a href="#" className="add-to-favorite">
               <i className="fas fa-star" />
             </a>
-            <a href="https://taskify.taskhub.company/public/home">
+            <a >
               <i className="fas fa-home" />
             </a>
             <a onClick={() => setDisplay2(!display2)} className="show-infoSide cursor-pointer">
@@ -339,7 +538,7 @@ const Chat = () => {
 
                   <div className="messages" id="messages">
                 {recieveDbMessages.map((msg, index) => (
-                  <div key={index} >
+                  <div key={index} className='' >
                       <p className={Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}>{msg.text}</p>
                       {/* <span className="message-time">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -352,25 +551,28 @@ const Chat = () => {
                       {/* <span className="message-time">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span> */}
+            
                   </div>
                 ))}
-                <div ref={messageEndRef} />
+                <div style={{marginLeft:'-10px'}} className={isTyping === true ? 'd-block ' : 'd-none'}>
+        <div className="message-card typing">
+          <div className="message">
+            <span className="typing-dots">
+              <span className="dot dot-1 " />
+              <span className="dot dot-2 " />
+              <span className="dot dot-3 " />
+            </span>
+          </div>
+        </div>
+               </div>
+              <div ref={messageEndRef} />
+            
 
               </div>
 
 
 
-      <div className="typing-indicator">
-        <div className="message-card typing">
-          <div className="message">
-            <span className="typing-dots">
-              <span className="dot dot-1" />
-              <span className="dot dot-2" />
-              <span className="dot dot-3" />
-            </span>
-          </div>
-        </div>
-      </div>
+      
 
     </div>
 
@@ -383,34 +585,43 @@ const Chat = () => {
   <form
     id="message-form"
     method="POST"
-    onSubmit={handleSendMessage}
+    onSubmit={file === null ? handleSendMessage : handleSendFile}
     // action="https://taskify.taskhub.company/chat/sendMessage"
     encType="multipart/form-data"
   >
-    <input
-      type="hidden"
-      name="_token"
-     
-      defaultValue="bVvD0JC0kYMhCa3a8W5sqsCyxOBrkLW5QaqRaFI3"
-      autoComplete="off"
-    />
+     <div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        className="d-none"
+      />
+      <FontAwesomeIcon icon={faCirclePlus} onClick={handleIconClick} />
+    </div>
    <button className="emoji-button m-0 p-0">
-    <FontAwesomeIcon icon={faCirclePlus} />
+  
     <span className="fas fa-smile" />
     </button>
     <button className="emoji-button m-0 p-0">
     <FontAwesomeIcon icon={faFaceSmile} />
     <span className="fas fa-smile" />
     </button>
+   {file === null && 
     <textarea
-      name="message"
-      className="m-send app-scroll"
-      value={text}
-      onChange={(e)=>setText(e.target.value)}
-      placeholder="Type a Message.."
-      style={{ overflow: "hidden", overflowWrap: "break-word", height: 44 }}
-      defaultValue={""}
-    />
+    name="message"
+    className="m-send app-scroll"
+    value={text}
+    onChange={handleSendText}
+    placeholder="Type a Message.."
+    style={{ overflow: "hidden", overflowWrap: "break-word", height: 44 }}
+    defaultValue={""}
+  />}
+
+  {file !== null  && (
+    <div className="attachment-preview" style={{width:'100%'}}>
+      <p>{file.name}</p>
+      </div>
+  )}
     <button className="send-button">
     <FontAwesomeIcon icon={faPaperPlane} style={{color:'#2180f3'}} />
       <span className="fas fa-paper-plane" />{" "}

@@ -372,8 +372,8 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
 
 
 
-
-.right{
+/* Base styles for right message */
+.right {
   float: left;
   clear: both;
   background: rgb(63, 122, 249);
@@ -381,17 +381,18 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
   justify-content: center;
   max-width: 500px;
   align-items: center;
-  padding: 6px 20px ;
+  padding: 6px 20px;
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 20px;
   margin: 4px;
   color: white;
+  word-wrap: break-word;
 }
 
-
-.left{
+/* Base styles for left message */
+.left {
   float: right;
   clear: both;
   background: rgb(109, 109, 109);
@@ -399,11 +400,71 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
   justify-content: center;
   max-width: 500px;
   align-items: center;
-  padding: 6px 20px ;
+  padding: 6px 20px;
   border-top-right-radius: 5px;
   border-bottom-right-radius: 20px;
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   margin: 4px;
   color: white;
+  word-wrap: break-word;
+}
+
+/* Media query for small screens */
+@media screen and (max-width: 600px) {
+  .right, .left {
+    max-width: 95%;
+    /* padding: 10px; */
+    margin: 2px;
+    font-size: 12px;
+  }
+}
+
+
+/* Media query for small screens */
+@media screen and (max-width: 900px) {
+  .right, .left {
+    max-width: 95%;
+    /* padding: 10px; */
+    margin: 2px;
+    font-size: 12px;
+  }
+}
+
+
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-image {
+  display: block;
+  border-radius: 50%;
+  width: 100px; /* Adjust size as needed */
+  height: 100px; /* Adjust size as needed */
+}
+
+.avatar-online-status {
+  width: 12px; /* Adjust size as needed */
+  height: 12px; /* Adjust size as needed */
+  border-radius: 50%;
+  background: #71dd37;
+  border: 2px solid white;
+  position: absolute;
+  bottom: 3px; /* Adjust position as needed */
+  right: 3px; /* Adjust position as needed */
+  /* border: 2px solid white; To create a border around the indicator */
+}
+
+
+.avatar-offline-status {
+  width: 12px; /* Adjust size as needed */
+  height: 12px; /* Adjust size as needed */
+  border-radius: 50%;
+  background: #a4a4a4;
+  border: 2px solid white;
+  position: absolute;
+  bottom: 3px; /* Adjust position as needed */
+  right: 3px; /* Adjust position as needed */
+  /* border: 2px solid white; To create a border around the indicator */
 }

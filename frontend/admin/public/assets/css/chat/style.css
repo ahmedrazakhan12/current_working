@@ -135,7 +135,22 @@ body {
   background: transparent;
   width: 45%;
   min-width: 200px;
-  overflow: auto;
+  /* overflow: auto; */
+}
+
+.messenger-listView1 {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 1;
+  background: transparent;
+  width: 45%;
+  /* min-width: 200px; */
+  /* overflow: auto; */
 }
 .messenger-listView .m-header {
   height: var(--listView-header-height);
@@ -223,8 +238,8 @@ body {
   border-bottom: 2px solid var(--primary-color);
 }
 .messenger-tab {
-  overflow: auto;
-  height: calc(100vh - var(--listView-header-height) - 2px);
+  /* overflow: auto; */
+  /* height: calc(100vh - var(--listView-header-height) - 2px); */
   display: none;
   position: relative;
 }
@@ -678,7 +693,7 @@ body {
   transform: scale(0.95);
 }
 .typing-indicator {
-  display: none;
+  /* display: none; */
 }
 .messages {
   padding: 5px 0px;
@@ -1003,6 +1018,7 @@ div.loadingPlaceholder-date {
   border-radius: 50%;
   right: 0px;
   bottom: 0px;
+  margin-left: 1px;
   position: relative;
   animation: jump 1s infinite;
 }
@@ -1038,6 +1054,17 @@ div.loadingPlaceholder-date {
 * Responsive Design
 *****************************************
 */
+
+
+
+.typing-text{
+  margin-top: 39px;
+  margin-left:52px;
+  position: absolute;
+  font-size: 12px;
+}
+
+
 @media (max-width: 1060px) {
   .messenger-infoView {
     /* position: fixed; */
@@ -1069,6 +1096,12 @@ div.loadingPlaceholder-date {
 
 
 @media (max-width: 680px) {
+  
+.typing-text{
+  margin-left:70px;
+}
+
+
   /* .messenger-messagingView {
     position: fixed;
     top: 0;
@@ -1095,16 +1128,8 @@ div.loadingPlaceholder-date {
   }
   
   .chatbar {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    position: relative;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    z-index: 1;
-    background: transparent;
     width: 100%;
+   /* display: none; */
     /* min-width: 200px; */
     /* overflow: auto; */
   }
@@ -1135,7 +1160,7 @@ div.loadingPlaceholder-date {
   z-index: 1;
   background: transparent;
   width: 45%;
-  min-width: 200px;
+  /* min-width: 200px; */
   /* overflow: auto; */
   }
  .messenger-sendCard{
@@ -1144,7 +1169,7 @@ div.loadingPlaceholder-date {
 }
 @media (min-width: 680px) {
   .messenger-listView {
-    display: unset;
+    /* display: unset; */
   }
 }
 @media only screen and (max-width: 700px) {

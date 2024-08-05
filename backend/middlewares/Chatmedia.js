@@ -1,5 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+
+
+// Serve static files from the 'uploads' directory
+
 function saveFile(directory, fileName, fileData) {
     return new Promise((resolve, reject) => {
       // Ensure the directory exists

@@ -468,3 +468,65 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
   right: 3px; /* Adjust position as needed */
   /* border: 2px solid white; To create a border around the indicator */
 }
+.chat-image-view-left img{
+  width: 35%;
+  height: 45%;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(63, 122, 249, 0.384);
+}
+.chat-image-view-left{
+  display: flex;
+  justify-content: end;
+}
+
+.chat-image-view-right{
+  display: flex;
+  justify-content: start;
+}
+
+.chat-image-view-right img{
+  width: 35%;
+  height: 45%;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(63, 122, 249, 0.384);
+}
+
+.chat-image-view-right video{
+  width: 35%;
+  height: 45%;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(63, 122, 249, 0.384);
+}
+
+.chat-image-view-left video{
+  width: 35%;
+  height: 45%;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(63, 122, 249, 0.384);
+}
+.doc-bg{
+  width: 35%;
+  height: 45%;
+  padding: 3px;
+  color: white;
+  border-radius: 10px;
+  background: rgba(63, 122, 249, 0.384);
+}
+.doc-bg img{
+  width: 100%;
+  height: 100%;
+  background: none;
+
+}
+/* 
+.document-preview{
+  width: 45%;
+  height: 45%;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(63, 122, 249, 0.384);
+} */

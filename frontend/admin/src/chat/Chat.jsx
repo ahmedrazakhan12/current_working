@@ -107,7 +107,7 @@ socket.on('allusers', (res) => {
   <div className="messenger"  style={{height:'100%'}}>
     <input type="hidden" id="chat_type" defaultValue="" />
     <input type="hidden" id="chat_type_id" defaultValue="" />
-    <div className={display === true ? " d-none" : "messenger-listView1 " } style={{width:'100%'}} >
+    <div className={display === true ? " d-none" : "messenger-listView1" }>
 
       <div className="m-header" >
         <nav  className='mb-2'>
@@ -258,7 +258,7 @@ socket.on('allusers', (res) => {
       </div>
       
     </div>
-    <div className="messenger-messagingView">
+    <div className="messenger-messagingView1">
   <div className="d-flex justify-content-center align-items-center mt-5">
     <img src="./assets/images/gmg.png" className="img-fluid" alt="Gmg Solutions Logo" />
   </div>

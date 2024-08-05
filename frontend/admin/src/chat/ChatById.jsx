@@ -276,43 +276,153 @@ const [chatBarUsers , setChatBarUsers] = useState([])
 
 
   // file upload
-
   const [file, setFile] = useState(null);
   console.log(file);
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    setFile(file);
+ 
+    // const convertToBase64 = (e) => {
+    //   let reader = new FileReader();
+    //   reader.readAsDataURL(e.target.files[0]);
 
+    //   reader.onload = () => {
+
+    //     setFile(reader.result);
+    //     console.log(reader.result);
+    //   };
+
+    //   reader.onerror = (error) => {
+    //     console.log("Error: ", error);
+    //   };
+    // }
+    const [fileVedio, setFileVedio] = useState(null);
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+  
+      reader.onload = () => {
+        setFile(reader.result);
+        resolve(reader.result);
+        setFileVedio(reader.result);
+      };
+  
+      reader.onerror = (error) => {
+        reject(error);
+      };
+    });
   };
 
 
-  const handleSendFile = (e) => {
-    e.preventDefault();
-    if (file) {
+  const convertToBlob = (file) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = function(event) {
-        const buffer = event.target.result;
-        socket.emit('sendFile', { fileName: file.name, fileData: buffer }, (response) => {
-          if (response.status === 'ok') {
-            console.log('File sent successfully');
-          } else {
-            console.error('File delivery failed');
-          }
-        });
-        setFile(null); // Reset file input after sending
+      
+      reader.onloadend = () => {
+        const blob = new Blob([reader.result], { type: file.type });
+        resolve(blob);
       };
+  
+      reader.onerror = reject;
       reader.readAsArrayBuffer(file);
+    });
+  };
+  
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("File", file);
+  
+      // Provide feedback based on file type and size
+      if (file.size > 100 * 1024 * 1024) { // Example: 100MB size limit
+        alert("File is too large. Please upload a smaller file.");
+        return;
+      }
+  
+      // Check file type and handle accordingly
+      const fileType = file.type;
+      if (fileType.startsWith('image/')) {
+        try {
+          const blob = await convertToBlob(file);
+          await convertToBase64(blob);
+          console.log("Image Blob:", blob);
+        } catch (error) {
+          console.error("Error converting image to Blob:", error);
+        }
+      } else if (fileType.startsWith('video/')) {
+        // Handle video files
+        console.log("Video file selected:", file);
+        try {
+          const blob = await convertToBlob(file);
+          await convertToBase64(blob);
+          console.log("Video Blob:", blob);
+        } catch (error) {
+          console.error("Error converting video to Blob:", error);
+        }
+      } else if (fileType.startsWith('application/')) {
+        // Handle document files
+        console.log("Document file selected:", file);
+        try {
+          const blob = await convertToBlob(file);
+          await convertToBase64(blob);
+          console.log("Document Blob:", blob);
+        } catch (error) {
+          console.error("Error converting document to Blob:", error);
+        }
+      } else {
+        alert("Unsupported file type. Please upload an image, video, or document.");
+        return
+      }
     }
   };
+  
+  
+  // const handleFileUpload = (event) => {
+  //   if(event.target.files[0]){
+  //     console.log("Files",event.target.files[0]);
       
+  //   }
+  //   return
+  // };
+  
+  
+  const [filepath , setFilePath] = useState([]);
+  
+  const handleSendFile = async (e) => {
+    e.preventDefault();
+    if (file) {
+      try {
+        // Convert file to Blob
+        // const blob = await convertToBlob(file);
+        const fileData = { fromId: activeId, file: file, toId: id, status: 0 };
+  
+        // Check if socket is connected before sending
+        if (socket.connected) {
+          socket.emit('sendFile', fileData, (response) => {
+            if (response.status === 'ok') {
+              console.log('File sent successfully');
+            } else {
+              console.error('File delivery failed', response.error);
+            }
+          });
+        } else {
+          console.error('Socket is not connected');
+        }
+  
+        setFile(null); // Reset file input after sending
+      } catch (error) {
+        console.error('Error converting file to Blob:', error);
+      }
+    } else {
+      console.error('No file selected');
+    }
+  };
+  
+  
+
+
 useEffect(() => {
     socket.on('fileSaved', (data) => {
-      const { fileName, filePath } = data;
-      console.log('File saved at:', filePath);
-
-      // Example: Display the file URL or perform any other action
-      // For example, you might update state to show the file or its URL
-      // setFileUrl(filePath);
+      console.log('File saved at:', data);
+      setFilePath(prevFiles => [...prevFiles, data]);
     });
 
     return () => {
@@ -320,22 +430,32 @@ useEffect(() => {
     };
   }, []);
 
+  const getFileType = (file) => {
+    // Extract the MIME type from the base64 string
+    const mimeType = file.split(';')[0].split(':')[1];
+    return mimeType;
+  };
+
+
+  const filteredFiles = filepath.filter(data => 
+    (data.fromId === id && data.toId === activeId) || (data.fromId === activeId && data.toId === id && data.fromId !== data.toId)
+  );
   return (
     <>
   
        <div className="container-fluid" style={{  overflow:'hidden'}}>
        <div className="card p-3" style={{height:'80vh'}}>
         <div className="messenger" style={{height:'100%'}}>
-    <input type="hidden" id="chat_type" defaultValue="" />
-    <input type="hidden" id="chat_type_id" defaultValue="" />
-    <div className={display === true ? " d-block chatbar  " : "messenger-listView"} >
-  
-    <div className="m-header" >
-        <nav  className='mb-2'>
-          <div className="row">
-            <div className="col">
-              <img src={loggedUser.pfpImage} style={{objectFit:'cover' , width:'35px'  , height:'35px' , borderRadius:'50%'}} alt="" />
-            </div>
+        <input type="hidden" id="chat_type" defaultValue="" />
+        <input type="hidden" id="chat_type_id" defaultValue="" />
+        <div className={display === true ? " d-block chatbar  " : "messenger-listView"} >
+      
+        <div className="m-header" >
+            <nav  className='mb-2'>
+              <div className="row">
+                <div className="col">
+                  <img src={loggedUser.pfpImage} style={{objectFit:'cover' , width:'35px'  , height:'35px' , borderRadius:'50%'}} alt="" />
+                </div>
             <div className="col text-end cursor-pointer">
               
             <i class='bx bx-dots-vertical' ></i>
@@ -554,6 +674,36 @@ useEffect(() => {
             
                   </div>
                 ))}
+             {filteredFiles.map((item, index) => {
+        const fileType = getFileType(item.file);
+
+        return (
+          <div
+            key={index}
+            className={`${
+              item.fromId === activeId ? 'chat-image-view-left' : 'chat-image-view-right'
+            }`}
+          >
+            {fileType.startsWith('image/') && (
+              <img src={item.file} alt="content" />
+            )}
+            {fileType.startsWith('video/') && (
+              <video controls >
+                <source src={item.file} type={fileType} />
+                Your browser does not support the video tag.
+              </video>
+            )}
+            {fileType.startsWith('application/') && (
+              <div className='doc-bg'> 
+              <img src="/assets/images/document.jpg" alt="" />
+              <p className='text-center'>Document</p>
+              </div>
+            )}
+            {/* You can add more conditions for other types of documents if needed */}
+          </div>
+        );
+            })}
+                
                 <div style={{marginLeft:'-10px'}} className={isTyping === true ? 'd-block ' : 'd-none'}>
         <div className="message-card typing">
           <div className="message">
@@ -565,7 +715,7 @@ useEffect(() => {
           </div>
         </div>
                </div>
-              <div ref={messageEndRef} />
+               <div ref={messageEndRef} />
             
 
               </div>
@@ -586,6 +736,7 @@ useEffect(() => {
     id="message-form"
     method="POST"
     onSubmit={file === null ? handleSendMessage : handleSendFile}
+    // onSubmit={handleSendFile}
     // action="https://taskify.taskhub.company/chat/sendMessage"
     encType="multipart/form-data"
   >
@@ -614,7 +765,7 @@ useEffect(() => {
     onChange={handleSendText}
     placeholder="Type a Message.."
     style={{ overflow: "hidden", overflowWrap: "break-word", height: 44 }}
-    defaultValue={""}
+    // defaultValue={""}
   />}
 
   {file !== null  && (
@@ -803,7 +954,9 @@ useEffect(() => {
     </div>
   </div>
         </div>
+        
        </div>
+
 </>
 
   )

@@ -5,7 +5,9 @@ const { PeerServer } = require('peer');
 const bodyParser = require('body-parser');
 const socketIO = require("socket.io");
 const { chatModel } = require("./models");
+const fs = require('fs');
 const path = require('path');
+
 const multer = require("./middlewares/Mediaproject");
 
 const saveFile = require("./middlewares/Chatmedia");
@@ -37,7 +39,12 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
-app.use('/uploads', express.static('uploads'));
+// app.use('/uploads', express.static('uploads'));
+// 
+// Serve static files from the 'uploads' directory
+app.use('/backend', express.static('backend'));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 
 // Socket.IO setup with CORS options
@@ -231,24 +238,44 @@ io.on('connection', (socket) => {
 
 
     
-socket.on('sendFile', (data, callback) => {
-    const { fileName, fileData } = data;
+    socket.on('sendFile', (fileData, callback) => {
+    // const { file } = fileData;
     console.log('Received file name:', fileData);
-  
-    // Save the file data to the filesystem
-    // const filePath = path.join(__dirname, 'uploads', fileName);
-    saveFile('uploads', fileName, fileData);
-    // fs.writeFile(filePath, Buffer.from(fileData), (err) => {
-    //   if (err) {
-    //     console.error('File saving failed', err);
-    //     callback({ status: 'error' });
-    //   } else {
-    //     console.log('File received and saved successfully');
-    //     callback({ status: 'ok' });
-    //   }
-    // });
+    
 
-            io.emit('fileSaved', { fileName: fileName, filePath: `http://localhost:5000/uploads/${fileName}` });
+    const sender = users.get(socket.id);
+    if (!sender) {
+        // console.log('Sender not found in users map.');
+        if (callback) {
+            return callback({ status: 'error', msg: 'Sender not found' });
+        }
+    }
+
+    const paramsId = sender ? sender.paramsId : null;
+
+    // Find the recipient's socket
+    const recipient = Array.from(users.values()).find(user => user.id === fileData.toId && user.paramsId !== paramsId);
+
+    if (recipient) {
+        io.to(recipient.socketId).emit('fileSaved', fileData);
+        // console.log('Message sent to recipient:', recipient.socketId);
+    } else {
+        console.log('Recipient not found');
+    }
+
+    // Send the message to the sender as well
+    if (sender) {
+        io.to(sender.socketId).emit('fileSaved', fileData);
+        // console.log('Message sent to sender:', sender.socketId);
+    } else {
+        console.log('Sender not found when trying to send the message back.');
+    }
+
+    // Acknowledge receipt of the message
+    if (callback) {
+        callback({ status: 'ok', msg: 'File sent' });
+    }
+     
 
   });            
     

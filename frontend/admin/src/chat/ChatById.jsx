@@ -3,13 +3,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faFaceSmile, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
+import { faCheckDouble } from '@fortawesome/free-solid-svg-icons';
+
 import { useAppContext } from '../context/AppContext';
-
-// import io from 'socket.io-client';
-// const Socket = io('http://localhost:4000' , {
-//   autoConnect: false,
-// });
-
+import data2 from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import {BsCheck2All} from "react-icons/bs"
+import { BsCheck } from 'react-icons/bs';
 
 
 const Chat = () => {
@@ -79,9 +79,10 @@ const Chat = () => {
       socket.emit('receiveActiveId', activeId);
       socket.emit('paramsId', id);
 
-      socket.on('receiveMsg', (msg) => {
-        // console.log('Message received:', msg);
-        setRecieveMessages(prevMessages => [...prevMessages, msg]);
+      socket.on('receiveMsg', (msg ,messageId) => {
+        console.log('Message received:', messageId);
+        setRecieveMessages(prevMessages => [...prevMessages, msg ,messageId]);
+        
       });
 
       axios.get(`http://localhost:5000/chat/getChat`, {
@@ -105,6 +106,7 @@ const Chat = () => {
       };
     }
   }, [activeId, id, socket]);
+  console.log("Checking: ",recieveMessages);
 
   useEffect(() => {
     scrollToBottom();
@@ -115,6 +117,37 @@ const Chat = () => {
       messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+
+  useEffect(() => {
+    const data = { fromId: activeId,toId: id, status: 1 };
+    socket.emit('seenMessages', data);
+
+    return () => {
+        // Cleanup function to execute when component unmounts or dependencies change
+        // const data = { fromId: activeId,toId: id, status: 0 , messageId : null };
+        // socket.emit('seenMessages', data);
+    };
+}, [activeId, id]);
+
+const filteredMessages = recieveMessages.filter(msg => 
+  (msg.fromId === id && msg.toId === activeId) || (msg.fromId === activeId && msg.toId === id && msg.fromId !== msg.toId)
+);
+
+
+  const [isSeen , setIsSeen] = useState(false);  
+  console.log("isSeen" , isSeen);
+  
+
+  socket.on('recieveSeenMessage', (data , messageId) => {
+    console.log('Seen Messages:'  ,data ,"Message ID: ",  messageId);
+    if(data && data.status === 1){
+      setIsSeen(true)
+    }else{
+      setIsSeen(false)
+    }
+  });
+
 
   const [isTyping , setIsTyping] = useState(false);
   
@@ -143,18 +176,34 @@ const Chat = () => {
         }
       });
     }
+
+    return () => {
+      const messageData = { fromId: activeId, toId: id, status: 0 };
+
+      socket.emit('typing', messageData, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
   };
+  };
+  console.log("isTyping" , isTyping);
   
+useEffect(()=>{
   socket.on('receiveTyping', (res) => {
-    // console.log('Typing Response:', res);
-    if(res.status === 1 && Number(res.fromId) === Number(id)){
+    console.log('Typing Response:', res);
+    if(res.status === 1 && res.fromId === id){
       setIsTyping(true)
+
     }
-    if(res.status === 0 ){
+    if( Number(res.fromId) !== Number(id) ){
       setIsTyping(false)
     }
     scrollToBottom();
   });
+},[id])
   
   const [activeUsers, setActiveUsers] = useState([]);
   const [activeStatus, setActiveStatus] = useState(false);
@@ -201,30 +250,7 @@ socket.on('allusers', (res) => {
 });
 
 
-  const handleSendMessage  = (e) => {
-    e.preventDefault();
-    if (text.trim()) {
-      const messageData = { fromId: activeId, toId: id, text, timestamp: new Date() };
-      setText('');
-      socket.emit('sendMsg', messageData, (response) => {
-        if (response.status === 'ok') {
-          // console.log(response.msg);
-        } else {
-          console.error('Message delivery failed');
-        }
-      });
-
-      const typingData = { fromId: activeId, toId: id, status: 0 };
-
-      socket.emit('typing', typingData, (response) => {
-        if (response && response.status === 'ok') {
-          // console.log(response.msg);
-        } else {
-          console.error('Message delivery failed or no response from server');
-        }
-      });
-    }
-  };
+ 
 
 
 
@@ -256,9 +282,7 @@ socket.on('allusers', (res) => {
     setIsSearchData(false);
   };
 
-  const filteredMessages = recieveMessages.filter(msg => 
-    (msg.fromId === id && msg.toId === activeId) || (msg.fromId === activeId && msg.toId === id && msg.fromId !== msg.toId)
-  );
+ 
 
 const [chatBarUsers , setChatBarUsers] = useState([])
 
@@ -277,7 +301,6 @@ const [chatBarUsers , setChatBarUsers] = useState([])
 
   // file upload
   const [file, setFile] = useState(null);
-  console.log(file);
  
     // const convertToBase64 = (e) => {
     //   let reader = new FileReader();
@@ -326,17 +349,23 @@ const [chatBarUsers , setChatBarUsers] = useState([])
     });
   };
   
+  const [fileName , setFileName]  = useState('');
+  console.log("Filename: " , fileName);
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log("File", file);
+      // console.log("File", file);
+      // alert(file.name)
+      setFileName(file.name);
+      
   
       // Provide feedback based on file type and size
-      if (file.size > 100 * 1024 * 1024) { // Example: 100MB size limit
+      if (file.size > 20 * 1024 * 1024) { // 25 MB size limit
         alert("File is too large. Please upload a smaller file.");
         return;
       }
-  
+      
       // Check file type and handle accordingly
       const fileType = file.type;
       if (fileType.startsWith('image/')) {
@@ -386,36 +415,78 @@ const [chatBarUsers , setChatBarUsers] = useState([])
   
   const [filepath , setFilePath] = useState([]);
   
-  const handleSendFile = async (e) => {
+  // const handleSendFile = async (e) => {
+  //   e.preventDefault();
+  //   if (file) {
+  //     try {
+  //       // Convert file to Blob
+  //       // const blob = await convertToBlob(file);
+  //       const fileData = {
+  //         fromId: activeId,
+  //         // ISO 8601 formatted timestamp
+  //         toId: id,
+  //         status: 0
+  //       };
+        
+  
+  //       // Check if socket is connected before sending
+  //       if (socket.connected) {
+  //         socket.emit('sendFile', fileData, (response) => {
+  //           if (response.status === 'ok') {
+  //             console.log('File sent successfully');
+  //           } else {
+  //             console.error('File delivery failed', response.error);
+  //           }
+  //         });
+  //       } else {
+  //         console.error('Socket is not connected');
+  //       }
+  
+  //       setFile(null); // Reset file input after sending
+  //     } catch (error) {
+  //       console.error('Error converting file to Blob:', error);
+  //     }
+  //   } else {
+  //     console.error('No file selected');
+  //   }
+  // };
+  
+
+  const handleSendMessage  = (e) => {
     e.preventDefault();
-    if (file) {
-      try {
-        // Convert file to Blob
-        // const blob = await convertToBlob(file);
-        const fileData = { fromId: activeId, file: file, toId: id, status: 0 };
-  
-        // Check if socket is connected before sending
-        if (socket.connected) {
-          socket.emit('sendFile', fileData, (response) => {
-            if (response.status === 'ok') {
-              console.log('File sent successfully');
-            } else {
-              console.error('File delivery failed', response.error);
-            }
-          });
-        } else {
-          console.error('Socket is not connected');
+    
+    if (text.trim() || file) {
+      console.log("Last File:  ",file);
+      const messageData = {
+        fromId: activeId,
+        toId: id,
+        text,
+        file: file,
+        fileName: fileName,
+        time: new Date().toISOString(),
         }
-  
-        setFile(null); // Reset file input after sending
-      } catch (error) {
-        console.error('Error converting file to Blob:', error);
-      }
-    } else {
-      console.error('No file selected');
+      setText('');
+      setFile(null); 
+      setShowEmogi(false);
+      socket.emit('sendMsg', messageData, (response) => {
+        if (response.status === 'ok') {
+          // console.log(response.msg);
+        } else {
+          console.error('Message delivery failed');
+        }
+      });
+
+      const typingData = { fromId: activeId, toId: id, status: 0 };
+
+      socket.emit('typing', typingData, (response) => {
+        if (response && response.status === 'ok') {
+          // console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
     }
   };
-  
   
 
 
@@ -440,6 +511,49 @@ useEffect(() => {
   const filteredFiles = filepath.filter(data => 
     (data.fromId === id && data.toId === activeId) || (data.fromId === activeId && data.toId === id && data.fromId !== data.toId)
   );
+  console.log(filteredFiles);
+  
+
+  const [showEmogi , setShowEmogi] = useState(false);
+  console.log(showEmogi);
+  
+  const handleShowEmogi = () => {
+    setShowEmogi(!showEmogi);
+  }
+
+  const handleEmojiSelect = (emoji) => {
+    console.log(emoji.native);
+    setText(text + emoji.native);
+
+
+  };
+
+  function formatTimeWithAMPM(time) {
+    // Create a new Date object from the provided time
+    const date = new Date(time);
+  
+    // Extract hours, minutes, and seconds
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    // const seconds = date.getSeconds();
+  
+    // Determine AM or PM suffix
+    const ampm = hours >= 12 ? ' PM' : ' AM';
+  
+    // Convert hours from 24-hour to 12-hour format
+    hours = hours % 12;
+    hours = hours ? hours : 12; // The hour '0' should be '12'
+  
+    // Format minutes and seconds with leading zeros if needed
+    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+    // const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+  
+    // Construct the formatted time string
+    const formattedTime = `${hours}:${formattedMinutes}${ampm}`;
+  
+    return formattedTime;
+  }
+  
   return (
     <>
   
@@ -658,23 +772,104 @@ useEffect(() => {
 
                   <div className="messages" id="messages">
                 {recieveDbMessages.map((msg, index) => (
-                  <div key={index} className='' >
-                      <p className={Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}>{msg.text}</p>
-                      {/* <span className="message-time">
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span> */}
-                  </div>
-                ))}
-                {filteredMessages.map((msg, index) => (
+                 
                   <div key={index} >
-                      <p className={` ${msg.fromId === activeId ? 'left' : 'right'}`}>{msg.text}</p>
-                      {/* <span className="message-time">
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span> */}
-            
-                  </div>
+                  {msg.text && !msg.file ? (
+                      <div>
+                        <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' , color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
+                        <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text} 
+                          </p>
+                      </div>
+                  ) : (
+                    msg.file && (
+                      <div  className={`${
+                        Number(msg.fromId) === Number(activeId) ? 'chat-image-view-left' : 'chat-image-view-right'
+                      }`}>
+                        {msg.file.startsWith('data:image/') && (
+                          <>
+                          
+                          <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
+                          <img src={msg.file} alt={msg.fileName} className="message-image mt-3" /> 
+                          
+                          </>
+                        )}
+                        {msg.file.startsWith('data:video/') && (
+                          <>
+                          <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
+
+                          <video controls className="message-video">
+                            <source src={msg.file} type={msg.file.split(';')[0].split(':')[1]} />
+                            Your browser does not support the video tag.
+                          </video>
+                          </>
+                        )}
+                        {msg.file.startsWith('data:application/') && (
+                          // <a href={msg.file} download={msg.fileName} className="message-document">
+                          <div className='doc-bg'> 
+                          <p className='text-center'>File : {msg.fileName}</p>
+                          <img src="/assets/images/document.jpg" alt="" />
+                          <p className='text-center'>Document</p>
+                          </div>
+                          // </a>
+                        )}
+                      </div>
+                    )
+                  )}
+                  {/* <span className="message-time">
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span> */}
+                </div>
                 ))}
-             {filteredFiles.map((item, index) => {
+            
+
+                    {filteredMessages.map((msg, index) => (
+                      <div key={index} >
+                        {msg.text && !msg.file ? (
+                           <div>
+                                
+
+                             <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' ,color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
+                           <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text}<span >
+                           <span >   <BsCheck2All size={18} style={{marginTop:'12px' , marginLeft:'-6px' , position:"absolute" }} className={isSeen === true ? 'seen' : ''} />    </span>
+                           </span></p>
+                         </div>
+                          ) : (
+                          msg.file && (
+                            <div  className={`${
+                              msg.fromId === activeId ? 'chat-image-view-left' : 'chat-image-view-right'
+                            }`}>
+                              {msg.file.startsWith('data:image/') && (
+                                <>
+                                 <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
+                                  <img src={msg.file} alt={msg.fileName} className="message-image mt-3" /> 
+                          
+                           </>
+                              )}
+                              {msg.file.startsWith('data:video/') && (
+                                <video controls className="message-video">
+                                  <source src={msg.file} type={msg.file.split(';')[0].split(':')[1]} />
+                                  Your browser does not support the video tag.
+                                </video>
+                              )}
+                              {msg.file.startsWith('data:application/') && (
+                                // <a href={msg.file} download={msg.fileName} className="message-document">
+                                <div className='doc-bg'> 
+                                <p className='text-center'>File : {msg.fileName}</p>
+                                <img src="/assets/images/document.jpg" alt="" />
+                                <p className='text-center'>Document</p>
+                                </div>
+                                // </a>
+                              )}
+                            </div>
+                          )
+                        )}
+                        {/* <span className="message-time">
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span> */}
+                      </div>
+                    ))}
+
+             {/* {filteredFiles.map((item, index) => {
         const fileType = getFileType(item.file);
 
         return (
@@ -688,21 +883,35 @@ useEffect(() => {
               <img src={item.file} alt="content" />
             )}
             {fileType.startsWith('video/') && (
-              <video controls >
+                <video controls >
                 <source src={item.file} type={fileType} />
                 Your browser does not support the video tag.
               </video>
             )}
             {fileType.startsWith('application/') && (
               <div className='doc-bg'> 
+              <p className='text-center'>File : {item.fileName}</p>
               <img src="/assets/images/document.jpg" alt="" />
               <p className='text-center'>Document</p>
               </div>
             )}
-            {/* You can add more conditions for other types of documents if needed */}
+            
           </div>
         );
-            })}
+            })} */}
+
+
+{/* {filteredMessages.map((msg, index) => (
+                  <div key={index} >
+                      <p className={` ${msg.fromId === activeId ? 'left' : 'right'}`}>{msg.text}</p>
+            
+                      <span className="message-time">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                  </div>
+                ))} */}
+            
+
                 
                 <div style={{marginLeft:'-10px'}} className={isTyping === true ? 'd-block ' : 'd-none'}>
         <div className="message-card typing">
@@ -730,12 +939,18 @@ useEffect(() => {
 
 
 
+    {showEmogi === true &&
+              <div className='emogi-picker'>
+<Picker data={data2} onEmojiSelect={handleEmojiSelect} style={{width:'100%' , height:'50vh'}} />
 
+
+                </div>
+            }
     <div className="messenger-sendCard" >
   <form
     id="message-form"
     method="POST"
-    onSubmit={file === null ? handleSendMessage : handleSendFile}
+    onSubmit={ handleSendMessage}
     // onSubmit={handleSendFile}
     // action="https://taskify.taskhub.company/chat/sendMessage"
     encType="multipart/form-data"
@@ -749,11 +964,11 @@ useEffect(() => {
       />
       <FontAwesomeIcon icon={faCirclePlus} onClick={handleIconClick} />
     </div>
-   <button className="emoji-button m-0 p-0">
+   <button className="emoji-button m-0 p-0" >
   
     <span className="fas fa-smile" />
     </button>
-    <button className="emoji-button m-0 p-0">
+    <button className="emoji-button m-0 p-0" type='button' onClick={handleShowEmogi}>
     <FontAwesomeIcon icon={faFaceSmile} />
     <span className="fas fa-smile" />
     </button>

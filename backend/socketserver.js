@@ -85,9 +85,11 @@ const saveMessageToDatabase = async (msg) => {
       const data = await chatModel.create({
           fromId: msg.fromId,
           toId: msg.toId,
-          text: msg.text,
+          text: msg.text || null,
+          file: msg.file,
           time: new Date()
       });
+      console.log('Message saved to database:', data);
       return data;
   } catch (error) {
       console.error('Error saving message to database:', error);
@@ -99,7 +101,7 @@ const saveMessageToDatabase = async (msg) => {
 
   
 const users = new Map(); // Using a Map to store user data with socket IDs as keys
-
+let messageId
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
@@ -165,6 +167,8 @@ io.on('connection', (socket) => {
 
         try {
             // Retrieve paramsId for the sender
+            console.log(msg);
+            
             const sender = users.get(socket.id);
             if (!sender) {
                 // console.log('Sender not found in users map.');
@@ -173,13 +177,18 @@ io.on('connection', (socket) => {
                 }
             }
 
+             // Save the message to the database
+            const data = await saveMessageToDatabase(msg);
+            messageId = data.id;
             const paramsId = sender ? sender.paramsId : null;
 
             // Find the recipient's socket
             const recipient = Array.from(users.values()).find(user => user.id === msg.toId && user.paramsId !== paramsId);
 
+            console.log("MEssafe Id" , messageId);
+            
             if (recipient) {
-                io.to(recipient.socketId).emit('receiveMsg', msg);
+                io.to(recipient.socketId).emit('receiveMsg', msg ,messageId);
                 // console.log('Message sent to recipient:', recipient.socketId);
             } else {
                 console.log('Recipient not found');
@@ -187,14 +196,13 @@ io.on('connection', (socket) => {
 
             // Send the message to the sender as well
             if (sender) {
-                io.to(sender.socketId).emit('receiveMsg', msg);
+                io.to(sender.socketId).emit('receiveMsg', msg ,messageId);
                 // console.log('Message sent to sender:', sender.socketId);
             } else {
                 console.log('Sender not found when trying to send the message back.');
             }
 
-            // Save the message to the database
-            const data = await saveMessageToDatabase(msg);
+           
             // console.log('Message saved to database:', data);
 
             // Acknowledge receipt of the message
@@ -236,48 +244,77 @@ io.on('connection', (socket) => {
         }
     });
 
-
-    
-    socket.on('sendFile', (fileData, callback) => {
-    // const { file } = fileData;
-    console.log('Received file name:', fileData);
-    
-
-    const sender = users.get(socket.id);
-    if (!sender) {
-        // console.log('Sender not found in users map.');
-        if (callback) {
-            return callback({ status: 'error', msg: 'Sender not found' });
+    socket.on('seenMessages', (data, callback) => {
+        console.log("Seen messages: ", data);
+        const sender = users.get(socket.id);
+        if (!sender) {
+            // console.log('Typing sender not found in users map.');
+            if (callback) {
+                return callback({ status: 'error', typing: 'Sender not found' });
+            }
         }
-    }
 
-    const paramsId = sender ? sender.paramsId : null;
+        // const messageId = data.messageId;
+        
+        const paramsId = sender ? sender.paramsId : null;
 
-    // Find the recipient's socket
-    const recipient = Array.from(users.values()).find(user => user.id === fileData.toId && user.paramsId !== paramsId);
+        // Find the recipient's socket
+        const recipient = Array.from(users.values()).find(user => user.id === data.toId && user.paramsId !== paramsId);
 
-    if (recipient) {
-        io.to(recipient.socketId).emit('fileSaved', fileData);
-        // console.log('Message sent to recipient:', recipient.socketId);
-    } else {
-        console.log('Recipient not found');
-    }
+        if (recipient) {
+            io.to(recipient.socketId).emit('recieveSeenMessage', data , messageId);
+            console.log('Messege sent to recipient:', recipient.socketId);
+        } else {
+            console.log('Message recipient not found');
+        }
 
-    // Send the message to the sender as well
-    if (sender) {
-        io.to(sender.socketId).emit('fileSaved', fileData);
-        // console.log('Message sent to sender:', sender.socketId);
-    } else {
-        console.log('Sender not found when trying to send the message back.');
-    }
+        // Send an acknowledgment back to the client
+        if (typeof callback === 'function') {
+            callback({ status: 'ok', msg: 'Message event received' });
+        }  
+    })
 
-    // Acknowledge receipt of the message
-    if (callback) {
-        callback({ status: 'ok', msg: 'File sent' });
-    }
+    
+//     socket.on('sendFile', (fileData, callback) => {
+//     // const { file } = fileData;
+//     console.log('Received file name:', fileData);
+    
+
+//     const sender = users.get(socket.id);
+//     if (!sender) {
+//         // console.log('Sender not found in users map.');
+//         if (callback) {
+//             return callback({ status: 'error', msg: 'Sender not found' });
+//         }
+//     }
+
+//     const paramsId = sender ? sender.paramsId : null;
+
+//     // Find the recipient's socket
+//     const recipient = Array.from(users.values()).find(user => user.id === fileData.toId && user.paramsId !== paramsId);
+
+//     if (recipient) {
+//         io.to(recipient.socketId).emit('fileSaved', fileData);
+//         // console.log('Message sent to recipient:', recipient.socketId);
+//     } else {
+//         console.log('Recipient not found');
+//     }
+
+//     // Send the message to the sender as well
+//     if (sender) {
+//         io.to(sender.socketId).emit('fileSaved', fileData);
+//         // console.log('Message sent to sender:', sender.socketId);
+//     } else {
+//         console.log('Sender not found when trying to send the message back.');
+//     }
+
+//     // Acknowledge receipt of the message
+//     if (callback) {
+//         callback({ status: 'ok', msg: 'File sent' });
+//     }
      
 
-  });            
+//   });            
     
 
     // socket.broadcast.emit('allusers', Array.from(users.values()));

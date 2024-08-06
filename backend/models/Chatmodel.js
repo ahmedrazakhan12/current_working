@@ -22,7 +22,11 @@ const chatModel = sequelize.define(
 
     text: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
+    },
+    file: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     time: {
         type: DataTypes.DATE,

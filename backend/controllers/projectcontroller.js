@@ -292,12 +292,7 @@ projectTagsEntries.map(async (entry) => {
 
 
 
-    // Emit the project addition event to all connected clients
-    const notification = { username, projectName, activeId };
-    req.io.emit('projectAdded', notification);
-
-    console.log("Done");
-
+    
     res.status(200).send("Project successfully added.");
 
   } catch (error) {

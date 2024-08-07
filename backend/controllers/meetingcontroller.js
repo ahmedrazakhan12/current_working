@@ -55,7 +55,10 @@ exports.addMeeting = async (req, res) => {
 
 exports.getMeeting = async (req, res) => {
   try {
-    const meetings = await meetingModel.findAll();
+    const meetings = await meetingModel.findAll({
+      order: [['createdAt', 'DESC']] // Sort by createdAt in descending order
+    });
+    
 
     const data = await Promise.all(meetings.map(async (item) => {
       const user = await meetingUser.findAll({ where: { meetingId: item.id } });

@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 // import io from "socket.io-client";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { useAppContext } from "../../context/AppContext";
 
 
 
@@ -42,7 +43,7 @@ const EditProject = () => {
   const [content, setContent] = useState('');
   const [dbStatus , setDbStatus] = useState([]);
   const [dbPriorities , setDbPriorities] = useState([]);
-
+  const {socket} = useAppContext();
 
 
   useEffect(() => {
@@ -383,6 +384,19 @@ const handleSubmit = async (e) => {
       username,
       activeId,
       deleteTags
+    });
+    const notification = {
+      username:username,
+      projectName:projectName,
+      usersID: usersID,
+      text:`${username} has added you in a project ${projectName}.`
+    };
+    socket.emit('newNotification', notification, (response) => {
+      if (response && response.status === 'ok') {
+        console.log(response.msg);
+      } else {
+        console.error('Message delivery failed or no response from server');
+      }
     });
     navigate(-1);
     Swal.fire({

@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import '../../App.css';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { useAppContext } from "../../context/AppContext";
 
 // const socket = io("http://localhost:5000");
 
@@ -31,6 +32,7 @@ const Addtasks = () => {
   const [dbPriorities , setDbPriorities] = useState([]);
   const [projectDetails ,setProjectDetails] = useState('');
 
+  const {socket} = useAppContext();
 
   console.log(priority , status);
   // const predefinedTags = ["Web Development", "E-commerce", "Social Networking", "Content Management", "Project Management", "Learning and Education", "Booking and Reservation"];
@@ -210,6 +212,19 @@ const handleChange = (e) => {
         username,
         activeId
       });
+      const notification = {
+        username:username,
+        projectName:taskName,
+        usersID: usersID,
+        text:`${username} assigned you a new task: ${taskName} in project ${projectDetails.projectName}.`
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
       navigate(-1);
       Swal.fire({
         position: 'top-end',
@@ -330,7 +345,7 @@ const handleChange = (e) => {
               </div>
             )}
             <div className="modal-footer m-0 p-0">
-              <button type="button" className="m-0 me-2 btn btn-secondary" onClick={() => navigate("/manage")}>Close</button>
+              <button type="button" className="m-0 me-2 btn btn-secondary" onClick={() => navigate(-1)}>Close</button>
               <button type="submit" id="submit_btn" className="m-0 me-2 btn btn-warning">Create</button>
             </div>
           </div>

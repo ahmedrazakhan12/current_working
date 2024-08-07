@@ -15,23 +15,7 @@ const ProjectPriorityRoute = require("./routes/Projectpriorityroute");
 const chatRoute = require("./routes/Chatroute");
 const meetingRoute = require("./routes/Meetingroute");
 const db = require("./models"); // Adjust the path as necessary
-// const chatModel = db.chatModel;
 
-// const app = express();
-// const io = socketIo(server, {
-//   cors: {
-//     origin: "http://localhost:3000", // React app URL
-//     methods: ["GET", "POST"]
-//   }
-// });
-
-// // Middlewares
-// app.use(cors());
-// app.use(express.json()); // Add this line to parse JSON bodies
-// app.use("/public", express.static("public")); // Serve static files
-
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
 
 // Sync the models with the database
 db.sequelize
@@ -68,13 +52,6 @@ app.use((req, res, next) => {
 });
 
 
-// // Pass io instance to routes
-// app.use((req, res, next) => {
-//   req.io = io;
-//   next();
-// });
-
-// Routes
 app.use("/admin", adminRoute);
 app.use("/project", ProjectRoute);
 app.use("/task", TaskRoute);
@@ -84,6 +61,37 @@ app.use("/chat", chatRoute);
 app.use("/meeting", meetingRoute);
 
 
+
+const server = require('http').createServer(app);
+
+module.exports = { server };
+
+
+// // Pass io instance to routes
+// app.use((req, res, next) => {
+//   req.io = io;
+//   next();
+// });
+
+// Routes
+
+// const chatModel = db.chatModel;
+
+// const app = express();
+// const io = socketIo(server, {
+//   cors: {
+//     origin: "http://localhost:3000", // React app URL
+//     methods: ["GET", "POST"]
+//   }
+// });
+
+// // Middlewares
+// app.use(cors());
+// app.use(express.json()); // Add this line to parse JSON bodies
+// app.use("/public", express.static("public")); // Serve static files
+
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 // Function
 
@@ -183,12 +191,6 @@ app.use("/meeting", meetingRoute);
 //         console.log('Current users after disconnection:', Array.from(users.values()));
 //     });
 // });
-
-
-
-const server = require('http').createServer(app);
-
-module.exports = { server };
 
 
 

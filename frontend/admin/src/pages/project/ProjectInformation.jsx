@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button';
 import Swal from 'sweetalert2';
 
 import TaskById from '../tasks/TaskById';
+import { useAppContext } from '../../context/AppContext';
 const ProjectInformation = () => {
     const {id} = useParams();    
     const [data , setData] = useState([]);
@@ -15,9 +16,34 @@ const ProjectInformation = () => {
     const [dbPriority, setDbPriority] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [taskId, setTaskId] = useState(null);
-  
-const [taskStatusFilter, setTaskStatusFilter] = useState([]);
+    const {socket} = useAppContext();
+    const [taskStatusFilter, setTaskStatusFilter] = useState([]);
+    const activeId = localStorage.getItem("id");
+    const [loginData , setLoginData] = useState([])
 
+
+useEffect(() => {
+  if (!activeId) {
+    navigate("/login"); // Redirect to login
+  } else {
+    axios
+      .get(`http://localhost:5000/admin/adminInfo/`, {
+        headers: { Authorization: `${activeId}` },
+      })
+      .then((res) => {
+        setLoginData(res.data);
+        console.log("Navbar: ", res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (err.response && err.response.status === 404) {
+          navigate("/login"); // Redirect to login on 404
+        }
+      });
+  }
+
+ 
+}, [activeId, navigate]);
 const fetchTaskFilterStatus = ()=>{
   axios.get(`http://localhost:5000/task/filterTaskCount/${id}`)
   .then((res) => {
@@ -93,6 +119,23 @@ const handleProjectChange = async (event , id) => {
   try {
     await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
       status: selectedValue,
+    }); 
+    
+    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
+
+    const notification = {
+      username: loginData.name,
+      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
+      usersID: userNotificationsIds,
+      text: `${loginData.name} has updated the Project  ${data?.[0]?.project?.projectName || 'the project'} Status.`
+    };
+    
+    socket.emit('newNotification', notification, (response) => {
+      if (response && response.status === 'ok') {
+        console.log(response.msg);
+      } else {
+        console.error('Message delivery failed or no response from server');
+      }
     });
     // Re-fetch task data after update
     fetchProjectData();
@@ -121,6 +164,23 @@ const handleProjectPriorityChange = async (event , id) => {
   try {
     await axios.put(`http://localhost:5000/project/editPriority/${id}`, {
       priority: selectedValue,
+    });
+
+    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
+
+    const notification = {
+      username: loginData.name,
+      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
+      usersID: userNotificationsIds,
+      text: `${loginData.name} has updated the Project  ${data?.[0]?.project?.projectName || 'the project'} Priority.`
+    };
+    
+    socket.emit('newNotification', notification, (response) => {
+      if (response && response.status === 'ok') {
+        console.log(response.msg);
+      } else {
+        console.error('Message delivery failed or no response from server');
+      }
     });
     // Re-fetch task data after update
     fetchProjectData();
@@ -207,7 +267,7 @@ const handleProjectPriorityChange = async (event , id) => {
 
 
 
-  const handleChange = async (event , id) => {
+  const handleChange = async (event , id , taskName) => {
   
   const selectedValue = event.target.value;
   const selectedItem = dbStatus.find((item) => item.id === selectedValue);
@@ -218,6 +278,22 @@ const handleProjectPriorityChange = async (event , id) => {
   try {
     await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
       status: selectedValue,
+    });
+    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
+
+    const notification = {
+      username: loginData.name,
+      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
+      usersID: userNotificationsIds,
+      text: `${loginData.name} has updated the Task ${taskName} status in ${data?.[0]?.project?.projectName || 'the project'} `
+    };
+    
+    socket.emit('newNotification', notification, (response) => {
+      if (response && response.status === 'ok') {
+        console.log(response.msg);
+      } else {
+        console.error('Message delivery failed or no response from server');
+      }
     });
     // Re-fetch task data after update
     fetchData();
@@ -243,7 +319,7 @@ useEffect(() => {
   fetchPriorities();
 }, []);
 
-const handlePriorityChange = async (event , id) => {
+const handlePriorityChange = async (event , id , taskName) => {
   const selectedValue = event.target.value;
   const selectedItem = dbPriority.find((item) => item.id === selectedValue);
   const selectedPreview = selectedItem ? selectedItem.preview : '';
@@ -253,6 +329,24 @@ const handlePriorityChange = async (event , id) => {
   try {
     await axios.put(`http://localhost:5000/task/editPriority/${id}`, {
       priority: selectedValue,
+    });
+
+    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
+
+    const notification = {
+      username: loginData.name,
+      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
+      usersID: userNotificationsIds,
+      text: `${loginData.name} has updated the Task ${taskName} priority in ${data?.[0]?.project?.projectName || 'the project'} `
+
+    };
+    
+    socket.emit('newNotification', notification, (response) => {
+      if (response && response.status === 'ok') {
+        console.log(response.msg);
+      } else {
+        console.error('Message delivery failed or no response from server');
+      }
     });
     // Re-fetch task data after update
     fetchData();
@@ -346,6 +440,22 @@ const handleProjectMediaSubmit = (event) => {
     },
   })
     .then((res) => {
+    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
+
+    const notification = {
+      username: loginData.name,
+      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
+      usersID: userNotificationsIds,
+      text: `${loginData.name} has added the media to ${data?.[0]?.project?.projectName || 'the project'}.`
+    };
+    
+    socket.emit('newNotification', notification, (response) => {
+      if (response && response.status === 'ok') {
+        console.log(response.msg);
+      } else {
+        console.error('Message delivery failed or no response from server');
+      }
+    });
       fetchMedia();
       setFiles([]);
       console.log("Response: ", res.data);
@@ -1186,7 +1296,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                 id="prioritySelect"
                 data-original-color-class="select-bg-label-secondary"
                 name="status"
-                onChange={(event) => handleChange(event, item.task.id)}
+                onChange={(event) => handleChange(event, item?.task?.id , item?.task?.taskName)}
               >
 
               <option className={`bg-label-${item.status[0]?.preview}`} >
@@ -1216,7 +1326,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                 id="prioritySelect"
                 data-original-color-class="select-bg-label-secondary"
                 name="priority"
-                onChange={(event) => handlePriorityChange(event, item.task.id)}
+                onChange={(event) => handlePriorityChange(event, item.task.id , item?.task?.taskName)}
               >
                 <option className={`bg-label-${item.priority[0]?.preview}`} value={item.priority[0]?.id}>
                  {item.priority[0]?.status}
@@ -1293,7 +1403,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                             id="prioritySelect"
                             data-original-color-class="select-bg-label-secondary"
                             name="status"
-                            onChange={(event) => handleChange(event, item.task.id)}
+                            onChange={(event) => handleChange(event, item?.task?.id , item?.task?.taskName)}
                           >
                             <option className={`bg-label-${item.status[0]?.preview}`}>
                               {item.status[0]?.status}

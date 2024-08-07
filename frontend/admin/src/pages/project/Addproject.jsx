@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import '../../App.css';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { useAppContext } from "../../context/AppContext";
 
 // const socket = io("http://localhost:5000");
 
@@ -33,6 +34,10 @@ const Addproject = () => {
   const [content, setContent] = useState('');
   const [dbStatus , setDbStatus] = useState([]);
   const [dbPriorities , setDbPriorities] = useState([]);
+
+  const {
+    socket
+    } = useAppContext();
 
 
   console.log(priority , status);
@@ -268,7 +273,23 @@ console.log("status: ", status);
         username,
         activeId
       });
-      navigate(-1);
+
+      const notification = {
+        username:username,
+        projectName:projectName,
+        usersID:usersID,
+        text:`${username} added you in a new project: ${projectName}`
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
+
+      
+      // navigate(-1);
       Swal.fire({
         position: 'top-end',
         title: 'Project Added Successfully',

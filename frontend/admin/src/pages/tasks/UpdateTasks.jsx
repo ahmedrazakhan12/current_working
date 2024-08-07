@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import '../../App.css';
+import { useAppContext } from "../../context/AppContext";
 
 // const socket = io("http://localhost:5000");
 
@@ -33,7 +34,7 @@ const UpdateTasks = () => {
     const [projectDetails, setProjectDetails] = useState(null); 
     const [tags1, setTags1] = useState([]);
     console.log("projectDetailsprojectDetailsprojectDetailsprojectDetailsprojectDetails: ",projectDetails);
-  
+    const {socket} = useAppContext();
     const navigate = useNavigate();
     const activeId = localStorage.getItem("id");
   
@@ -240,6 +241,19 @@ const UpdateTasks = () => {
           activeId,
           deleteUsers,
           projectId: projectDetails.projectId
+        });
+        const notification = {
+          username:username,
+          projectName:projectDetails?.projectName,
+          usersID: usersID,
+          text:`${username} has added you to a task ${taskName} in project ${projectDetails?.projectName}.`
+        };
+        socket.emit('newNotification', notification, (response) => {
+          if (response && response.status === 'ok') {
+            console.log(response.msg);
+          } else {
+            console.error('Message delivery failed or no response from server');
+          }
         });
         navigate(-1);
         Swal.fire({

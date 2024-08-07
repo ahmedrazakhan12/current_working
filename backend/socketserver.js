@@ -274,11 +274,50 @@ io.on('connection', (socket) => {
         }  
     })
 
+    socket.on('newNotification', (notification) => {
+        console.log('New notification received:', notification);
     
+        const { usersID } = notification;
+        usersID.map(userId => {
+            // Find the user's entry in the users Map by userId
+            const recipient = Array.from(users.values()).find(user => user.id == userId || user.id == userId[0] );
+            if (recipient) {
+                io.to(recipient.socketId).emit('notification', notification);
+                console.log('Notification sent to recipient:', recipient.socketId);
+            } else {
+                console.log('Recipient not found for userId:', userId);
+            }
+        });
+    });
+    
+    
+    // Handle user disconnection
+    socket.on('disconnect', () => {
+        try {
+            console.log('User disconnected:', socket.id);
+            
+            if (users.has(socket.id)) {
+                users.delete(socket.id);
+                console.log(`User with socket ID ${socket.id} disconnected.`);
+                console.log('Current users:', Array.from(users.values()));
+                
+                // Emit the updated list of active users
+                socket.emit('activeUsers', Array.from(users.values()));
+                broadcastAllUsers();
+            }
+
+        } catch (error) {
+            console.error('Error handling user disconnect:', error);
+        }
+    });
+});
+
+
+// const users = new Map(); // Using a Map to store user data with socket IDs as keys
 //     socket.on('sendFile', (fileData, callback) => {
 //     // const { file } = fileData;
 //     console.log('Received file name:', fileData);
-    
+
 
 //     const sender = users.get(socket.id);
 //     if (!sender) {
@@ -312,36 +351,12 @@ io.on('connection', (socket) => {
 //     if (callback) {
 //         callback({ status: 'ok', msg: 'File sent' });
 //     }
-     
+ 
 
 //   });            
-    
-
-    // socket.broadcast.emit('allusers', Array.from(users.values()));
-
-    // Handle user disconnection
-    socket.on('disconnect', () => {
-        try {
-            console.log('User disconnected:', socket.id);
-
-            if (users.has(socket.id)) {
-                users.delete(socket.id);
-                console.log(`User with socket ID ${socket.id} disconnected.`);
-                console.log('Current users:', Array.from(users.values()));
-
-                // Emit the updated list of active users
-                socket.emit('activeUsers', Array.from(users.values()));
-                broadcastAllUsers();
-            }
-
-        } catch (error) {
-            console.error('Error handling user disconnect:', error);
-        }
-    });
-});
 
 
-// const users = new Map(); // Using a Map to store user data with socket IDs as keys
+// socket.broadcast.emit('allusers', Array.from(users.values()));
 
 // io.on('connection', (socket) => {
 // console.log('A user connected:', socket.id);

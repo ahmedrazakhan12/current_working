@@ -10,6 +10,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const activeId = localStorage.getItem("id");
 
+  const {socket} = useAppContext();
+
   useEffect(() => {
     if (!activeId) {
       navigate("/login"); // Redirect to login
@@ -20,7 +22,7 @@ const Navbar = () => {
         })
         .then((res) => {
           setData(res.data);
-          console.log("Navbar: ",res.data);
+          console.log("Navbar: ", res.data);
         })
         .catch((err) => {
           console.error(err);
@@ -30,38 +32,33 @@ const Navbar = () => {
         });
     }
 
+    socket.on('notification', (data) => {
+      console.log("Notification: ", data);
+      
+      setNotifications((prevNotifications) => [
+        data,
+        ...prevNotifications,
+      ]);
 
-    // socket.on("connect", () => {
-    //   console.log("Connected to WebSocket server");
-    // });
+      // Check if the browser supports notifications
+      if ("Notification" in window) {
+        // Request permission to show notifications
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            // Show notification
+            new Notification("Gmg Solutions", {
+              body: `${data.text}`,
+            });
+          }
+        });
+      }
+    });
 
-    // socket.on("projectAdded", (notification) => {
-    //   if (notification.activeId !== activeId) {
-    //     setNotifications((prevNotifications) => [
-    //       notification,
-    //       ...prevNotifications,
-    //     ]);
-    //   }
-    //   console.log("Notification received:", notification);
-
-    //   // Check if browser supports notifications
-    //   if ("Notification" in window && notification.activeId !== activeId) {
-    //     // Request permission to show notifications
-    //     Notification.requestPermission().then((permission) => {
-    //       if (permission === "granted") {
-    //         // Show notification
-    //         new Notification("New Project Added", {
-    //           body: `${notification.username} added a new project: ${notification.projectName}`,
-    //         });
-    //       }
-    //     });
-    //   }
-    // });
-
-    // return () => {
-    //   socket.disconnect();
-    // };
-  }, [activeId]);
+    // Cleanup on component unmount
+    return () => {
+      socket.off('notification');
+    };
+  }, [activeId, navigate, socket]);
 
   const handleLogout = () => {
     // const socket = io("http://localhost:5000");
@@ -133,11 +130,10 @@ const Navbar = () => {
                           <li key={index} className="p-3  ">
                             <span>
                               <b className="text-capitalize">
-                                {index + 1}. {notification.username}
+                                {index + 1}. 
                               </b>{" "}
-                              added a new project:{" "}
                               <b className="text-capitalize">
-                                {notification.projectName}
+                                {notification.text}
                               </b>
                             </span>
                           </li>

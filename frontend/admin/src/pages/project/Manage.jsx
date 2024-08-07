@@ -6,20 +6,35 @@ import Navbar from '../../components/Navbar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Pagination } from "react-bootstrap";
+import { useAppContext } from '../../context/AppContext';
 
 const Manage = () => { const navigate = useNavigate();
   const [data, setData] = useState([]);
+  const [username, setUsername] = useState(""); 
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [dbStatus , setDbStatus] = useState([]);
   const [dbPriority, setDbPriority] = useState([]);
-
+  const {socket} = useAppContext();
   const itemsPerPage = 10;
+  const activeId = localStorage.getItem("id");
 
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/admin/adminInfo/`, {
+      headers: { Authorization: `${activeId}` }
+    })
+    .then((res) => {
+      setUsername(res.data.name);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, [activeId]);
   const fetchData = () => {
     axios.get('http://localhost:5000/project/getAllProject')
       .then((res) => {
-        console.log(res.data);
+        console.log("Projects",res.data);
         setData(res.data);
       })
       .catch((err) => {
@@ -93,6 +108,7 @@ useEffect(() => {
     axios.get(`http://localhost:5000/project/filter/`, { params: { status } })  
     .then((res) => {
       setData(res.data);
+     
     })
     .catch((err) => {
       console.log(err);
@@ -140,27 +156,42 @@ useEffect(() => {
 
 
   
-  const handleChange = async (event , id) => {
+  const handleChange = async (event , id , projectName , usersID) => {
     // alert(id)
+    console.log("Onchange: ",id , projectName , usersID);
+    
   
     const selectedValue = event.target.value;
     const selectedItem = dbStatus.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : '';
   
-if (statusRef.current) {
-  statusRef.current.value = "";
-}
-if (priorityRef.current) {
-  priorityRef.current.value = "";
-}
-if (searchRef.current) {
-  searchRef.current.value = "";
-}
-    // setSelectedPreview(selectedPreview);
+    if (statusRef.current) {
+      statusRef.current.value = "";
+    }
+    if (priorityRef.current) {
+      priorityRef.current.value = "";
+    }
+    if (searchRef.current) {
+      searchRef.current.value = "";
+    }
+        // setSelectedPreview(selectedPreview);
   
     try {
       await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
         status: selectedValue,
+      });
+      const notification = {
+        username:username,
+        projectName:projectName,
+        usersID:usersID.map(item => item.id),
+        text:`${username} has updated ${projectName} status.`
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
       });
       // Re-fetch task data after update
       fetchData();
@@ -171,7 +202,7 @@ if (searchRef.current) {
   
 
 
-  const handlePriorityChange = async (event , id) => {
+  const handlePriorityChange = async (event , id , projectName , usersID) => {
     const selectedValue = event.target.value;
     const selectedItem = dbPriority.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : '';
@@ -191,6 +222,20 @@ if (searchRef.current) {
       await axios.put(`http://localhost:5000/project/editPriority/${id}`, {
         priority: selectedValue,
       });
+
+      const notification = {
+        username:username,
+        projectName:projectName,
+        usersID:usersID.map(item => item.id),
+        text:`${username} has updated ${projectName} priority.`
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
       // Re-fetch task data after update
       fetchData();
     } catch (error) {
@@ -200,7 +245,6 @@ if (searchRef.current) {
   
 
   const [favId, setFavId] = useState({});
-  const activeId = localStorage.getItem("id");
 
   const fetchFavData = () => {
     axios.get(`http://localhost:5000/project/getFavProjectId/`, {
@@ -447,7 +491,7 @@ if (searchRef.current) {
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="status"
-                      onChange={(event) => handleChange(event, item.project?.id)}
+                      onChange={(event) => handleChange(event, item.project?.id , item.project?.projectName , item?.users)}
                     >
 
                     <option className={`bg-label-${item.status[0]?.preview}`} >
@@ -475,7 +519,7 @@ if (searchRef.current) {
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="priority"
-                      onChange={(event) => handlePriorityChange(event, item.project?.id)}
+                      onChange={(event) => handlePriorityChange(event, item.project?.id , item.project?.projectName , item?.users)}
                     >
 
                     <option className={`bg-label-${item.priority[0]?.preview}`} >

@@ -4,14 +4,29 @@ import Navbar from '../../components/Navbar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Pagination } from "react-bootstrap";
+import { useAppContext } from '../../context/AppContext';
 
 const Favorite = () => { const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [dbStatus , setDbStatus] = useState([]);
   const [dbPriority, setDbPriority] = useState([]);
   const activeId  = localStorage.getItem("id");
-  const itemsPerPage = 10;
+  const {socket} = useAppContext();
+  const [username, setUsername] = useState("");
 
+
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/admin/adminInfo/`, {
+      headers: { Authorization: `${activeId}` }
+    })
+    .then((res) => {
+      setUsername(res.data.name);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }, [activeId]);
  
 const fetchData = () => {
   axios.get(`http://localhost:5000/project/getFavProject/`, {
@@ -88,18 +103,42 @@ useEffect(() => {
 
 
   
-  const handleChange = async (event , id) => {
+  const handleChange = async (event , id , projectName , usersID) => {
     // alert(id)
+    console.log("Onchange: ",id , projectName , usersID);
+    
   
     const selectedValue = event.target.value;
     const selectedItem = dbStatus.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : '';
   
-    // setSelectedPreview(selectedPreview);
+    if (statusRef.current) {
+      statusRef.current.value = "";
+    }
+    if (priorityRef.current) {
+      priorityRef.current.value = "";
+    }
+    if (searchRef.current) {
+      searchRef.current.value = "";
+    }
+        // setSelectedPreview(selectedPreview);
   
     try {
       await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
         status: selectedValue,
+      });
+      const notification = {
+        username:username,
+        projectName:projectName,
+        usersID:usersID.map(item => item.id),
+        text:`${username} has updated ${projectName} status.`
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
       });
       // Re-fetch task data after update
       fetchData();
@@ -110,16 +149,39 @@ useEffect(() => {
   
 
 
-  const handlePriorityChange = async (event , id) => {
+  const handlePriorityChange = async (event , id , projectName , usersID) => {
     const selectedValue = event.target.value;
     const selectedItem = dbPriority.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : '';
   
+if (statusRef.current) {
+  statusRef.current.value = "";
+}
+if (priorityRef.current) {
+  priorityRef.current.value = "";
+}
+if (searchRef.current) {
+  searchRef.current.value = "";
+}
     // setSelectedPreview(selectedPreview);
   
     try {
       await axios.put(`http://localhost:5000/project/editPriority/${id}`, {
         priority: selectedValue,
+      });
+
+      const notification = {
+        username:username,
+        projectName:projectName,
+        usersID:usersID.map(item => item.id),
+        text:`${username} has updated ${projectName} priority.`
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
       });
       // Re-fetch task data after update
       fetchData();
@@ -395,7 +457,8 @@ useEffect(() => {
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="status"
-                      onChange={(event) => handleChange(event, item.project?.id)}
+                      onChange={(event) => handleChange(event, item.project?.id , item.project?.projectName , item?.users)}
+
                     >
 
                     <option className={`bg-label-${item.status[0]?.preview}`} >
@@ -423,7 +486,8 @@ useEffect(() => {
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="priority"
-                      onChange={(event) => handlePriorityChange(event, item.project?.id)}
+                      onChange={(event) => handlePriorityChange(event, item.project?.id , item.project?.projectName , item?.users)}
+
                     >
 
                     <option className={`bg-label-${item.priority[0]?.preview}`} >

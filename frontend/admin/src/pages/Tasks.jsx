@@ -581,7 +581,7 @@ const handleFullTasks = (id) => {
                   <div className="card-body px-3 py-3">
                     <div className="d-flex justify-content-between">
                       <h6 className="card-title">
-                        <Link to={`/task/${item.task.id}`}>
+                        <Link to={`/viewTask/${item.task.id}`}>
                           <strong>{item.task?.taskName}</strong>
                         </Link>
                       </h6>

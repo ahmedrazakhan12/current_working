@@ -212,7 +212,16 @@ hr.hr-1 {
   box-shadow: 0 5px 15px -2px #fea9008f;
 }
 
-
+.login-tag{
+  display: inline-block;
+  background-color: #40aa6a;
+  color: white;
+  border-radius: 5px;
+  padding: 0px 3px 0px 7px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  box-shadow: 0 5px 15px -2px #00fe948f;
+}
 
 .tags-input-wrapper .tag02 {
   display: inline-block;

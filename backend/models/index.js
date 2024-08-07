@@ -13,6 +13,9 @@ const {projectFilesModel} = require("./projectfilesmodel");
 const  {taskFilesModel} = require("./Taskfilemodel");
 const {favoriteProjectModel} = require("./Favprojectmodel");
 const {chatModel} = require("./Chatmodel");
+const {Meeting} = require("./Meetingmodel");
+const {MeetingUser} = require("./Meetingusersmodel");
+
 const db = {};
 
 // Initialize models
@@ -30,6 +33,8 @@ db.projectFilesModel = projectFilesModel;
 db.taskFilesModel = taskFilesModel;
 db.favoriteProjectModel = favoriteProjectModel;
 db.chatModel = chatModel;
+db.Meeting = Meeting;
+db.MeetingUser =MeetingUser;
 
 // Add other models to db object
 // db.userModel = userModel;

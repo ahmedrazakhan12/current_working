@@ -5,6 +5,12 @@ const validateTitle = (status) => {
     return "Title is required.";
   }
 };
+const validateTime = (time) => {
+  // Check if time is provided
+  if (!time) {
+    return "Time is required.";
+  }
+};
 
 const validateDescription = (description) => {
   const minLength = 100;
@@ -99,6 +105,20 @@ const validateTags = (tags) => {
 
   // Return null or undefined if validation passes
 };
+const validateLink = (link) => {
+  // Define the maximum allowed length for the link
+  const maxLength = 2048; // You can adjust this value based on your requirements
+
+  // Check if the link length exceeds the maximum allowed length
+  if (link.length > maxLength) {
+    return `Link is too long. Maximum length is ${maxLength} characters.`;
+  }
+
+  // If the length is within the allowed limit, you can proceed with other validations
+  return null; // No errors
+};
+
+
 
 
 
@@ -112,5 +132,6 @@ module.exports = {
   validateBudget,
   validateDate,
   validateUserId,
-  validateTags,
+  validateTime,
+  validateTags,validateLink
 };

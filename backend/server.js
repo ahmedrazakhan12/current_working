@@ -13,8 +13,9 @@ const TaskRoute = require("./routes/Tasksroute");
 const ProjectStatusRoute = require("./routes/Projectstatusroute");
 const ProjectPriorityRoute = require("./routes/Projectpriorityroute");
 const chatRoute = require("./routes/Chatroute");
+const meetingRoute = require("./routes/Meetingroute");
 const db = require("./models"); // Adjust the path as necessary
-const chatModel = db.chatModel;
+// const chatModel = db.chatModel;
 
 // const app = express();
 // const io = socketIo(server, {
@@ -80,6 +81,7 @@ app.use("/task", TaskRoute);
 app.use("/projectStatus", ProjectStatusRoute);
 app.use("/projectPriority", ProjectPriorityRoute);
 app.use("/chat", chatRoute);
+app.use("/meeting", meetingRoute);
 
 
 

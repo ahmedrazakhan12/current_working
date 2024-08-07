@@ -9,7 +9,7 @@ import Manage from './pages/project/Manage';
 import Tag from './pages/project/Tag';
 import Footer from './components/Footer';
 import { useAppContext } from './context/AppContext';
-import Meeting from './pages/Meeting';
+import Meeting from './pages/meeting/Meeting';
 import Users from './pages/Users';
 import Clients from './pages/Clients';
 import Login from './pages/Login';

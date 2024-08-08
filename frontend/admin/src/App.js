@@ -35,9 +35,14 @@ import Breadcrumb from './components/Breadcrumb';
 import SingleTask from './pages/tasks/SingleTask';
 import Chat from './chat/Chat';
 import ChatById from './chat/ChatById';
-
+import Notification from './pages/notification/Notification';
 import io from "socket.io-client";
-
+import MDashboard from './member/MDashboard';
+import MManageProject from './member/MManageProject';
+import MProjectInformation from './member/MProjectInformation'
+import Mfavorite from './member/Mfavorite';
+import Mtasks from './member/Mtasks';
+import MMeeting from './member/MMeeting';
 function App() {
   
   const { isMenuExpanded } = useAppContext();
@@ -76,32 +81,51 @@ function App() {
               <Breadcrumb   />
               <div className="content-wrapper">
                 <Routes>
+                {data && data.role === "super-admin" || data.role === "admin" ? 
+                    
+                <>
                   <Route path="/" element={<Protected Component={Dashboard} />} />
-                  <Route path="/profile" element={<Protected Component={Profile} />} />
-                  <Route path="/favorite" element={<Protected Component={Favorite} />} />
                   <Route path="/manage" element={<Protected Component={Manage} />} />
-                  <Route path="/tag" element={<Protected Component={Tag} />} />
+                  <Route path="/projectInformation/:id" element={<Protected Component={ProjectInformation} />} />
+                  <Route path="/favorite" element={<Protected Component={Favorite} />} />
                   <Route path="/tasks" element={<Protected Component={Tasks} />} />
-                  <Route path="/addProject" element={<Protected Component={Addproject} />} />
-                  <Route path="/editProject/:id" element={<Protected Component={EditPrject} />} />
                   <Route path="/meeting" element={<Protected Component={Meeting} />} />
+
+                </>
+                  :
+                <>
+                  <Route path="/" element={<Protected Component={MDashboard} />} />
+                  <Route path="/manage" element={<Protected Component={MManageProject} />} />
+                  <Route path="/projectInformation/:id" element={<Protected Component={MProjectInformation} />} />
+                  <Route path="/favorite" element={<Protected Component={Mfavorite} />} />
+                  <Route path="/tasks" element={<Protected Component={Mtasks} />} />
+                  <Route path="/meeting" element={<Protected Component={MMeeting} />} />
+
+                
+                </>
+                }
+                  <Route path="/profile" element={<Protected Component={Profile} />} />
                   <Route path="/users" element={<Protected Component={Users} />} />
                   <Route path="/clients" element={<Protected Component={Clients} />} />
                   <Route path="/general" element={<Protected Component={General} />} />
                   <Route path="/changePassword" element={<Protected Component={ChangePass} />} />
-                  <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
-                  <Route path="/priority" element={<Protected Component={Priority} />} />
-                  <Route path="/projectInformation/:id" element={<Protected Component={ProjectInformation} />} />
-                  <Route path="/addTask/:id" element={<Protected Component={Addtasks} />} />
-                  <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
+                 
+                 
                   <Route path="/viewTask/:id" element={<Protected Component={SingleTask} />} />
                   <Route path="/chat" element={<Protected Component={Chat} />} />
                   <Route path="/chat/:id" element={<Protected Component={ChatById}  />} />
+                  <Route path="/notifications" element={<Protected Component={Notification}  />} />
+                  <Route path="/userview/:id" element={<Protected Component={Userview} />} />
                   {data && data.role === "super-admin" &&
                     <>
-                      <Route path="/register" element={<Protected Component={Register} />} />
+                     <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
+                     <Route path="/priority" element={<Protected Component={Priority} />} />
+                    <Route path="/addProject" element={<Protected Component={Addproject} />} />
+                     <Route path="/addTask/:id" element={<Protected Component={Addtasks} />} />
+                     <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
+                     <Route path="/editProject/:id" element={<Protected Component={EditPrject} />} />
+                     <Route path="/register" element={<Protected Component={Register} />} />
                       <Route path="/manageUsers" element={<Protected Component={Manageusers} />} />
-                      <Route path="/userview/:id" element={<Protected Component={Userview} />} />
                       <Route path="/editusers/:id" element={<Protected Component={Editusers} />} />
                       <Route path="/changeUserPassword/:id" element={<Protected Component={ChangeUserPass} />} />
                     </>

@@ -2,16 +2,19 @@ import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-const Dashboard = () => {
+const MDashboard = () => {
   const [project , setProject] = useState([])
   const [users , setUsers] = useState([])
   const [task , setTask] = useState([])
+  const activeId = localStorage.getItem("id");
 
  
   useEffect(() => {
-    axios.get('http://localhost:5000/project/getAllProject')
+    axios.get(`http://localhost:5000/project/getAllMemberProjects/${activeId}`)
     .then((res) => {
       setProject(res.data);
+      console.log(res.data);
+      
     })
     .catch((err) => {
       console.log(err);
@@ -19,9 +22,11 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/task/tasks/`)
+    axios.get(`http://localhost:5000/task/Mtasks/${activeId}`)
 
     .then((res) => {
+        console.log(res.data);
+        
       setTask(res.data);
     })
     .catch((err) => {
@@ -30,17 +35,7 @@ const Dashboard = () => {
   }, []);
 
 
-  useEffect(() => {
-    axios.get('http://localhost:5000/admin/team')
-    .then((res) => {
-      setUsers(res.data.admins)
-      // console.log(res.data);
-      ;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  }, []); 
+  
 
   return (
     <>
@@ -50,7 +45,7 @@ const Dashboard = () => {
         <div className="container-fluid">
           <div className="col-lg-12 col-md-12 order-1">
             <div className="row mt-4">
-              <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
+              <div className="col-lg-6 col-md-6 col-sm-6 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
@@ -64,7 +59,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
+              <div className="col-lg-6 col-md-6 col-sm-6 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
@@ -75,23 +70,11 @@ const Dashboard = () => {
                     <span className="fw-semibold d-block mb-1">Total Tasks</span>
                     <h3 className="card-title mb-2">{task.length}</h3>
                     <Link to={"/tasks"}><small className="text-primary fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
+
                   </div>
                 </div>
               </div>
-              <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
-                <div className="card">
-                  <div className="card-body">
-                    <div className="card-title d-flex align-items-start justify-content-between">
-                      <div className="avatar flex-shrink-0">
-                        <i className="menu-icon tf-icons bx bxs-user-detail bx-md text-info" />
-                      </div>
-                    </div>
-                    <span className="fw-semibold d-block mb-1">Total Users</span>
-                    <h3 className="card-title mb-2"> {users.length}</h3>
-                    <Link to="/manageUsers"><small className="text-info fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
-                  </div>
-                </div>
-              </div>
+           
               {/* <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">
@@ -405,4 +388,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard
+export default MDashboard

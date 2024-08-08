@@ -278,7 +278,9 @@ console.log("status: ", status);
         username:username,
         projectName:projectName,
         usersID:usersID,
-        text:`${username} added you in a new project: ${projectName}`
+        text:`${username} added you in a new project: ${projectName}`,
+        time: new Date().toLocaleString(),
+        route: '/addProject',
       };
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {

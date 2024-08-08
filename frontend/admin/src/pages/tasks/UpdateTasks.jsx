@@ -246,7 +246,9 @@ const UpdateTasks = () => {
           username:username,
           projectName:projectDetails?.projectName,
           usersID: usersID,
-          text:`${username} has added you to a task ${taskName} in project ${projectDetails?.projectName}.`
+          text:`${username} has added you to a task ${taskName} in project ${projectDetails?.projectName}.`,
+          time: new Date().toLocaleString(),
+          route: `/tasks`,
         };
         socket.emit('newNotification', notification, (response) => {
           if (response && response.status === 'ok') {

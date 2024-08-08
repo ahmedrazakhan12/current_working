@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import "../../App.css";
 import axios from "axios";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import Swal from "sweetalert2";
 const TaskById = ({ show, handleClose, taskId }) => {
@@ -18,7 +18,38 @@ const TaskById = ({ show, handleClose, taskId }) => {
   const [status, setStatus] = useState([]);
 
   const { AppContextStatus } = useAppContext();
+  const navigate = useNavigate();
+  const [projectUserID, setProjectUserID] = useState([]);
+  console.log("projectUserID" , projectUserID);
+  
+  const {socket} = useAppContext();
 
+  const activeId = localStorage.getItem("id");
+  const [loginData , setLoginData] = useState([])
+  
+  
+  useEffect(() => {
+  if (!activeId) {
+  navigate("/login"); // Redirect to login
+  } else {
+  axios
+    .get(`http://localhost:5000/admin/adminInfo/`, {
+      headers: { Authorization: `${activeId}` },
+    })
+    .then((res) => {
+      setLoginData(res.data);
+      console.log("Navbar: ", res.data);
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.response && err.response.status === 404) {
+        navigate("/login"); // Redirect to login on 404
+      }
+    });
+  }
+  
+  
+  }, [activeId, navigate]);
   const fetchData = async () => {
     try {
       const taskRes = await axios.get(
@@ -28,6 +59,8 @@ const TaskById = ({ show, handleClose, taskId }) => {
       const users = taskRes.data[0]?.users;
       const status = taskRes.data[0]?.status;
       const priority = taskRes.data[0]?.priority;
+      const projectusers = taskRes.data[0]?.filteredProjectUsers;
+      setProjectUserID(projectusers);
       setTaskData(task);
       setUsers(users);
       setPriority(priority);
@@ -89,8 +122,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
   }, [show, taskId]);
  
 
-
-  const handleChange = async (event) => {
+  const handleChange = async (event , taskName , projectName) => {
     const selectedValue = event.target.value;
     const selectedItem = dbStatus.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : "";
@@ -98,9 +130,33 @@ const TaskById = ({ show, handleClose, taskId }) => {
     // setSelectedPreview(selectedPreview);
 
     try {
-      await axios.put(`http://localhost:5000/task/editStatus/${taskId}`, {
+      await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
         status: selectedValue,
       });
+      const userNotificationsIds = projectUserID?.map(item => item.userId
+        
+      );
+      
+      // Remove duplicates by converting to a Set and back to an array
+      const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+        
+      const notification = {
+        username: loginData.name,
+        projectName: taskName|| 'Unknown Tasks',
+        usersID: uniqueUserNotificationsIds,
+        text: `${loginData.name} has updated the Task ${taskName} status in ${ projectName || 'the project'} `,
+        time: new Date().toLocaleString(),
+        route: `/tasks`,
+      };
+      
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
+      
       // Re-fetch task data after update
       fetchData();
     } catch (error) {
@@ -108,7 +164,10 @@ const TaskById = ({ show, handleClose, taskId }) => {
     }
   };
 
-  const handlePriorityChange = async (event) => {
+
+
+    
+  const handlePriorityChange = async (event  , taskName , projectName) => {
     const selectedValue = event.target.value;
     const selectedItem = dbPriority.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : "";
@@ -116,8 +175,30 @@ const TaskById = ({ show, handleClose, taskId }) => {
     // setSelectedPreview(selectedPreview);
 
     try {
-      await axios.put(`http://localhost:5000/task/editPriority/${taskId}`, {
+      await axios.put(`http://localhost:5000/task/editPriority/${id}`, {
         priority: selectedValue,
+      });
+      const userNotificationsIds = projectUserID?.map(item => item.userId
+        
+      );
+      
+      // Remove duplicates by converting to a Set and back to an array
+      const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+        
+      const notification = {
+        username: loginData.name,
+        projectName: taskName|| 'Unknown Tasks',
+        usersID: uniqueUserNotificationsIds,
+        text: `${loginData.name} has updated the Task ${taskName} priority in ${ projectName || 'the project'} `,
+        time: new Date().toLocaleString(),
+        route: `/tasks`,
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
       });
       // Re-fetch task data after update
       fetchData();
@@ -125,6 +206,65 @@ const TaskById = ({ show, handleClose, taskId }) => {
       console.error("Error updating status:", error);
     }
   };
+
+  // const handleChange = async (event) => {
+  //   const selectedValue = event.target.value;
+  //   const selectedItem = dbStatus.find((item) => item.id === selectedValue);
+  //   const selectedPreview = selectedItem ? selectedItem.preview : "";
+
+  //   // setSelectedPreview(selectedPreview);
+
+  //   try {
+  //     await axios.put(`http://localhost:5000/task/editStatus/${taskId}`, {
+  //       status: selectedValue,
+  //     });
+
+  //     const userNotificationsIds = projectUserID?.map(item => item.userId
+        
+  //     );
+      
+  //     // Remove duplicates by converting to a Set and back to an array
+  //     const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+        
+  //     const notification = {
+  //       username: loginData.name,
+  //       projectName: taskName|| 'Unknown Tasks',
+  //       usersID: uniqueUserNotificationsIds,
+  //       text: `${loginData.name} has updated the Task ${taskName} priority in ${ projectName || 'the project'} `,
+  //       time: new Date().toLocaleString(),
+  //       route: `/tasks`,
+  //     };
+  //     socket.emit('newNotification', notification, (response) => {
+  //       if (response && response.status === 'ok') {
+  //         console.log(response.msg);
+  //       } else {
+  //         console.error('Message delivery failed or no response from server');
+  //       }
+  //     });
+  //     // Re-fetch task data after update
+  //     fetchData();
+  //   } catch (error) {
+  //     console.error("Error updating status:", error);
+  //   }
+  // };
+
+  // const handlePriorityChange = async (event) => {
+  //   const selectedValue = event.target.value;
+  //   const selectedItem = dbPriority.find((item) => item.id === selectedValue);
+  //   const selectedPreview = selectedItem ? selectedItem.preview : "";
+
+  //   // setSelectedPreview(selectedPreview);
+
+  //   try {
+  //     await axios.put(`http://localhost:5000/task/editPriority/${taskId}`, {
+  //       priority: selectedValue,
+  //     });
+  //     // Re-fetch task data after update
+  //     fetchData();
+  //   } catch (error) {
+  //     console.error("Error updating status:", error);
+  //   }
+  // };
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -377,7 +517,8 @@ const TaskById = ({ show, handleClose, taskId }) => {
                                   id="prioritySelect"
                                   data-original-color-class="select-bg-label-secondary"
                                   name="status"
-                                  onChange={handleChange}
+                                  onChange={(event) => handleChange(event,  taskData.taskName , taskData?.projectName)}
+
                                 >
                                   <option
                                     className={`bg-label-${item?.preview}`}
@@ -415,7 +556,8 @@ const TaskById = ({ show, handleClose, taskId }) => {
                                   id="prioritySelect"
                                   data-original-color-class="select-bg-label-secondary"
                                   name="priority"
-                                  onChange={handlePriorityChange}
+                                  onChange={(event) => handlePriorityChange(event, taskData.taskName , taskData?.projectName)}
+
                                 >
                                   <option
                                     className={`bg-label-${item?.preview}`}
@@ -530,6 +672,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
                           role="tabpanel"
                         >
                           <div>
+                            {loginData?.role !== "member" && (
                             <button
                               type="button"
                               className="btn btn-sm btn-primary float-end"
@@ -537,6 +680,8 @@ const TaskById = ({ show, handleClose, taskId }) => {
                             >
                               <i className="bx bx-plus" />
                             </button>
+
+                            )}
                           </div>
 
 
@@ -636,12 +781,14 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                   </a>
                  </>}
                 
-                  <a className="delete" data-id={file.id} onClick={()=>handleMediaDelete(file.id)} data-reload="true" data-type="projects" href="javascript:void(0);">
-                    <li className="dropdown-item">
-                      <i className="menu-icon tf-icons bx bx-trash text-danger" />
-                      Delete
-                    </li>
-                  </a>
+                  {loginData?.role !== "member" && (
+                <a className="delete" data-id={file.id} onClick={()=>handleMediaDelete(file.id)} data-reload="true" data-type="projects" href="javascript:void(0);">
+                <li className="dropdown-item">
+                  <i className="menu-icon tf-icons bx bx-trash text-danger" />
+                  Delete
+                </li>
+              </a>
+                  )}
                 </ul>
               </div>
             </div>

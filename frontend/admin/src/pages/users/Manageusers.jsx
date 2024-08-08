@@ -13,7 +13,8 @@ const Manageusers = () => {
     axios
       .get("http://localhost:5000/admin/team")
       .then((res) => {
-        setData(res.data);
+        console.log(res.data);
+        setData(res.data.admins);
       })
       .catch((err) => {
         console.log("Error fetching providers:", err);
@@ -235,7 +236,7 @@ const Manageusers = () => {
                                 className="badge rounded-pill bg-primary"
                                 style={{ fontSize: "12px" }}
                               >
-                                216
+                                  {item.projectCount}
                               </span>
 
                               <div style={{ fontSize: "12px" }}>Projects</div>
@@ -245,7 +246,7 @@ const Manageusers = () => {
                                 className="badge rounded-pill bg-primary"
                                 style={{ fontSize: "12px" }}
                               >
-                                355
+                                {item.taskCount}
                               </span>
 
                               <div style={{ fontSize: "12px" }}>Tasks</div>

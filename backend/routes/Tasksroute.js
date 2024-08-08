@@ -6,6 +6,7 @@ const mediaUpload = require("../middlewares/Mediaproject");
 
 router.get("/getAllTasks/:id", taskController.getAllTask);
 router.get("/tasks", taskController.tasks);
+router.get("/Mtasks/:id", taskController.Mtasks);
 router.post("/addTask", taskController.addTask);
 router.put("/editTask/:id", taskController.updateTask);
 router.put("/editStatus/:id", taskController.updateStatus);
@@ -16,5 +17,6 @@ router.post("/addMedia/:id", mediaUpload, taskController.addMedia);
 router.get("/getMedia/:id", taskController.getMedia);
 router.delete("/deleteMedia/:id", taskController.deleteMedia);
 router.get("/filter", taskController.getFilterProject);
+router.get("/filter/:id", taskController.getFilterProjectMember);
 
 module.exports = router;

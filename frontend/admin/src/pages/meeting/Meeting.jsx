@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/Modal';
 import axios from 'axios';
 import '../../App.css';
 import Swal from 'sweetalert2';
+import { useAppContext } from '../../context/AppContext';
 
 const Meeting = () => {
 
@@ -27,6 +28,9 @@ const Meeting = () => {
   const [creator, setCreator] = useState([]);
   
 
+  const {socket} = useAppContext()
+
+
   const [deleteTags, setDeleteTags] = useState([]);
   const navigate = useNavigate();
 
@@ -43,6 +47,8 @@ const Meeting = () => {
     axios.get("http://localhost:5000/meeting/getMeeting")
     .then((res) => {
       setMeeting(res.data);
+      console.log("Meeting",res.data);
+      
     })
     .catch((err) => {
       console.log(err);
@@ -242,6 +248,22 @@ const Meeting = () => {
         userIds: usersID,
       });
       // navigate(-1);
+      const notification = {
+        username: loginUserInfo.name,
+        projectName: title|| 'Unknown Tasks',
+        usersID: usersID,
+        text: `${loginUserInfo.name} has added you to a meeting ${title} ` ,
+        time: new Date().toLocaleString(),
+        route: '/meeting',
+      };
+      
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
       fetchMeetingData()
       setDeleteTags([])
       setLink("")
@@ -280,6 +302,23 @@ const Meeting = () => {
         userIds: usersID,
         deleteUsers: deleteTags,
         link: link
+      });
+
+      const notification = {
+        username: loginUserInfo.name,
+        projectName: title|| 'Unknown Tasks',
+        usersID: usersID,
+        text: `${loginUserInfo.name} has added you to a meeting ${title} `,
+        time: new Date().toLocaleString(),
+        route: '/meeting',
+      };
+      
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
       });
       // navigate(-1);
       fetchMeetingData()

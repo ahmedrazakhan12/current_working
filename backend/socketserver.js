@@ -5,6 +5,7 @@ const { PeerServer } = require('peer');
 const bodyParser = require('body-parser');
 const socketIO = require("socket.io");
 const { chatModel } = require("./models");
+const {notificationModel} = require("./models");
 const fs = require('fs');
 const path = require('path');
 
@@ -52,34 +53,6 @@ const io = socketIO(server, {
     cors: corsOptions,
 });
 
-const runMulter = (formData, callback) => {
-    const req = {
-      body: formData.body,
-      file: formData.file,
-      files: formData.files,
-      headers: {
-        'content-type': formData.contentType,
-        'content-length': formData.contentLength,
-        'transfer-encoding': formData.transferEncoding,
-      },
-    };
-  
-    const res = {
-      send: (message) => {
-        console.log(message);
-      },
-    };
-  
-    multer(req, res, (err) => {
-      if (err) {
-        console.error('File upload error:', err);
-        return callback({ status: 'error', msg: 'File upload failed' });
-      }
-      console.log('Files received:', req.files);
-      callback({ status: 'ok', msg: 'File(s) received' });
-    });
-  };
-
 const saveMessageToDatabase = async (msg) => {
   try {
       const data = await chatModel.create({
@@ -97,6 +70,22 @@ const saveMessageToDatabase = async (msg) => {
   }
 };
 
+const saveNotificationToDatabase = async (notify) => {
+  try {
+      const data = await notificationModel.create({
+          text: notify.text || null,
+          time: notify.time || null,
+          date: notify.time || null,
+          userId: notify.userId ,
+          route: notify.route || null
+      });
+      console.log('Notification saved to database:', data);
+      return data;
+  } catch (error) {
+      console.error('Error saving notification to database:', error);
+      throw error;
+  }
+};
 
 
   
@@ -280,7 +269,9 @@ io.on('connection', (socket) => {
         const { usersID } = notification;
         usersID.map(userId => {
             // Find the user's entry in the users Map by userId
-            const recipient = Array.from(users.values()).find(user => user.id == userId || user.id == userId[0] );
+            const recipient = Array.from(users.values()).find(user => user.id == userId  );
+            saveNotificationToDatabase({ ...notification, userId });
+
             if (recipient) {
                 io.to(recipient.socketId).emit('notification', notification);
                 console.log('Notification sent to recipient:', recipient.socketId);
@@ -289,7 +280,6 @@ io.on('connection', (socket) => {
             }
         });
     });
-    
     
     // Handle user disconnection
     socket.on('disconnect', () => {

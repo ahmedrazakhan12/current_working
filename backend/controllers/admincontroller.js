@@ -370,18 +370,41 @@ exports.superAdminChangePassword = async (req, res) => {
     return res.status(500).json({ message: "Failed to change password" });
   }
 };
-
 exports.getAllAdmins = async (req, res) => {
   try {
     const admins = await adminModel.findAll({
       order: [["id", "ASC"]], // Order by id in ascending order
     });
-    res.status(200).json(admins);
+
+    const adminsWithProjectsAndTasks = await Promise.all(
+      admins.map(async (admin) => {
+        // Fetch projects for each admin
+        const adminProjects = await db.projectUsersModel.findAll({
+          where: { userId: admin.id },
+        });
+
+        // Fetch tasks for each admin
+        const adminTasks = await db.taskUsersModel.findAll({
+          where: { userId: admin.id },
+        });
+
+        return {
+          ...admin.dataValues,
+          projectCount: adminProjects.length,
+          taskCount: adminTasks.length,
+        };
+      })
+    );
+
+    res.status(200).json({
+      admins: adminsWithProjectsAndTasks,
+    });
   } catch (error) {
     console.error("Error in finding admins:", error);
     return res.status(500).json({ message: "Failed to find admins" });
   }
 };
+
 
 exports.getAdminById = async (req, res) => {
   try {

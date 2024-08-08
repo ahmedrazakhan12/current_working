@@ -212,12 +212,7 @@ const Sidebar = () => {
 
 
 
-          {/* <li className={location.pathname === '/manage' ? 'menu-item active' : 'menu-item'}>
-            <span href="/status/manage" className="menu-link">
-              <i className="menu-icon tf-icons bx bx-grid-small text-secondary" />
-              <div>Statuses</div>
-            </span>
-          </li> */}
+         
           {/* <li className={location.pathname === '/manage' ? 'menu-item active' : 'menu-item'}>
             <span href="/priority/manage" className="menu-link">
               <i className="menu-icon tf-icons bx bx-up-arrow-alt text-success" />
@@ -275,13 +270,20 @@ const Sidebar = () => {
                 >
                   Meetings
                 </Link>{" "}
-                <span className="flex-shrink-0 badge badge-center bg-success w-px-20 h-px-20">
+                {/* <span className="flex-shrink-0 badge badge-center bg-success w-px-20 h-px-20">
                   2
-                </span>
+                </span> */}
               </div>
             </span>
           </li>
-
+          <li className={location.pathname === '/notifications' ? 'menu-item active' : 'menu-item'} >
+            <span href="/status/manage" className="menu-link">
+              <i className="menu-icon tf-icons bx bx-bell  me-2" />
+             <Link  style={{ textDecoration: "none", color: "inherit" }} to={'notifications'}>
+              <div>Notifications</div>
+             </Link>
+            </span>
+          </li>
           {/* <li className={location.pathname === '/register' ? 'menu-item active' : 'menu-item'}>
             <span  className="menu-link">
               <i className="menu-icon tf-icons bx bx-group text-primary" />
@@ -341,7 +343,8 @@ const Sidebar = () => {
                 </span>
               </li>
 
-
+              {data && data?.role === "super-admin"  && (
+            <>
               <li
                 className={
                   location.pathname === "/viewStatus"
@@ -380,7 +383,8 @@ const Sidebar = () => {
                   </div>
                 </span>
               </li>
-             
+             </>
+              )}
             </ul>
           </li>
 

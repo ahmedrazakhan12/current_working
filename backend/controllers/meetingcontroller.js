@@ -83,6 +83,52 @@ exports.getMeeting = async (req, res) => {
   }
 }
 
+exports.getMemberMeeting = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Step 1: Find all meeting IDs where the user is a participant
+    const meetingUsers = await meetingUser.findAll({ where: { userId: id } });
+    const meetingIds = meetingUsers.map(entry => entry.meetingId);
+
+    if (meetingIds.length === 0) {
+      // No meetings associated with this user ID
+      return res.status(200).json([]);
+    }
+
+    // Step 2: Fetch meetings based on the filtered meeting IDs
+    const meetings = await meetingModel.findAll({
+      where: { id: meetingIds },
+      order: [['createdAt', 'DESC']], // Sort by createdAt in descending order
+    });
+
+    // Step 3: Fetch and enrich the meeting data
+    const data = await Promise.all(meetings.map(async (item) => {
+      // Fetch all users associated with the meeting
+      const meetingUsers = await meetingUser.findAll({ where: { meetingId: item.id } });
+      const userIds = meetingUsers.map((user) => user.userId);
+      const users = await adminModel.findAll({ where: { id: userIds } });
+
+      // Fetch the creator of the meeting
+      const creator = await adminModel.findOne({ where: { id: item.creator } });
+
+      return {
+        meetings: item,
+        users: users,
+        creator: creator
+      };
+    }));
+
+    // Step 4: Return the filtered and enriched meeting data
+    res.status(200).json(data);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
 
 exports.getMeetingById = async (req, res) => {
     try {

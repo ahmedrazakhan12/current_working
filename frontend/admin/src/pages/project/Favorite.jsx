@@ -131,7 +131,9 @@ useEffect(() => {
         username:username,
         projectName:projectName,
         usersID:usersID.map(item => item.id),
-        text:`${username} has updated ${projectName} status.`
+        text:`${username} has updated ${projectName} status.`,
+        time: new Date().toLocaleString(),
+        route: `/favorite`,
       };
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {
@@ -174,7 +176,9 @@ if (searchRef.current) {
         username:username,
         projectName:projectName,
         usersID:usersID.map(item => item.id),
-        text:`${username} has updated ${projectName} priority.`
+        text:`${username} has updated ${projectName} priority.`,
+        time: new Date().toLocaleString(),
+        route: `/favorite`,
       };
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {

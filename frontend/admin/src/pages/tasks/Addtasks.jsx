@@ -216,7 +216,9 @@ const handleChange = (e) => {
         username:username,
         projectName:taskName,
         usersID: usersID,
-        text:`${username} assigned you a new task: ${taskName} in project ${projectDetails.projectName}.`
+        text:`${username} assigned you a new task: ${taskName} in project ${projectDetails.projectName}.`,
+        time: new Date().toLocaleString(),
+        route: `/tasks`,
       };
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {

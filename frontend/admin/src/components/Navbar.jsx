@@ -3,6 +3,7 @@ import { useAppContext } from "../context/AppContext";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 const Navbar = () => {
   const { setIsMenuExpanded, isMenuExpanded } = useAppContext();
   const [data, setData] = useState([]);
@@ -41,17 +42,31 @@ const Navbar = () => {
       ]);
 
       // Check if the browser supports notifications
+      // if ("Notification" in window) {
+      //   // Request permission to show notifications
+      //   Notification.requestPermission().then((permission) => {
+      //     if (permission === "granted") {
+      //       // Show notification
+      //       new Notification("Gmg Solutions", {
+      //         body: `${data.text}`,
+      //       });
+      //     }
+      //   });
+      // }
       if ("Notification" in window) {
         // Request permission to show notifications
         Notification.requestPermission().then((permission) => {
           if (permission === "granted") {
-            // Show notification
+            // Show notification with an image
             new Notification("Gmg Solutions", {
               body: `${data.text}`,
+              // icon: 'https://example.com/path/to/icon.png', // Icon for the notification
+              image: './assets/images/gmg-not.png' // Image for the notification
             });
           }
         });
       }
+      
     });
 
     // Cleanup on component unmount
@@ -59,6 +74,58 @@ const Navbar = () => {
       socket.off('notification');
     };
   }, [activeId, navigate, socket]);
+
+  function formatTime(datetimeString) {
+    // Convert the string to a Date object
+    let dateObj = new Date(datetimeString);
+  
+    // Extract hours and minutes
+    let hours = dateObj.getHours();
+    let minutes = dateObj.getMinutes();
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+  
+    // Convert hours to 12-hour format
+    hours = hours % 12;
+    hours = hours ? hours : 12; // The hour '0' should be '12'
+  
+    // Add leading zero to minutes if needed
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+  
+    // Return formatted time as a string
+    return `${hours}:${minutes} ${ampm}`;
+  }
+  
+  function extractDate(datetimeString) {
+    // Convert the string to a Date object
+    let dateObj = new Date(datetimeString);
+  
+    // Extract the month, date, and year
+    let month = dateObj.getMonth() + 1; // Months are 0-based in JavaScript
+    let day = dateObj.getDate();
+    let year = dateObj.getFullYear();
+  
+    // Add leading zero to month and day if needed
+    month = month < 10 ? '0' + month : month;
+    day = day < 10 ? '0' + day : day;
+  
+    // Return formatted date as a string
+    return `${month}/${day}/${year}`;
+  }
+  
+      
+  // const [currentItems, setCurrentItems] = useState([]);
+  //   useEffect(() => {
+  //       axios.get(`http://localhost:5000/notify/getNotification/${localStorage.getItem("id")}`)
+  //       .then((res) => {
+  //         const limitedNotifications = res.data.data.slice(0, 4);
+  //         setCurrentItems(limitedNotifications);
+  //           console.log(res.data);
+            
+  //       })
+  //       .catch((err) => {
+  //           console.log(err);
+  //       })
+  //   },[])
 
   const handleLogout = () => {
     // const socket = io("http://localhost:5000");
@@ -77,6 +144,7 @@ const Navbar = () => {
           className="layout-navbar container-fluid navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
           id="layout-navbar"
         >
+          
           <div className="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
             <a
               className="nav-item nav-link px-0 me-xl-4"
@@ -127,20 +195,49 @@ const Navbar = () => {
                     ) : (
                       notifications.map((notification, index) => (
                         <>
-                          <li key={index} className="p-3  ">
-                            <span>
+                          <li key={index} className="p-3 cursor-pointer " onClick={() => navigate(`${notification?.route}`)}>
+                            <p>
                               <b className="text-capitalize">
                                 {index + 1}. 
                               </b>{" "}
                               <b className="text-capitalize">
                                 {notification.text}
                               </b>
-                            </span>
+                             
+                            </p>
+                            <small className="text-capitalize float-start">
+                                {extractDate(notification?.time)}
+                              </small>
+                            <small className="text-capitalize float-end">
+                                {formatTime(notification?.time)}
+                              </small>
                           </li>
                           <div className="dropdown-divider" />
                         </>
                       ))
                     )}
+                 {/* {currentItems.length > 0 && currentItems.map((notification, index) => (
+  <React.Fragment key={index}>
+    <li className="p-3 cursor-pointer" onClick={() => navigate(`${notification?.route}`)}>
+      <p>
+        <b className="text-capitalize">
+          {index + 1}. 
+        </b>{" "}
+        <b className="text-capitalize">
+          {notification.text}
+        </b>
+      </p>
+      <small className="text-capitalize float-start">
+        {extractDate(notification?.time)}
+      </small>
+      <small className="text-capitalize float-end">
+        {formatTime(notification?.time)}
+      </small>
+    </li>
+    <div className="dropdown-divider" />
+  </React.Fragment>
+))} */}
+
                     <li>{/* <div className="dropdown-divider" /> */}</li>
                   </div>
                 {/* {notifications.length === 0 && (
@@ -154,9 +251,9 @@ const Navbar = () => {
                   {notifications.length > 0 && (
                    <>
                   <li className="d-flex justify-content-between">
-                    <a href="/notifications" className="p-3">
+                    <Link to="/notifications" className="p-3">
                       <b>View All</b>
-                    </a>
+                    </Link>
                     <a
                       href="#"
                       className="p-3 text-end"

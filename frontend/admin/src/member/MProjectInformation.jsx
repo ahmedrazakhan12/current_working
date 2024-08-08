@@ -6,8 +6,9 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Swal from 'sweetalert2';
 
-import TaskById from '../tasks/TaskById';
-import { useAppContext } from '../../context/AppContext';
+import TaskById from '../pages/tasks/TaskById';
+import { useAppContext } from '../context/AppContext';
+
 const ProjectInformation = () => {
     const {id} = useParams();    
     const [data , setData] = useState([]);
@@ -44,6 +45,8 @@ useEffect(() => {
 
  
 }, [activeId, navigate]);
+
+
 const fetchTaskFilterStatus = ()=>{
   axios.get(`http://localhost:5000/task/filterTaskCount/${id}`)
   .then((res) => {
@@ -95,6 +98,35 @@ useEffect(() => {
             console.log("Error fetching providers:", err);
           });
       };
+
+      const handleFilterTasks = (event) => {
+        const selectedValue = event.target.value; // Get the selected value from the dropdown
+        let filteredItems = [];
+      
+        if (selectedValue === "") {
+            // If "All" is selected, show all tasks
+            axios
+          .get(`http://localhost:5000/task/getAllTasks/${id}` , {
+            headers: { Authorization: ` ${id}` }
+          })
+          .then((res) => {
+            setTableData(res.data);
+            // console.log("././././././././",res.data);
+          })
+          .catch((err) => {
+            console.log("Error fetching providers:", err);
+          });
+        } else {
+            // Filter tasks based on the activeId
+            filteredItems = tableData.filter(item => 
+                item.users.some(user => user.id === parseInt(selectedValue))
+            );
+        }
+      
+        setTableData(filteredItems)
+        // Do something with filteredItems, like setting it to state or updating the UI
+        console.log("Filtered Items: ", filteredItems);
+        };
     
       useEffect(() => {
         fetchData();
@@ -107,102 +139,12 @@ useEffect(() => {
 // For project
 
 
-const handleProjectChange = async (event , id) => {
-  // alert(id)
-
-  const selectedValue = event.target.value;
-  const selectedItem = dbStatus.find((item) => item.id === selectedValue);
-  // const selectedPreview = selectedItem ? selectedItem.preview : '';
-
-  // setSelectedPreview(selectedPreview);
-
-  try {
-    await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
-      status: selectedValue,
-    }); 
-    
-    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
-
-    const notification = {
-      username: loginData.name,
-      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
-      usersID: userNotificationsIds,
-      text: `${loginData.name} has updated the Project  ${data?.[0]?.project?.projectName || 'the project'} Status.`,
-      time: new Date().toLocaleString(),
-      route: `/projectInformation/${id}`,
-    };
-    
-    socket.emit('newNotification', notification, (response) => {
-      if (response && response.status === 'ok') {
-        console.log(response.msg);
-      } else {
-        console.error('Message delivery failed or no response from server');
-      }
-    });
-    // Re-fetch task data after update
-    fetchProjectData();
-    fetchTaskFilterStatus();
-
-    } catch (error) {
-    console.error('Error updating status:', error);
-  }
-};
-
 const calculateDuration = (startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
   const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
   return duration;
 };
-const handleProjectPriorityChange = async (event , id) => {
-  // alert(id)
-
-  const selectedValue = event.target.value;
-  const selectedItem = dbStatus.find((item) => item.id === selectedValue);
-  // const selectedPreview = selectedItem ? selectedItem.preview : '';
-
-  // setSelectedPreview(selectedPreview);
-
-  try {
-    await axios.put(`http://localhost:5000/project/editPriority/${id}`, {
-      priority: selectedValue,
-    });
-
-    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
-
-    const notification = {
-      username: loginData.name,
-      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
-      usersID: userNotificationsIds,
-      text: `${loginData.name} has updated the Project  ${data?.[0]?.project?.projectName || 'the project'} Priority.`,
-      time: new Date().toLocaleString(),
-      route: `/projectInformation/${id}`,
-    };
-    
-    socket.emit('newNotification', notification, (response) => {
-      if (response && response.status === 'ok') {
-        console.log(response.msg);
-      } else {
-        console.error('Message delivery failed or no response from server');
-      }
-    });
-    // Re-fetch task data after update
-    fetchProjectData();
-    } catch (error) {
-    console.error('Error updating status:', error);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
 
   const handleShow = (id) => {
     setTaskId(id);
@@ -514,42 +456,7 @@ const handleVedioDownload = (url) => {
     .catch(error => console.error('Download error:', error));
 };
 
-const handleMediaDelete = (id) => {
-  // alert(id/)
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      axios.delete(`http://localhost:5000/project/deleteMedia/${id}`)
-        .then(() => {
-          fetchMedia();
-          Swal.fire({
-            position: "top-end",
-            title: "Media deleted",
-            showConfirmButton: false,
-            timer: 1500,
-            customClass: {
-              popup: 'custom-swal'
-            }
-          });
-         
-        })
-        .catch((error) => {
-          Swal.fire(
-            'Error!',
-            'There was a problem deleting your file.',
-            'error'
-          );
-        });
-    }
-  });
-};
+
 
 const [openTaskIds, setOpenTaskIds] = useState([]);
 
@@ -561,6 +468,9 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
     );
   };
 
+ 
+
+
   return (
     <div className="container-fluid mt-3 mb-5">
     {data.map((item , index)=>{
@@ -569,18 +479,11 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
             <div className="col-md-12">
               <div className="card mb-4">
                 <div className="card-body">
-                <button
-            className="btn btn-sm nd btn-primary m-0"
-            style={{float:'right' }}
-            type="button"
-            onClick={() =>navigate(`/addTask/${id}`)}
-          >
-            <i className="bx bx-plus" />
-          </button>
+              
                   <div className="row">
                     <div className="col-md-12">
                       <div className="mb-3">
-                        <span className="badge bg-info">Learning and Education</span>
+                        <span className="badge bg-info">{item.tags.tagName}</span>
                       </div>
                       <h2 className="fw-bold">
                         {item.project.projectName}
@@ -676,12 +579,12 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="status"
-                      onChange={(event) => handleProjectChange(event, item.project?.id)}
+                      style={{pointerEvents:'none'}}
                     >
                       <option className={`bg-label-${item.status[0]?.preview}`}>
                         {item.status[0]?.status}
                       </option>
-                      {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+                      {/* {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
                         <option
                           key={dbIndex}
                           className={`bg-label-${dbItem.preview}`}
@@ -689,7 +592,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                         >
                           {dbItem?.status}
                         </option>
-                      ))}
+                      ))} */}
                     </select>
 
                         </div>
@@ -703,12 +606,14 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="status"
-                      onChange={(event) => handleProjectPriorityChange(event, item.project?.id)}
+                      style={{pointerEvents:'none'}}
+
+                    //   onChange={(event) => handleProjectPriorityChange(event, item.project?.id)}
                     >
                       <option className={`bg-label-${item.priority[0]?.preview}`}>
                         {item.priority[0]?.status}
                       </option>
-                      {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+                      {/* {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
                         <option
                           key={dbIndex}
                           className={`bg-label-${dbItem.preview}`}
@@ -716,7 +621,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                         >
                           {dbItem?.status}
                         </option>
-                      ))}
+                      ))} */}
                     </select>
                   </div>
                         </div>
@@ -927,14 +832,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                 >
                   <div className="d-flex justify-content-between align-items-center mb-4">
                     <div />
-                    <button
-            className="btn btn-sm nd btn-primary m-0"
-            style={{float:'right' }}
-            type="button"
-            onClick={() =>navigate(`/addTask/${id}`)}
-          >
-                          <i className="bx bx-plus" />
-                        </button>
+                   
                   </div>
                   {/* tasks */}
                   <div className="mt-2">
@@ -1135,6 +1033,10 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
 
 
           <div className="row">
+          <select name="" id="" className='form-select ml-3' style={{width:'20%' , marginLeft:'20px'}} onChange={handleFilterTasks}>
+            <option value="">All</option>
+            <option value={activeId}>My Tasks</option>
+          </select>
           <div className="col-lg-12 col-md-12 col-sm-12 col-12">
             <div
               style={{ borderRadius: "6px" }}
@@ -1177,64 +1079,9 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
         </h6>
         <div className="d-flex align-items-center justify-content-center">
           <div className="input-group">
-            <a
-              aria-expanded="false"
-              className="mx-2"
-              data-bs-toggle="dropdown"
-              href="javascript:void(0);"
-            >
-              <i className="bx bx-cog" />
-            </a>
-            <ul className="dropdown-menu">
-              <Link
-                className="edit-task"
-                to={`/editTask/${item.task.id}`}
-                >
-                <li className="dropdown-item">
-                  <i className="menu-icon tf-icons bx bx-edit text-primary" />
-                  {' '}Update
-                </li>
-              </Link>
-              <a
-                className="delete"
-                data-id="93"
-                data-reload="true"
-                data-type="tasks"
-                href="javascript:void(0);"
-              >
-                <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
-                  <i className="menu-icon tf-icons bx bx-trash text-danger" />
-                  {' '}Delete
-                </li>
-              </a>
-             
-            </ul>
+           
           </div>
-          <a
-            className="quick-view"
-            data-id="93"
-            data-type="task"
-            href="javascript:void(0);"
-          >
-            <i
-              className="bx bx bx-info-circle text-info"
-              data-bs-original-title="Quick View"
-              data-bs-placement="right"
-              data-bs-toggle="tooltip"
-            />
-          </a>
-          <a
-            className="mx-2"
-            href="https://taskify.taskhub.company/chat?type=task&id=93"
-            target="_blank"
-          >
-            <i
-              className="bx bx-message-rounded-dots text-danger"
-              data-bs-original-title="Discussion"
-              data-bs-placement="right"
-              data-bs-toggle="tooltip"
-            />
-          </a>
+       
         </div>
       </div>
       {data.map((item,index)=>{
@@ -1706,21 +1553,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                     <div className="d-flex justify-content-between ">
                       <div />
                       {/* <h1>Amed raza</h1> */}
-                      <a
-                        href="javascript:void(0);"
-                        data-bs-toggle="modal"
-                        data-bs-target="#add_media_modal"
-                      >
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-primary"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="left"
-                          data-bs-original-title="Add Media"
-                        >
-                          <i className="bx bx-plus" />
-                        </button>
-                      </a>
+                    
                     </div>
                     
                     <div className="row mt-3">
@@ -1817,12 +1650,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                   </a>
                  </>}
                 
-                  <a className="delete" data-id={file.id} onClick={()=>handleMediaDelete(file.id)} data-reload="true" data-type="projects" href="javascript:void(0);">
-                    <li className="dropdown-item">
-                      <i className="menu-icon tf-icons bx bx-trash text-danger" />
-                      Delete
-                    </li>
-                  </a>
+                
                 </ul>
               </div>
             </div>

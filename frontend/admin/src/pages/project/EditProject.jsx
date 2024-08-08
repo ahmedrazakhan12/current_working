@@ -389,7 +389,9 @@ const handleSubmit = async (e) => {
       username:username,
       projectName:projectName,
       usersID: usersID,
-      text:`${username} has added you in a project ${projectName}.`
+      text:`${username} has added you in a project ${projectName}.`,
+      time: new Date().toLocaleString(),
+      route: `/manage`,
     };
     socket.emit('newNotification', notification, (response) => {
       if (response && response.status === 'ok') {

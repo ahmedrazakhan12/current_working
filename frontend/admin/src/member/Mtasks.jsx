@@ -72,7 +72,7 @@ axios
   
     const fetchData = () => {
       axios
-        .get(`http://localhost:5000/task/tasks/`)
+        .get(`http://localhost:5000/task/Mtasks/${activeId}`)
         .then((res) => {
           setTableData(res.data);
           console.log("All Tasks",res.data);
@@ -317,7 +317,7 @@ try {
     if (searchRef.current) {
       searchRef.current.value = "";
     }
-    axios.get(`http://localhost:5000/task/filter/`, { params: { status } })  
+    axios.get(`http://localhost:5000/task/filter/${activeId}`, { params: { status } })  
     .then((res) => {
         setTableData(res.data);
     })
@@ -334,7 +334,7 @@ try {
     if (searchRef.current) {
       searchRef.current.value = "";
     }
-    axios.get(`http://localhost:5000/task/filter/`, { params: { priority } })
+    axios.get(`http://localhost:5000/task/filter/${activeId}`, { params: { priority } })
     .then((res) => {
         setTableData(res.data);
     })
@@ -343,23 +343,7 @@ try {
     });
   };
 
-  const handleSearchChange = (e) => {
-    const search = e.target.value;
-    if (statusRef.current) {
-      statusRef.current.value = "";
-    }
-    if (priorityRef.current) {
-      priorityRef.current.value = "";
-    }
-    axios.get(`http://localhost:5000/task/filter/`, { params: { search } })
-    .then((res) => {
-        setTableData(res.data);
-        console.log("Search Data: ", res.data);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  };
+
 
 
   
@@ -377,7 +361,7 @@ const handleFullTasks = (id) => {
     <div>
       <div className="container-fluid">
       <div className="row">
-      <div className="col-md-3 mb-3">
+      <div className="col-lg-6 col-md-6 col-xs-12 col-12 mb-3">
       <select
         aria-label="Default select example"
         className="form-select text-capitalize"
@@ -393,7 +377,7 @@ const handleFullTasks = (id) => {
         ))}   
       </select>
       </div>
-      <div className="col-md-3 mb-3">
+      <div className="col-lg-6 col-md-6 col-xs-12 col-12 mb-3">
         <select
           aria-label="Default select example"
           className="form-select"
@@ -411,36 +395,8 @@ const handleFullTasks = (id) => {
         ))}   
         </select>
       </div>
-      <div className="col-md-5 mb-3">
-          <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
-      </div>
-      <div className="col-md-1 d-flex w-10 h-100 mt-1">
-      <button
-            className="btn btn-sm nd btn-primary me-2"
-            style={{marginLeft:'-15px' }}
-            data-bs-original-title="Filter"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            id="tags_filter"
-            type="button"
-            onClick={() =>navigate('/addProject')}
-          >
-            <i className="bx bx-plus" />
-          </button>
-          <button
-            className="btn btn-sm btn-primary "
-            data-bs-original-title="List View"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            type="button"
-          >
-            <i className="bx bx-list-ul" />
-          </button>
       
-        
-      </div>
-
-      
+  
     </div>
 
                  
@@ -477,67 +433,7 @@ const handleFullTasks = (id) => {
             </strong>
           </Link>
         </h6>
-        <div className="d-flex align-items-center justify-content-center">
-          <div className="input-group">
-            <a
-              aria-expanded="false"
-              className="mx-2"
-              data-bs-toggle="dropdown"
-              href="javascript:void(0);"
-            >
-              <i className="bx bx-cog" />
-            </a>
-            <ul className="dropdown-menu">
-              <Link
-                className="edit-task"
-                to={`/editTask/${item.task.id}`}
-                >
-                <li className="dropdown-item">
-                  <i className="menu-icon tf-icons bx bx-edit text-primary" />
-                  {' '}Update
-                </li>
-              </Link>
-              <a
-                className="delete"
-                data-id="93"
-                data-reload="true"
-                data-type="tasks"
-                href="javascript:void(0);"
-              >
-                <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
-                  <i className="menu-icon tf-icons bx bx-trash text-danger" />
-                  {' '}Delete
-                </li>
-              </a>
-             
-            </ul>
-          </div>
-          <a
-            className="quick-view"
-            data-id="93"
-            data-type="task"
-            href="javascript:void(0);"
-          >
-            <i
-              className="bx bx bx-info-circle text-info"
-              data-bs-original-title="Quick View"
-              data-bs-placement="right"
-              data-bs-toggle="tooltip"
-            />
-          </a>
-          <a
-            className="mx-2"
-            href="https://taskify.taskhub.company/chat?type=task&id=93"
-            target="_blank"
-          >
-            <i
-              className="bx bx-message-rounded-dots text-danger"
-              data-bs-original-title="Discussion"
-              data-bs-placement="right"
-              data-bs-toggle="tooltip"
-            />
-          </a>
-        </div>
+      
       </div>
           <div className="card-subtitle text-muted mb-3">
          {item.task.projectName}
@@ -672,36 +568,6 @@ const handleFullTasks = (id) => {
                           <strong>{item.task?.taskName}</strong>
                         </Link>
                       </h6>
-                      <div style={{ marginTop: '-6px' }}>
-                        <div className="input-group m-0 p-0">
-                          <a
-                            aria-expanded="false"
-                            className="m-0 p-0"
-                            data-bs-toggle="dropdown"
-                            href="javascript:void(0);"
-                          >
-                            <i className="bx bx-cog" />
-                          </a>
-                          <ul className="dropdown-menu">
-                            <Link className="edit-task" to={`/editTask/${item.task.id}`}>
-                              <li className="dropdown-item">
-                                <i className="menu-icon tf-icons bx bx-edit text-primary" /> Update
-                              </li>
-                            </Link>
-                            <a
-                              className="delete"
-                              data-id="93"
-                              data-reload="true"
-                              data-type="tasks"
-                              href="javascript:void(0);"
-                            >
-                              <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
-                                <i className="menu-icon tf-icons bx bx-trash text-danger" /> Delete
-                              </li>
-                            </a>
-                          </ul>
-                        </div>
-                      </div>
                     </div>
                     <div className="d-flex flex-column m-0 p-0">
                       <div>

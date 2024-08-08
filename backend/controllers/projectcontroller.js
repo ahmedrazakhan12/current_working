@@ -375,6 +375,60 @@ exports.getAllProjects = async (req, res) => {
 }
 
 
+exports.getAllMemberProjects = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch all project IDs associated with the user
+    const userProjects = await projectUsersModel.findAll({
+      where: { userId: id },
+      attributes: ['projectId']
+    });
+
+    const users = await projectUsersModel.findAll();
+
+    const projectIds = userProjects.map(userProject => userProject.projectId);
+
+    // Fetch projects that match the filtered project IDs
+    const projects = await projectModel.findAll({
+      where: { id: projectIds }
+    });
+
+    const tags = await projectTagsModel.findAll();
+    const status = await projectStatusModel.findAll();
+    const creators = await adminModel.findAll();
+    const tasks = await taskModel.findAll();
+
+    const data = await Promise.all(projects.map(async (project) => {
+      const filteredCreator = creators.filter(creator => creator.id === project.creator);
+      const filteredUsersIds = users.filter(user => user.projectId === project.id);
+
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId)  } });
+      const filteredStatus = status.filter(s => s.id === project.status);
+      const filteredPriority = status.filter(s => s.id === project.priority);
+      const filteredTags = tags.filter(tag => tag.projectId === project.id);
+      const filteredTasks = tasks.filter(task => task.projectId === project.id);
+
+      return {
+        
+        project:project,
+        creator: filteredCreator,
+        users: filteredUsers,
+        tags: filteredTags,
+        status: filteredStatus,
+        priority: filteredPriority,
+        tasks: filteredTasks
+      };
+    }));
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
 
 exports.updateStatus = async (req, res) => {
   try {
@@ -719,6 +773,87 @@ exports.getFilterProject = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+
+exports.getMemberFilterProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, priority, search } = req.query;
+
+    // Step 1: Fetch project IDs associated with the given user ID
+    const projectUsers = await projectUsersModel.findAll({ where: { userId: id } });
+    const projectIds = projectUsers.map(entry => entry.projectId);
+
+    if (projectIds.length === 0) {
+      // No projects associated with this user ID
+      return res.status(200).json([]);
+    }
+
+    // Step 2: Build the filter object for projects
+    let projectFilter = { id: projectIds };
+
+    if (status) {
+      projectFilter.status = status;
+    }
+
+    if (priority) {
+      projectFilter.priority = priority;
+    }
+
+    // Step 3: Fetch projects based on the constructed filter
+    let projects = await projectModel.findAll({ where: projectFilter });
+
+    // Step 4: Apply additional search filter if provided
+    if (search) {
+      const users = await adminModel.findAll({
+        where: {
+          [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+        },
+      });
+      const userIds = users.map(user => user.id);
+      const userProjectEntries = await projectUsersModel.findAll({
+        where: { userId: userIds },
+      });
+      const filteredProjectIds = userProjectEntries.map(entry => entry.projectId);
+      projects = projects.filter(project => filteredProjectIds.includes(project.id));
+    }
+
+    // Step 5: Fetch related data for the filtered projects
+    const users = await projectUsersModel.findAll();
+    const tagsModel = await projectTagsModel.findAll();
+    const statusModel = await projectStatusModel.findAll();
+    const creators = await adminModel.findAll();
+    const tasks = await taskModel.findAll();
+
+    // Step 6: Enrich projects with related data
+    const enrichedProjects = await Promise.all(projects.map(async (project) => {
+      const projectUsers = users.filter(user => user.projectId === project.id);
+      const projectCreator = creators.filter(creator => creator.id === project.creator);
+      const projectUsersData = await adminModel.findAll({ where: { id: projectUsers.map(user => user.userId) } });
+      const projectStatus = statusModel.filter(status => status.id === project.status);
+      const projectPriority = statusModel.filter(priority => priority.id === project.priority);
+      const projectTags = tagsModel.filter(tag => tag.projectId === project.id);
+      const projectTasks = tasks.filter(task => task.projectId === project.id);
+
+      return {
+        project: project,
+        creator: projectCreator,
+        users: projectUsersData,
+        tags: projectTags,
+        status: projectStatus,
+        priority: projectPriority,
+        tasks: projectTasks
+      };
+    }));
+
+    res.status(200).json(enrichedProjects);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 
 
 

@@ -20,7 +20,12 @@ router.delete("/favProject/", projectController.deleteFavProject);
 router.get("/getFavProject/", projectController.getFavProject);
 router.get("/getFavProjectId/", projectController.getFavProjectByID);
 router.get("/filter", projectController.getFilterProject);
+router.get("/filter/:id", projectController.getMemberFilterProject);
 
+
+// For Members
+
+router.get("/getAllMemberProjects/:id", projectController.getAllMemberProjects);
 
 module.exports = router;
 

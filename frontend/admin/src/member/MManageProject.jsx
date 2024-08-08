@@ -2,13 +2,12 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom';
-import Navbar from '../../components/Navbar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Pagination } from "react-bootstrap";
-import { useAppContext } from '../../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 
-const Manage = () => { const navigate = useNavigate();
+const MManageProject = () => { const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [username, setUsername] = useState(""); 
   const [statusFilter, setStatusFilter] = useState('');
@@ -32,7 +31,7 @@ const Manage = () => { const navigate = useNavigate();
     });
   }, [activeId]);
   const fetchData = () => {
-    axios.get('http://localhost:5000/project/getAllProject')
+    axios.get(`http://localhost:5000/project/getAllMemberProjects/${activeId}`)
       .then((res) => {
         console.log("Projects",res.data);
         setData(res.data);
@@ -73,24 +72,7 @@ const fetchPriorities = async () => {
 useEffect(() => {
   fetchPriorities();
 }, []);
-  const deleteProject = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios.delete(`http://localhost:5000/project/deleteProject/${id}`)
-          .then(() => {
-            Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
-            setData(prevData => prevData.filter(item => item.id !== id));
-            fetchData();
-          })
-          .catch(err => console.log(err));
-      }
-    });
-  };
+  
 
   const statusRef = useRef(null);
   const priorityRef = useRef(null);
@@ -105,7 +87,7 @@ useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = "";
     }
-    axios.get(`http://localhost:5000/project/filter/`, { params: { status } })  
+    axios.get(`http://localhost:5000/project/filter/${activeId}`, { params: { status } })  
     .then((res) => {
       setData(res.data);
      
@@ -123,7 +105,7 @@ useEffect(() => {
     if (searchRef.current) {
       searchRef.current.value = "";
     }
-    axios.get(`http://localhost:5000/project/filter/`, { params: { priority } })
+    axios.get(`http://localhost:5000/project/filter/${activeId}`, { params: { priority } })
     .then((res) => {
       setData(res.data);
     })
@@ -132,120 +114,13 @@ useEffect(() => {
     });
   };
 
-  const handleSearchChange = (e) => {
-    const search = e.target.value;
-    if (statusRef.current) {
-      statusRef.current.value = "";
-    }
-    if (priorityRef.current) {
-      priorityRef.current.value = "";
-    }
-    axios.get(`http://localhost:5000/project/filter/`, { params: { search } })
-    .then((res) => {
-      setData(res.data);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  };
-
+ 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
 
-  
-  const handleChange = async (event , id , projectName , usersID) => {
-    // alert(id)
-    console.log("Onchange: ",id , projectName , usersID);
-    
-  
-    const selectedValue = event.target.value;
-    const selectedItem = dbStatus.find((item) => item.id === selectedValue);
-    const selectedPreview = selectedItem ? selectedItem.preview : '';
-  
-    if (statusRef.current) {
-      statusRef.current.value = "";
-    }
-    if (priorityRef.current) {
-      priorityRef.current.value = "";
-    }
-    if (searchRef.current) {
-      searchRef.current.value = "";
-    }
-        // setSelectedPreview(selectedPreview);
-  
-    try {
-      await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
-        status: selectedValue,
-      });
-      const notification = {
-        username:username,
-        projectName:projectName,
-        usersID:usersID.map(item => item.id),
-        text:`${username} has updated ${projectName} status.`,
-        time: new Date().toLocaleString(),
-        route: `/manage`,
-      };
-      socket.emit('newNotification', notification, (response) => {
-        if (response && response.status === 'ok') {
-          console.log(response.msg);
-        } else {
-          console.error('Message delivery failed or no response from server');
-        }
-      });
-      // Re-fetch task data after update
-      fetchData();
-    } catch (error) {
-      console.error('Error updating status:', error);
-    }
-  };
-  
-
-
-  const handlePriorityChange = async (event , id , projectName , usersID) => {
-    const selectedValue = event.target.value;
-    const selectedItem = dbPriority.find((item) => item.id === selectedValue);
-    const selectedPreview = selectedItem ? selectedItem.preview : '';
-  
-if (statusRef.current) {
-  statusRef.current.value = "";
-}
-if (priorityRef.current) {
-  priorityRef.current.value = "";
-}
-if (searchRef.current) {
-  searchRef.current.value = "";
-}
-    // setSelectedPreview(selectedPreview);
-  
-    try {
-      await axios.put(`http://localhost:5000/project/editPriority/${id}`, {
-        priority: selectedValue,
-      });
-
-      const notification = {
-        username:username,
-        projectName:projectName,
-        usersID:usersID.map(item => item.id),
-        text:`${username} has updated ${projectName} priority.`,
-        time: new Date().toLocaleString(),
-        route: `/manage`,
-      };
-      socket.emit('newNotification', notification, (response) => {
-        if (response && response.status === 'ok') {
-          console.log(response.msg);
-        } else {
-          console.error('Message delivery failed or no response from server');
-        }
-      });
-      // Re-fetch task data after update
-      fetchData();
-    } catch (error) {
-      console.error('Error updating status:', error);
-    }
-  };
   
 
   const [favId, setFavId] = useState({});
@@ -256,7 +131,7 @@ if (searchRef.current) {
     })
       .then((res) => {
         console.log("Favorite Projects:", res.data.map((item) => item.projectId));
-        setFavId(res.data.map((item) => item.projectId));
+        setFavId(res.data?.map((item) => item?.projectId));
       })
       .catch((err) => {
         console.log(err);
@@ -316,7 +191,7 @@ if (searchRef.current) {
     <div className="container-fluid">
     
     <div className="row">
-      <div className="col-md-3 mb-3">
+      <div className="col-lg-6 col-md-6 col-sm-12 col-12 mb-3">
       <select
         aria-label="Default select example"
         className="form-select text-capitalize"
@@ -332,7 +207,7 @@ if (searchRef.current) {
         ))}   
       </select>
       </div>
-      <div className="col-md-3 mb-3">
+      <div className="col-lg-6 col-md-6 col-sm-12 col-12 mb-3">
         <select
           aria-label="Default select example"
           className="form-select"
@@ -350,34 +225,10 @@ if (searchRef.current) {
         ))}   
         </select>
       </div>
-      <div className="col-md-5 mb-3">
+      {/* <div className="col-md-5 mb-3">
           <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
-      </div>
-      <div className="col-md-1 d-flex w-10 h-100 mt-1">
-      <button
-            className="btn btn-sm nd btn-primary me-2"
-            style={{marginLeft:'-15px' }}
-            data-bs-original-title="Filter"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            id="tags_filter"
-            type="button"
-            onClick={() =>navigate('/addProject')}
-          >
-            <i className="bx bx-plus" />
-          </button>
-          <button
-            className="btn btn-sm btn-primary "
-            data-bs-original-title="List View"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            type="button"
-          >
-            <i className="bx bx-list-ul" />
-          </button>
+      </div> */}
       
-        
-      </div>
     </div>
     <div className="mt-4 d-flex row">
       {data.map((item ,index)=>{
@@ -427,37 +278,7 @@ if (searchRef.current) {
 />
 
                 </a>
-                  <a
-                    aria-expanded="false"
-                    className="mx-1"
-                    data-bs-toggle="dropdown"
-                    href="javascript:void(0);"
-                  >
-                    <i
-                      className="bx bx-cog"
-                      id="settings-icon"
-                    />
-                  </a>
-                  <ul className="dropdown-menu">
-                    <Link
-                      to={`/editProject/${item.project.id}`}
-                      className="edit-project"
-                    >
-                      <li className="dropdown-item">
-                        <i className="menu-icon tf-icons bx bx-edit text-primary" />
-                        Update
-                      </li>
-                    </Link>
-                    <span
-                      className="delete"
-                    >
-                      <li className="dropdown-item cursor-pointer" onClick={() => deleteProject(item.project.id)}>
-                        <i className="menu-icon tf-icons bx bx-trash text-danger" />
-                        Delete
-                      </li>
-                    </span>
-                 
-                  </ul>
+                
                 </div>
                 
                
@@ -495,17 +316,18 @@ if (searchRef.current) {
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="status"
-                      onChange={(event) => handleChange(event, item.project?.id , item.project?.projectName , item?.users)}
+                      style={{pointerEvents:'none' }}
+                    //   onChange={(event) => handleChange(event, item.project?.id , item.project?.projectName , item?.users)}
                     >
 
                     <option className={`bg-label-${item.status[0]?.preview}`} >
                     {item.status[0]?.status}
                       </option>
-                      {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
+                      {/* {dbStatus && dbStatus.length > 0 && dbStatus.map((dbItem, dbIndex) => (
                       <option className={`bg-label-${dbItem.preview}`}value={dbItem.id}>
                         {dbItem.status}
                       </option>
-                    ))}
+                    ))} */}
                    
                   </select>
                   </div>
@@ -523,17 +345,19 @@ if (searchRef.current) {
                       id="prioritySelect"
                       data-original-color-class="select-bg-label-secondary"
                       name="priority"
-                      onChange={(event) => handlePriorityChange(event, item.project?.id , item.project?.projectName , item?.users)}
+                      style={{pointerEvents:'none' }}
+
+                    //   onChange={(event) => handlePriorityChange(event, item.project?.id , item.project?.projectName , item?.users)}
                     >
 
                     <option className={`bg-label-${item.priority[0]?.preview}`} >
                     {item.priority[0]?.status}
                       </option>
-                      {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
+                      {/* {dbPriority && dbPriority.length > 0 && dbPriority.map((dbItem, dbIndex) => (
                       <option className={`bg-label-${dbItem.preview}`}value={dbItem.id}>
                         {dbItem.status}
                       </option>
-                    ))}
+                    ))} */}
                    
                   </select>
                   </div>
@@ -711,7 +535,7 @@ if (searchRef.current) {
   )
 }
 
-export default Manage
+export default MManageProject
 
 
 

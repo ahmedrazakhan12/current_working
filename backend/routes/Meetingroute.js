@@ -5,6 +5,7 @@ const meetingController = require('../controllers/meetingcontroller');
 
 router.post("/addMeeting", meetingController.addMeeting);
 router.get("/getMeeting", meetingController.getMeeting);
+router.get("/getMemberMeeting/:id", meetingController.getMemberMeeting);
 router.get("/getMeeting/:id", meetingController.getMeetingById);
 router.put("/editMeeting/:id", meetingController.EditMeetingById);
 router.delete("/deleteMeeting/:id", meetingController.deleteMeeting);

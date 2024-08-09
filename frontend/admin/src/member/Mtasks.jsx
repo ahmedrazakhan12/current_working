@@ -87,6 +87,8 @@ axios
     }, []);
 
 // Pagination handling
+    console.log("tableData",tableData.map(item => item.projectCreator).map(item => item.creator));
+    
 
 
 
@@ -198,8 +200,7 @@ axios
 //   console.error('Error updating status:', error);
 // }
 // };
-const handleChange = async (event , id , taskName , projectName) => {
-  
+const handleChange = async (event , id , taskName  , projectId ,projectName) => {
   const selectedValue = event.target.value;
   const selectedItem = dbStatus.find((item) => item.id === selectedValue);
   const selectedPreview = selectedItem ? selectedItem.preview : '';
@@ -210,21 +211,34 @@ const handleChange = async (event , id , taskName , projectName) => {
     await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
       status: selectedValue,
     });
-    const userNotificationsIds = tableData?.flatMap(item => 
-      item?.projectUsers?.map(user => user.userId)
-    );
+    const userNotificationsIds = [
+      ...new Set(
+        tableData?.flatMap(item =>
+          item?.projectUsers?.filter(user => user.projectId === projectId)?.map(user => user.userId)
+        )
+      )
+    ];
+    
+    
+    console.log("userNotificationsIds" ,userNotificationsIds);
     
     // Remove duplicates by converting to a Set and back to an array
     const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
-      
+    const creatorId = tableData.find(item => item.task.projectId === projectId)?.projectCreator.creator;
+
     const notification = {
       username: loginData.name,
-      projectName: taskName|| 'Unknown Tasks',
+      projectName: projectName|| 'Unknown Tasks',
       usersID: uniqueUserNotificationsIds,
-      text: `${loginData.name} has updated the Task ${taskName} status in ${ projectName || 'the project'} `,
+      text: `${loginData.name} has updated the Task ${taskName} status in ${projectName || 'the project'} `,
       time: new Date().toLocaleString(),
       route: `/tasks`,
+      projectId: projectId || null,
+      creatorId: creatorId
+
     };
+
+    console.log(notification);
     
     socket.emit('newNotification', notification, (response) => {
       if (response && response.status === 'ok') {
@@ -255,7 +269,7 @@ useEffect(() => {
 fetchPriorities();
 }, []);
 
-const handlePriorityChange = async (event , id , taskName , projectName) => {
+const handlePriorityChange = async (event , id , taskName , projectId , projectName) => {
 const selectedValue = event.target.value;
 const selectedItem = dbPriority.find((item) => item.id === selectedValue);
 const selectedPreview = selectedItem ? selectedItem.preview : '';
@@ -276,12 +290,17 @@ try {
     priority: selectedValue,
   });
 
-  const userNotificationsIds = tableData?.flatMap(item => 
-    item?.projectUsers?.map(user => user.userId)
-  );
+  const userNotificationsIds = [
+    ...new Set(
+      tableData?.flatMap(item =>
+        item?.projectUsers?.filter(user => user.projectId === projectId)?.map(user => user.userId)
+      )
+    )
+  ];
   
   // Remove duplicates by converting to a Set and back to an array
   const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+  const creatorId = tableData.find(item => item.task.projectId === projectId)?.projectCreator.creator;
     
   const notification = {
     username: loginData.name,
@@ -290,8 +309,12 @@ try {
     text: `${loginData.name} has updated the Task ${taskName} priority in ${ projectName || 'the project'} `,
     time: new Date().toLocaleString(),
     route: `/tasks`,
+    creatorId: creatorId,
+
   };
 
+  console.log(notification);
+  
   socket.emit('newNotification', notification, (response) => {
     if (response && response.status === 'ok') {
       console.log(response.msg);
@@ -500,7 +523,7 @@ const handleFullTasks = (id) => {
                 id="prioritySelect"
                 data-original-color-class="select-bg-label-secondary"
                 name="status"
-                onChange={(event) => handleChange(event, item?.task?.id , item?.task?.taskName , item?.task?.projectName)}
+                onChange={(event) => handleChange(event, item?.task?.id , item?.task?.taskName ,item?.task?.projectId , item?.task?.projectName)}
               >
 
               <option className={`bg-label-${item.status[0]?.preview}`} >
@@ -530,7 +553,7 @@ const handleFullTasks = (id) => {
                 id="prioritySelect"
                 data-original-color-class="select-bg-label-secondary"
                 name="priority"
-                onChange={(event) => handlePriorityChange(event, item.task.id  , item?.task?.taskName , item?.task?.projectName)}
+                onChange={(event) => handlePriorityChange(event, item?.task?.id , item?.task?.taskName ,item?.task?.projectId ,item?.task?.projectName)}
               >
                 <option className={`bg-label-${item.priority[0]?.preview}`} value={item.priority[0]?.id}>
                  {item.priority[0]?.status}
@@ -577,7 +600,7 @@ const handleFullTasks = (id) => {
                             id="prioritySelect"
                             data-original-color-class="select-bg-label-secondary"
                             name="status"
-                            onChange={(event) => handleChange(event, item?.task?.id , item?.task?.taskName)}
+                            onChange={(event) =>  handleChange(event, item?.task?.id , item?.task?.taskName ,item?.task?.projectId ,item?.task?.projectName)}
                           >
                             <option className={`bg-label-${item.status[0]?.preview}`}>
                               {item.status[0]?.status}

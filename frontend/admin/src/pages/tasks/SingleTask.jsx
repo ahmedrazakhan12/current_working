@@ -22,7 +22,7 @@ const TaskById = () => {
   console.log("projectUserID" , projectUserID);
   
   const {socket} = useAppContext();
-
+const [creator , setCreator] = useState([])
   const fetchData = async () => {
     try {
       const taskRes = await axios.get(
@@ -31,10 +31,12 @@ const TaskById = () => {
       console.log("taskRes" , taskRes.data);
       const task = taskRes.data[0]?.task;
       const users = taskRes.data[0]?.users;
+      const creator = taskRes.data[0]?.projectCreator;
       const status = taskRes.data[0]?.status;
       const priority = taskRes.data[0]?.priority;
       const projectusers = taskRes.data[0]?.filteredProjectUsers;
       setProjectUserID(projectusers);
+      setCreator(creator);
       setTaskData(task);
       console.log("tasks" , task);
       setUsers(users);
@@ -145,6 +147,7 @@ axios
       
       // Remove duplicates by converting to a Set and back to an array
       const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+      
         
       const notification = {
         username: loginData.name,
@@ -153,7 +156,10 @@ axios
         text: `${loginData.name} has updated the Task ${taskName} status in ${ projectName || 'the project'} `,
         time: new Date().toLocaleString(),
         route: `/tasks`,
+        creatorId: creator.creator,
+      
       };
+      console.log("notification: ", notification);
       
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {
@@ -198,7 +204,11 @@ axios
         text: `${loginData.name} has updated the Task ${taskName} priority in ${ projectName || 'the project'} `,
         time: new Date().toLocaleString(),
         route: `/tasks`,
+        creatorId: creator.creator,
+
       };
+      console.log("notification: ", notification);
+      
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {
           console.log(response.msg);

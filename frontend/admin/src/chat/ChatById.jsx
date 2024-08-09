@@ -27,7 +27,17 @@ const Chat = () => {
   const [text, setText] = useState('');
   const messageEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [isSeen , setIsSeen] = useState(false);  
+  console.log("isSeen" , isSeen);
 
+  const scrollToBottom = () => {
+
+   
+
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   const handleIconClick = () => {
     fileInputRef.current.click();
   };
@@ -74,13 +84,13 @@ const Chat = () => {
 
   useEffect(() => {
     if (socket) {
-      socket.connect();
+      // socket.connect();
 
       socket.emit('receiveActiveId', activeId);
       socket.emit('paramsId', id);
 
       socket.on('receiveMsg', (msg ,messageId) => {
-        console.log('Message received:', messageId);
+        console.log('Message received:', msg);
         setRecieveMessages(prevMessages => [...prevMessages, msg ,messageId]);
         
       });
@@ -101,60 +111,117 @@ const Chat = () => {
 
       return () => {
         socket.off('receiveMsg');
-        socket.disconnect();
         setRecieveMessages([]);
       };
     }
   }, [activeId, id, socket]);
   console.log("Checking: ",recieveMessages);
-
   useEffect(() => {
+    
+    
     scrollToBottom();
-  }, [recieveMessages, recieveDbMessages]);
+  }, [recieveMessages ]);
+  const [status, setStatus] = useState(1);
 
-  const scrollToBottom = () => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+// Handle scrollToBottom effect
+useEffect(() => {
+  if (scrollToBottom) {
+    setStatus(1);
+  } else {
+    setStatus(0);
+  }
+}, [scrollToBottom]);
+
+const dataSend = { fromId: id, toId: activeId, status: status };
+socket.emit('seenMessages', dataSend);
+
+// Handle scrollToBottom effect on receiveDbMessages change
+useEffect(() => {
+  scrollToBottom();
+}, [recieveDbMessages]);
+
+// Clean up function to set status to 0 when component unmounts or user leaves
+useEffect(() => {
+  const handleUnload = () => {
+    socket.emit('seenMessages', { fromId: id, toId: activeId, status: 0 });
   };
 
+  window.addEventListener('beforeunload', handleUnload);
+
+  // Clean up event listener on component unmount
+  return () => {
+    window.removeEventListener('beforeunload', handleUnload);
+    socket.emit('seenMessages', { fromId: id, toId: activeId, status: 0 });
+  };
+}, [id, activeId]);
+
+
+  // useEffect(() => {
+  //   const data = { fromId: id, toId: activeId, status: 0 };
+  //   socket.emit('seenMessages', data);
+  // }, [id ,activeId]);
 
   useEffect(() => {
-    const data = { fromId: activeId,toId: id, status: 1 };
-    socket.emit('seenMessages', data);
+    socket.on('recieveSeenMessage', (data) => {
+      console.log('Seen Messages:', data);
+      setIsSeen(data && data.status === 1);
+    });
 
-    return () => {
-        // Cleanup function to execute when component unmounts or dependencies change
-        // const data = { fromId: activeId,toId: id, status: 0 , messageId : null };
-        // socket.emit('seenMessages', data);
-    };
-}, [activeId, id]);
+  }, []);
+  // useEffect(() => {
+  //   // const data = ;
+  //     console.log("useEffect running")
+  // }, [id]);
+
+  // useEffect(() => {
+  //   const data = { fromId: id,toId: activeId, status: 1 };
+  //   socket.emit('seenMessages', data);
+  //   scrollToBottom();
+  // }, [recieveMessages, recieveDbMessages]);
+
+  // useEffect(() => {
+  //   const data = { fromId: id,toId: activeId, status: 0 };
+  //   socket.emit('seenMessages', data);
+
+
+  // }, [id]);
+
+
+
 
 const filteredMessages = recieveMessages.filter(msg => 
   (msg.fromId === id && msg.toId === activeId) || (msg.fromId === activeId && msg.toId === id && msg.fromId !== msg.toId)
 );
 
 
-  const [isSeen , setIsSeen] = useState(false);  
-  console.log("isSeen" , isSeen);
+
   
 
-  socket.on('recieveSeenMessage', (data , messageId) => {
-    console.log('Seen Messages:'  ,data ,"Message ID: ",  messageId);
-    if(data && data.status === 1){
-      setIsSeen(true)
-    }else{
-      setIsSeen(false)
-    }
-  });
+  // socket.on('recieveSeenMessage', (data ) => {
+  //   console.log('Seen Messages:'  ,data );
+  //   if(data && data.status === 1){
+  //     setIsSeen(true)
+  //   }else{
+  //     setIsSeen(false)
+  //   }
+  // });
 
 
   const [isTyping , setIsTyping] = useState(false);
+  useEffect(() => {
+    // alert(id)
+    // alert(isSeen)
+    setIsTyping(false);
+    setIsSeen(false);
+  },[id])
+  
+
+
   
   const handleSendText = (e) => {
     setText(e.target.value);
     
-    if (e.target.value.length !== 0) {
+    if (e.target.value.length !== 0 || text.length !== 0) {
       scrollToBottom();
       const messageData = { fromId: activeId, toId: id, status: 1 };
       socket.emit('typing', messageData, (response) => {
@@ -198,7 +265,7 @@ useEffect(()=>{
       setIsTyping(true)
 
     }
-    if( Number(res.fromId) !== Number(id) ){
+    if(res.status === 0 ){
       setIsTyping(false)
     }
     scrollToBottom();
@@ -413,6 +480,7 @@ const [chatBarUsers , setChatBarUsers] = useState([])
   // };
   
   
+
   const [filepath , setFilePath] = useState([]);
   
   // const handleSendFile = async (e) => {
@@ -554,6 +622,32 @@ useEffect(() => {
     return formattedTime;
   }
   
+
+  const getLastSeenMessageIndex = (messages) => {
+    const seenMessages = messages.filter(msg => msg.seen === 1);
+    return seenMessages.length > 0 ? messages.indexOf(seenMessages[seenMessages.length - 1]) : -1;
+  };
+
+  const lastSeenMessageIndex = getLastSeenMessageIndex(recieveDbMessages);
+
+
+
+  const [hasSeen, setHasSeen] = useState(false);
+
+useEffect(() => {
+  if (isSeen) {
+    setHasSeen(true);
+  }
+}, [isSeen]);
+
+
+useEffect(() => {
+  socket.emit('notSeen', { fromId: activeId, toId: id, status: 0 });
+}, [id]);
+
+
+
+
   return (
     <>
   
@@ -778,7 +872,11 @@ useEffect(() => {
                       <div>
                         <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' , color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
                         <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text} 
-                          </p>
+                        {/* <p style={{position:'absolute' , marginTop:'-15px' , marginLeft:'50px'}} className={` ${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`} >   <BsCheck2All style={msg.seen == 1 ? {color:'rgb(63, 122, 249)'} : {color:'white'}} /></p> */}
+                        </p>
+                       
+                        {/* <p  className={` ${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`} > {msg.seen == 1 && "Message SEen"}</p> */}
+                          
                       </div>
                   ) : (
                     msg.file && (
@@ -815,6 +913,13 @@ useEffect(() => {
                       </div>
                     )
                   )}
+                  <br /><br /><br />
+                  {!hasSeen && index === lastSeenMessageIndex && (
+            <div style={{float:'right'}}>
+              <img src={userDataById?.pfpImage} style={{ width: '15px', height: '15px', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+            </div>
+          )}
+
                   {/* <span className="message-time">
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span> */}
@@ -830,8 +935,9 @@ useEffect(() => {
 
                              <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' ,color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
                            <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text}<span >
-                           <span >   <BsCheck2All size={18} style={{marginTop:'12px' , marginLeft:'-6px' , position:"absolute" }} className={isSeen === true ? 'seen' : ''} />    </span>
-                           </span></p>
+                           {/* <span >   <BsCheck2All size={18} style={{marginTop:'12px' , marginLeft:'-6px' , position:"absolute" }} className={isSeen === true ? 'seen' : ''} />    </span> */}
+                           </span>
+                           </p>
                          </div>
                           ) : (
                           msg.file && (
@@ -863,12 +969,26 @@ useEffect(() => {
                             </div>
                           )
                         )}
-                        {/* <span className="message-time">
+
+                          
+                         
+
+                            {/* <span className="message-time">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span> */}
                       </div>
                     ))}
-
+                    
+                    {/* <br /><br /><br /> */}
+                          {hasSeen && (
+      <div style={{ float: 'right' }}>
+        <img
+          src={userDataById?.pfpImage}
+          style={{ width: '15px', height: '15px', borderRadius: '50%', objectFit: 'cover' , float:'right' }}
+          alt=""
+        />
+      </div>
+    )}
              {/* {filteredFiles.map((item, index) => {
         const fileType = getFileType(item.file);
 

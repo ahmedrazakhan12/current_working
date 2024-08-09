@@ -4,14 +4,15 @@ const cors = require("cors");
 const { PeerServer } = require('peer');
 const bodyParser = require('body-parser');
 const socketIO = require("socket.io");
-const { chatModel } = require("./models");
+const { chatModel, adminModel } = require("./models");
 const {notificationModel} = require("./models");
 const fs = require('fs');
 const path = require('path');
-
+const sendMail = require("./middlewares/Sendemail");
 const multer = require("./middlewares/Mediaproject");
 
 const saveFile = require("./middlewares/Chatmedia");
+const { where } = require("sequelize");
 require('dotenv').config();
 
 const app = express();
@@ -60,7 +61,8 @@ const saveMessageToDatabase = async (msg) => {
           toId: msg.toId,
           text: msg.text || null,
           file: msg.file,
-          time: new Date()
+          time: new Date(),
+          seen: 0
       });
       console.log('Message saved to database:', data);
       return data;
@@ -70,6 +72,33 @@ const saveMessageToDatabase = async (msg) => {
   }
 };
 
+const updateMessageStatusInDatabase = async (msg) => {
+    try {
+      const [updatedCount] = await chatModel.update(
+        { seen: 1 },
+        {
+          where: {
+            fromId: msg.fromId,
+            toId: msg.toId,
+          },
+        }
+      );
+  
+      if (updatedCount === 0) {
+        console.log('No message found to update.');
+      } else {
+        console.log('Message status updated in database.');
+      }
+  
+      return updatedCount;
+    } catch (error) {
+      console.error('Error updating message status in database:', error);
+      throw error;
+    }
+  };
+  
+  
+  
 const saveNotificationToDatabase = async (notify) => {
   try {
       const data = await notificationModel.create({
@@ -233,7 +262,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('seenMessages', (data, callback) => {
+    socket.on('seenMessages', async (data, callback) => {
         console.log("Seen messages: ", data);
         const sender = users.get(socket.id);
         if (!sender) {
@@ -243,15 +272,24 @@ io.on('connection', (socket) => {
             }
         }
 
+
+        // io.emit('recieveSeenMessage', data );
+
+
         // const messageId = data.messageId;
         
         const paramsId = sender ? sender.paramsId : null;
+        console.log("paramsId", paramsId);
+        
 
         // Find the recipient's socket
-        const recipient = Array.from(users.values()).find(user => user.id === data.toId && user.paramsId !== paramsId);
+        const recipient = Array.from(users.values()).find(user => user.id === data.fromId && user.paramsId !== paramsId);
 
         if (recipient) {
-            io.to(recipient.socketId).emit('recieveSeenMessage', data , messageId);
+
+            io.to(recipient.socketId).emit('recieveSeenMessage', data );
+            await updateMessageStatusInDatabase(data);
+
             console.log('Messege sent to recipient:', recipient.socketId);
         } else {
             console.log('Message recipient not found');
@@ -263,25 +301,152 @@ io.on('connection', (socket) => {
         }  
     })
 
-    socket.on('newNotification', (notification) => {
+    // socket.on('notSeen' , async (data, callback) => {
+    //     console.log("Not Seen messages: ", data);
+    //     const sender = users.get(socket.id);
+    //     if (!sender) {
+    //         // console.log('Typing sender not found in users map.');
+    //         if (callback) {
+    //             return callback({ status: 'error', typing: 'Sender not found' });
+    //         }
+    //     }
+
+    //     const paramsId = sender ? sender.paramsId : null;
+    //     console.log("paramsId", paramsId);
+        
+
+    //     // Find the recipient's socket
+    //     const recipient = Array.from(users.values()).find(user => user.id === data.fromId && user.paramsId !== paramsId);
+
+    //     if (recipient) {
+
+    //         io.to(recipient.socketId).emit('recieveNotSeenMessage', data );
+    //         console.log('Messege sent to recipient:', recipient.socketId);
+    //     } else {
+    //         console.log('Message recipient not found');
+    //     }
+
+    //     // Send an acknowledgment back to the client
+    //     if (typeof callback === 'function') {
+    //         callback({ status: 'ok', msg: 'Message event received' });
+    //     }  
+        
+        
+    // })
+
+    socket.on('newNotification', async (notification) => {
         console.log('New notification received:', notification);
     
-        const { usersID } = notification;
-        usersID.map(userId => {
-            // Find the user's entry in the users Map by userId
-            const recipient = Array.from(users.values()).find(user => user.id == userId  );
-            saveNotificationToDatabase({ ...notification, userId });
-
-            if (recipient) {
-                io.to(recipient.socketId).emit('notification', notification);
-                console.log('Notification sent to recipient:', recipient.socketId);
-            } else {
-                console.log('Recipient not found for userId:', userId);
+        const { usersID, creatorId } = notification;
+        console.log("creatorId", creatorId);
+    
+        const notifyUser = async (userId) => {
+            try {
+                // Find the user's entry in the users Map by userId
+                const recipient = Array.from(users.values()).find(user => user.id == userId);
+    
+                await saveNotificationToDatabase({ ...notification, userId });
+    
+                // Fetch admin data asynchronously with the correct where clause
+                const adminData = await adminModel.findOne({ where: { id: userId } });
+    
+                if (adminData) {
+                    await sendMail(adminData.email, adminData.name, notification.text); // Use await to handle async call
+    
+                    if (recipient) {
+                        io.to(recipient.socketId).emit('notification', notification);
+                        console.log('Notification sent to recipient:', recipient.socketId);
+                    } else {
+                        console.log('Recipient not found for userId:', userId);
+                    }
+                } else {
+                    console.log(`Admin data not found for userId: ${userId}`);
+                }
+            } catch (error) {
+                console.error(`Error handling notification for userId ${userId}:`, error);
             }
-        });
+        };
+    
+        // Notify all users in usersID
+        for (const userId of usersID) {
+            await notifyUser(userId);
+        }
+    
+        // Also notify the creatorId if not already included in usersID
+        if (creatorId ) {
+            console.log("Notifying creatorId:", creatorId);
+            await notifyUser(creatorId);
+        }
     });
     
+
+    // socket.on('newNotification', async (notification) => {
+    //     console.log('New notification received:', notification);
+    
+    //     const { usersID } = notification;
+    //     const { creatorId } = notification;
+    //     console.log("creatorId" , creatorId);
+        
+    
+    //     for (const userId of usersID) {
+    //         try {
+    //             // Find the user's entry in the users Map by userId
+    //             const recipient = Array.from(users.values()).find(user => user.id == userId);
+    
+    //             await saveNotificationToDatabase({ ...notification, userId });
+    
+    //             // Fetch admin data asynchronously with the correct where clause
+    //             const adminData = await adminModel.findOne({ where: { id: userId } });
+    
+    //             if (adminData) {
+    //                 await sendMail(adminData.email, adminData.name, notification.text); // Use await to handle async call
+    
+    //                 if (recipient) {
+    //                     io.to(recipient.socketId).emit('notification', notification);
+    //                     console.log('Notification sent to recipient:', recipient.socketId);
+    //                 } else {
+    //                     console.log('Recipient not found for userId:', userId);
+    //                 }
+    //             } else {
+    //                 console.log(`Admin data not found for userId: ${userId}`);
+    //             }
+    //         } catch (error) {
+    //             console.error(`Error handling notification for userId ${userId}:`, error);
+    //         }
+    //     }
+
+      
+    // });
+ 
+
+    // socket.on('newNotification', (notification) => {
+    //     console.log('New notification received:', notification);
+    
+    //     const { usersID } = notification;
+    //     usersID.map(userId => {
+    //         // Find the user's entry in the users Map by userId
+    //         const recipient = Array.from(users.values()).find(user => user.id == userId  );
+    //         saveNotificationToDatabase({ ...notification, userId });
+    //         const adminData =  adminModel.findOne({ where: { id: userId } });
+            
+    //         if(adminData){
+    //             sendMail(adminData.email, adminData.name, notification.text);
+    //         }
+
+
+    //         if (recipient) {
+    //             io.to(recipient.socketId).emit('notification', notification);
+    //             console.log('Notification sent to recipient:', recipient.socketId);
+    //         } else {
+    //             console.log('Recipient not found for userId:', userId);
+    //         }
+    //     });
+    // });
+    
     // Handle user disconnection
+   
+   
+   
     socket.on('disconnect', () => {
         try {
             console.log('User disconnected:', socket.id);

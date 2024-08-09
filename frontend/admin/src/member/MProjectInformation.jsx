@@ -234,7 +234,12 @@ const calculateDuration = (startDate, endDate) => {
       text: `${loginData.name} has updated the Task ${taskName} status in ${data?.[0]?.project?.projectName || 'the project'} `,
       time: new Date().toLocaleString(),
       route: `/projectInformation/${id}`,
+      creatorId: data?.[0]?.project?.creator,
+
     };
+
+    console.log(notification);
+    
     
     socket.emit('newNotification', notification, (response) => {
       if (response && response.status === 'ok') {
@@ -288,6 +293,7 @@ const handlePriorityChange = async (event , id , taskName) => {
       text: `${loginData.name} has updated the Task ${taskName} priority in ${data?.[0]?.project?.projectName || 'the project'} `,
       time: new Date().toLocaleString(),
       route: `/projectInformation/${id}`,
+      creatorId: data?.[0]?.project?.creator,
 
     };
     
@@ -325,28 +331,6 @@ const [files, setFiles] = useState([]);
 console.log("files: ", files);
 
 
-const handleFileChange = (event) => {
-  const selectedFiles = Array.from(event.target.files);
-  const validFiles = selectedFiles.filter(file => {
-    const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-    return allExtensions.includes(fileExtension);
-  });
-
-  if (validFiles.length !== selectedFiles.length) {
-    Swal.fire({
-      position: "top-end",
-      title: "This File type not allowed.",
-      showConfirmButton: false,
-      timer: 1500,
-      customClass: {
-        popup: 'custom-swal-danger'
-      }
-    });
-  }
-
-  setFiles((prevFiles) => [...prevFiles, ...validFiles]);
-};
-
 // Cleanup URLs when component unmounts
 useEffect(() => {
   return () => {
@@ -376,46 +360,7 @@ useEffect(()=>{
   fetchMedia();
 },[])
 
-const handleProjectMediaSubmit = (event) => {
-  event.preventDefault(); // Prevent the default form submission behavior
 
-  const formData = new FormData();
-  files.forEach((file) => {
-    formData.append('media', file); // Ensure 'media' matches the expected field name
-  });
-
-  axios.post(`http://localhost:5000/project/addMedia/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
-    .then((res) => {
-    const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
-
-    const notification = {
-      username: loginData.name,
-      projectName: data?.[0]?.project?.projectName || 'Unknown Project',
-      usersID: userNotificationsIds,
-      text: `${loginData.name} has added the media to ${data?.[0]?.project?.projectName || 'the project'}.`,
-      time: new Date().toLocaleString(),
-      route: `/projectInformation/${id}`,
-    };
-    
-    socket.emit('newNotification', notification, (response) => {
-      if (response && response.status === 'ok') {
-        console.log(response.msg);
-      } else {
-        console.error('Message delivery failed or no response from server');
-      }
-    });
-      fetchMedia();
-      setFiles([]);
-      console.log("Response: ", res.data);
-    })
-    .catch((err) => {
-      console.log("Error: ", err);
-    });
-};
 
 
 
@@ -2177,137 +2122,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                 </form>
               </div>
             </div> */}
-            <div
-              className="modal fade"
-              id="add_media_modal"
-              tabIndex={-1}
-              aria-hidden="true"
-            >
-              <div className="modal-dialog modal-lg" role="document">
-                <form
-                  className="modal-content form-horizontal"
-                  method="POST"
-                  encType="multipart/form-data"
-                  onSubmit={handleProjectMediaSubmit}
->
-                  <input
-                    type="hidden"
-                    name="_token"
-                    defaultValue="2uKBUejJQbKQJW1oIFz9CySQxtVosCZ0oi1DIwSC"
-                    autoComplete="off"
-                  />{" "}
-                  <div className="modal-header">
-                    <h5 className="modal-title" id="exampleModalLabel1">
-                      Add Media
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      data-bs-dismiss="modal"
-                      aria-label="Close"
-                    />
-                  </div>
-                  <div className="modal-body">
-                    {/* <div className="alert alert-primary alert-dismissible" role="alert">
-                      Storage Type Set as Local Storage,{" "}
-                     
-                    </div> */}
-                    <div className="dropzone dz-clickable" id="media-upload-dropzone">
-                      <div className="file-previews">
-                    {files.length > 0 && (
-          <>
-          {files.map((file, index) => (
-            <div key={index} className="file-preview">
-              {file.type.startsWith('image/') ? (
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index}`}
-                  className="file-preview-image"
-                />
-              ) : (
-                <div className="dz-preview dz-file-preview">
-              <h5>{formatFileSize(file.size)}</h5>
-              <p>{file.name}</p>
-                </div>
-              )}
-            </div>
-          ))}
-
-</>
-        )}
-      <label htmlFor="file" className="labelFile_Project">
-        <span>
-          <svg
-            viewBox="0 0 184.69 184.69"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            id="Capa_1"
-            version="1.1"
-            width="60px"
-            height="60px"
-          >
-            <g>
-              <g>
-                <g>
-                  <path
-                    d="M149.968,50.186c-8.017-14.308-23.796-22.515-40.717-19.813
-                      C102.609,16.43,88.713,7.576,73.087,7.576c-22.117,0-40.112,17.994-40.112,40.115c0,0.913,0.036,1.854,0.118,2.834
-                      C14.004,54.875,0,72.11,0,91.959c0,23.456,19.082,42.535,42.538,42.535h33.623v-7.025H42.538
-                      c-19.583,0-35.509-15.929-35.509-35.509c0-17.526,13.084-32.621,30.442-35.105c0.931-0.132,1.768-0.633,2.326-1.392
-                      c0.555-0.755,0.795-1.704,0.644-2.63c-0.297-1.904-0.447-3.582-0.447-5.139c0-18.249,14.852-33.094,33.094-33.094
-                      c13.703,0,25.789,8.26,30.803,21.04c0.63,1.621,2.351,2.534,4.058,2.14c15.425-3.568,29.919,3.883,36.604,17.168
-                      c0.508,1.027,1.503,1.736,2.641,1.897c17.368,2.473,30.481,17.569,30.481,35.112c0,19.58-15.937,35.509-35.52,35.509H97.391
-                      v7.025h44.761c23.459,0,42.538-19.079,42.538-42.535C184.69,71.545,169.884,53.901,149.968,50.186z"
-                    style={{ fill: '#010002' }}
-                  ></path>
-                </g>
-                <g>
-                  <path
-                    d="M108.586,90.201c1.406-1.403,1.406-3.672,0-5.075L88.541,65.078
-                      c-0.701-0.698-1.614-1.045-2.534-1.045l-0.064,0.011c-0.018,0-0.036-0.011-0.054-0.011c-0.931,0-1.85,0.361-2.534,1.045
-                      L63.31,85.127c-1.403,1.403-1.403,3.672,0,5.075c1.403,1.406,3.672,1.406,5.075,0L82.296,76.29v97.227
-                      c0,1.99,1.603,3.597,3.593,3.597c1.979,0,3.59-1.607,3.59-3.597V76.165l14.033,14.036
-                      C104.91,91.608,107.183,91.608,108.586,90.201z"
-                    style={{ fill: '#010002' }}
-                  ></path>
-      
-                </g>
-              </g>
-            </g>
-          </svg>
-        </span>
-      </label>
-      <input
-        className="input_Project"
-        name="text"
-        id="file"
-        type="file"
-        onChange={handleFileChange}
-      />
-        </div>
-      
-    </div>
-                    <div className="form-group mt-4 text-center">
-                      <button className="btn btn-primary" type='submit' id="upload_media_btn">
-                        Upload
-                      </button>
-                    </div>
-                    <div className="d-flex justify-content-center">
-                      <div className="form-group" id="error_box"></div>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      data-bs-dismiss="modal"
-                    >
-                      Close{" "}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
+          
             
           </div>
         )

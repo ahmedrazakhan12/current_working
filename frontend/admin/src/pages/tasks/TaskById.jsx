@@ -7,9 +7,10 @@ import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import Swal from "sweetalert2";
+import Tasks from "../../member/Mtasks";
 const TaskById = ({ show, handleClose, taskId }) => {
   const { id } = useParams();
-  const [taskData, setTaskData] = useState({});
+  const [taskData, setTaskData] = useState([]);
   const [user, setUsers] = useState([]);
   const [dbStatus, setDbStatus] = useState([]);
   // const [selectedPreview, setSelectedPreview] = useState(taskData?.preview);
@@ -50,6 +51,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
   
   
   }, [activeId, navigate]);
+  const [creator , setCreator] = useState([]);
   const fetchData = async () => {
     try {
       const taskRes = await axios.get(
@@ -60,6 +62,9 @@ const TaskById = ({ show, handleClose, taskId }) => {
       const status = taskRes.data[0]?.status;
       const priority = taskRes.data[0]?.priority;
       const projectusers = taskRes.data[0]?.filteredProjectUsers;
+      const creator = taskRes.data[0]?.projectCreator;
+      console.log(taskRes.data);
+      setCreator(creator)
       setProjectUserID(projectusers);
       setTaskData(task);
       setUsers(users);
@@ -69,6 +74,8 @@ const TaskById = ({ show, handleClose, taskId }) => {
       console.log(err);
     }
   };
+  console.log("Tasks data: " , taskData);
+  
   const fetchTaskMedia = () => {
     axios
       .get(`http://localhost:5000/task/getMedia/${id}` , {
@@ -122,7 +129,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
   }, [show, taskId]);
  
 
-  const handleChange = async (event , taskName , projectName) => {
+  const handleChange = async (event ,taskName   ,projectName) => {
     const selectedValue = event.target.value;
     const selectedItem = dbStatus.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : "";
@@ -133,12 +140,13 @@ const TaskById = ({ show, handleClose, taskId }) => {
       await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
         status: selectedValue,
       });
+      
       const userNotificationsIds = projectUserID?.map(item => item.userId
-        
       );
       
       // Remove duplicates by converting to a Set and back to an array
       const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+
         
       const notification = {
         username: loginData.name,
@@ -147,7 +155,10 @@ const TaskById = ({ show, handleClose, taskId }) => {
         text: `${loginData.name} has updated the Task ${taskName} status in ${ projectName || 'the project'} `,
         time: new Date().toLocaleString(),
         route: `/tasks`,
+        creatorId: creator.creator,
       };
+      
+      // console.log("notification: ", notification);
       
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {
@@ -167,7 +178,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
 
 
     
-  const handlePriorityChange = async (event  , taskName , projectName) => {
+  const handlePriorityChange = async (event  , taskName    ,projectName) => {
     const selectedValue = event.target.value;
     const selectedItem = dbPriority.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : "";
@@ -184,6 +195,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
       
       // Remove duplicates by converting to a Set and back to an array
       const uniqueUserNotificationsIds = [...new Set(userNotificationsIds)];
+
         
       const notification = {
         username: loginData.name,
@@ -192,6 +204,8 @@ const TaskById = ({ show, handleClose, taskId }) => {
         text: `${loginData.name} has updated the Task ${taskName} priority in ${ projectName || 'the project'} `,
         time: new Date().toLocaleString(),
         route: `/tasks`,
+        creatorId: creator.creator,
+
       };
       socket.emit('newNotification', notification, (response) => {
         if (response && response.status === 'ok') {

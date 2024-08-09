@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
+import logo from "../assets/images/yourlogo.png";
 const Sidebar = () => {
   const {
     setIsOpen,
@@ -39,7 +40,7 @@ const Sidebar = () => {
       >
         <div className="app-brand demo">
           <span className="app-brand-logo demo">
-            <img src="./assets/images/yourlogo.png" width="200px" alt="" />
+            <img src={logo} width="200px" alt="" />
           </span>
           {/* <span class="app-brand-text demo menu-text fw-bolder ms-2">Taskify</span> */}
           <span

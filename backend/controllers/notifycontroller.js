@@ -8,7 +8,8 @@ try {
     const { id } = req.params;
     const notification = await notificationModel.findAll({
         where: { userId: id },
-        order: [['createdAt', 'DESC']] // or order by 'id' if that's your primary key
+        order: [['createdAt', 'DESC']] ,
+        limit: 10 
       });
       
     res.status(200).json({

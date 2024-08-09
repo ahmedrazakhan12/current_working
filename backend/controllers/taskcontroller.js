@@ -244,6 +244,7 @@ exports.getTaskById = async (req, res) => {
     const tasks = await taskModel.findAll({ where: { id: id } });
     const users = await taskUsersModel.findAll({ where: { taskId: id } });
     const status = await statusModel.findAll();
+    const project = await db.projectModel.findAll();
 
        const data = await Promise.all(tasks.map(async (task) => {
       const filteredUsersIds = users.filter(user => user.taskId === task.id);
@@ -260,12 +261,15 @@ exports.getTaskById = async (req, res) => {
       const filteredStasus = status.filter(user => user.id === task.status);
       const filteredPriorities = status.filter(user => user.id === task.priority);
 
+      const filteredProjectCreator = project.find(project => project.id === task.projectId);
+
       return {
         task: task,
         users: filteredUsers,
         status: filteredStasus,
         priority: filteredPriorities,
-        filteredProjectUsers:filteredProjectUsers
+        filteredProjectUsers:filteredProjectUsers,
+        projectCreator: filteredProjectCreator
       };
     }));
 
@@ -281,7 +285,8 @@ exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
+    console.log(id ,status);
+    
     const error =
     validateStatus(status) ;
 
@@ -468,6 +473,7 @@ exports.Mtasks = async (req, res) => {
     const status = await statusModel.findAll();
     const users = await taskUsersModel.findAll();
     const allProjectUsers = await db.projectUsersModel.findAll();
+    const projectmodel = await db.projectModel.findAll();
 
     const data = await Promise.all(tasks.map(async (task) => {
       const filteredUserIds = users.filter(user => user.taskId === task.id).map(user => user.userId);
@@ -475,13 +481,14 @@ exports.Mtasks = async (req, res) => {
       const filteredStatus = status.filter(s => s.id === task.status);
       const filteredPriority = status.filter(s => s.id === task.priority);
       const filteredProjectUsers = allProjectUsers.filter(projectUser => projectUser.projectId === task.projectId);
-
+      const filteredProjectCreator = projectmodel.find(project => project.id === task.projectId);
       return {
         task,
         users: filteredUsers,
         status: filteredStatus,
         priority: filteredPriority,
-        projectUsers: filteredProjectUsers
+        projectUsers: filteredProjectUsers,
+        projectCreator: filteredProjectCreator
       };
     }));
 

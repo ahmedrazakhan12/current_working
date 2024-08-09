@@ -32,6 +32,10 @@ const chatModel = sequelize.define(
         type: DataTypes.DATE,
         allowNull: false,
     },
+    seen: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+  },
 
   },
   {

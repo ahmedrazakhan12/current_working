@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import Image from "../assets/images/gmg-not.png"
+import Notify from '../assets/audio/notify.wav';
 
 const Navbar = () => {
   const { setIsMenuExpanded, isMenuExpanded } = useAppContext();
@@ -53,19 +54,47 @@ const Navbar = () => {
       //     }
       //   });
       // }
+      // if ("Notification" in window) {
+      //   // Request permission to show notifications
+      //   Notification.requestPermission().then((permission) => {
+      //     if (permission === "granted") {
+      //       const capitalizedText = data.text
+      //       .split(' ')
+      //       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      //       .join(' ');
+      //       // Show notification with an image
+      //       new Notification("Gmg Solutions", {
+      //         body: capitalizedText,
+      //         // icon: 'https://example.com/path/to/icon.png', // Icon for the notification
+      //         image: Image // Image for the notification
+      //       });
+      //     }
+      //   });
+      // }
       if ("Notification" in window) {
+
         // Request permission to show notifications
         Notification.requestPermission().then((permission) => {
           if (permission === "granted") {
+            const capitalizedText = data.text
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+      
             // Show notification with an image
             new Notification("Gmg Solutions", {
-              body: `${data.text}`,
+              body: capitalizedText,
               // icon: 'https://example.com/path/to/icon.png', // Icon for the notification
-              image: './assets/images/gmg-not.png' // Image for the notification
+              image: Image // Image for the notification
             });
+      
+            // Play custom sound
+            const audio = new Audio(Notify);
+            audio.play();
           }
         });
       }
+      
       
     });
 
@@ -159,8 +188,9 @@ const Navbar = () => {
             id="navbar-collapse"
           >
             <div className="nav-item">
-              <i className="bx bx-search" />
-              <span id="global-search" />
+              {/* <i className="bx bx-search" /> */}
+              {/* <span id="global-search" /> */}
+              Welcome 👋, <b className="text-capitalize">{data.name}</b>, to GMG Solutions' System!
             </div>
             <ul className="navbar-nav flex-row align-items-center ms-auto">
               <li className="nav-item navbar-dropdown dropdown">
@@ -268,14 +298,7 @@ const Navbar = () => {
                 </ul>
               </li>
 
-              <li className="nav-item navbar-dropdown dropdown mt-3 mx-2">
-                <p className="nav-item">
-                  <span className="nav-mobile-hidden">Hi👋</span>
-                  <span className="nav-mobile-hidden text-capitalize">
-                    {data.name}
-                  </span>
-                </p>
-              </li>
+              
               {/* User */}
               <li className="nav-item navbar-dropdown dropdown">
                 <a

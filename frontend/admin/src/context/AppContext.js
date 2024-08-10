@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 const socketConnect = io("http://localhost:4000" ,
   //  {autoConnect: false}
@@ -48,6 +48,10 @@ export const AppProvider = ({ children }) => {
     fetchPriority();
   }, []);
 
+  const location = useLocation(); // Hook to get current location
+  console.log(location);
+  
+
   return (
     <AppContext.Provider
       value={{
@@ -61,7 +65,8 @@ export const AppProvider = ({ children }) => {
         setIsOpen2,
         AppContextStatus,
         AppContextPriority,
-        socket
+        socket,
+        location
         // options
       }}
     >

@@ -71,7 +71,8 @@ function App() {
 
 
   return (
-    <Router>
+    // <Router>
+      <>
       <div className={`${isMenuExpanded ? ' light-style layout-menu-fixed layout-menu-expanded' : 'light-style layout-menu-fixed '}`}>
         <div className="layout-wrapper layout-content-navbar">
           <div className="layout-container">
@@ -139,8 +140,9 @@ function App() {
       </div>
       <Routes>
         <Route path="/login" element={<Login  />} />
-      </Routes>
-    </Router>
+      </Routes></>
+      
+    // </Router>
   );
 }
 

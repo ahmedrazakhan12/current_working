@@ -119,6 +119,8 @@ const saveNotificationToDatabase = async (notify) => {
 
   
 const users = new Map(); // Using a Map to store user data with socket IDs as keys
+let groups = {};
+
 let messageId
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
@@ -266,40 +268,78 @@ io.on('connection', (socket) => {
         console.log("Seen messages: ", data);
         const sender = users.get(socket.id);
         if (!sender) {
-            // console.log('Typing sender not found in users map.');
-            if (callback) {
-                return callback({ status: 'error', typing: 'Sender not found' });
-            }
+          if (callback) {
+            return callback({ status: 'error', typing: 'Sender not found' });
+          }
         }
-
-
-        // io.emit('recieveSeenMessage', data );
-
-
-        // const messageId = data.messageId;
-        
+    
         const paramsId = sender ? sender.paramsId : null;
         console.log("paramsId", paramsId);
+    
+        const recipient = Array.from(users.values()).find(user => user.id === data.fromId && user.paramsId !== paramsId);
+    
+        if (recipient) {
+          io.to(recipient.socketId).emit('receiveSeenMessage', data);
+          await updateMessageStatusInDatabase(data);
+          console.log('Message sent to recipient:', recipient.socketId);
+        } else {
+          console.log('Message recipient not found');
+        }
+    
+        if (typeof callback === 'function') {
+          callback({ status: 'ok', msg: 'Message event received' });
+        }
+      });
+    
+      socket.on('sendLeaveChat', async (data) => {
+        console.log("sendLeaveChat: ", data);
+        socket.broadcast.emit('receiveLeaveChat', data);
+      });   
+
+    // socket.on('seenMessages', async (data, callback) => {
+    //     console.log("Seen messages: ", data);
+    //     const sender = users.get(socket.id);
+    //     if (!sender) {
+    //         // console.log('Typing sender not found in users map.');
+    //         if (callback) {
+    //             return callback({ status: 'error', typing: 'Sender not found' });
+    //         }
+    //     }
+
+
+    //     // io.emit('recieveSeenMessage', data );
+
+
+    //     // const messageId = data.messageId;
+        
+    //     const paramsId = sender ? sender.paramsId : null;
+    //     console.log("paramsId", paramsId);
         
 
-        // Find the recipient's socket
-        const recipient = Array.from(users.values()).find(user => user.id === data.fromId && user.paramsId !== paramsId);
+    //     // Find the recipient's socket
+    //     const recipient = Array.from(users.values()).find(user => user.id === data.fromId && user.paramsId !== paramsId);
 
-        if (recipient) {
+    //     if (recipient) {
 
-            io.to(recipient.socketId).emit('recieveSeenMessage', data );
-            await updateMessageStatusInDatabase(data);
+    //         io.to(recipient.socketId).emit('recieveSeenMessage', data );
+    //         await updateMessageStatusInDatabase(data);
 
-            console.log('Messege sent to recipient:', recipient.socketId);
-        } else {
-            console.log('Message recipient not found');
-        }
+    //         console.log('Messege sent to recipient:', recipient.socketId);
+    //     } else {
+    //         console.log('Message recipient not found');
+    //     }
 
-        // Send an acknowledgment back to the client
-        if (typeof callback === 'function') {
-            callback({ status: 'ok', msg: 'Message event received' });
-        }  
-    })
+    //     // Send an acknowledgment back to the client
+    //     if (typeof callback === 'function') {
+    //         callback({ status: 'ok', msg: 'Message event received' });
+    //     }  
+    // })
+
+    // socket.on('sendLeaveChat', async (data) => {
+    //     console.log("sendLeaveChat: ", data);
+    //     socket.broadcast.emit('receiveLeaveChat', data);
+    // });
+    
 
     // socket.on('notSeen' , async (data, callback) => {
     //     console.log("Not Seen messages: ", data);
@@ -380,6 +420,41 @@ io.on('connection', (socket) => {
     });
     
 
+
+
+    socket.on('joinRoom', (data) => {
+        console.log('joinRoom event received:', data);
+        const { creator, groupName, groupImage, usersID, time } = data;
+    
+        const groupId = `group_${Date.now()}`;
+        groups[groupId] = {
+            groupId,
+            creator,
+            groupName,
+            groupImage,
+            usersID,
+            time,
+        };
+    
+        console.log('Group created:', groups[groupId]);
+    
+        // Add users to the group and join them to a socket.io room
+        usersID.forEach(userId => {
+            const userEntry = Array.from(users.values()).find(user => user.id === userId);
+            if (userEntry) {
+                console.log(`Joining user ${userId} to group ${groupId}`);
+                io.sockets.sockets.get(userEntry.socketId).join(groupId);
+            }
+            io.to(userEntry).emit('receiveJoinRoom', groups[groupId]);
+        });
+    
+    
+        // io.in(groupId).emit('receiveJoinRoom', groups[groupId]);
+        console.log(`Group ${groupId} updated and users joined.`);
+    });
+    
+      
+
     // socket.on('newNotification', async (notification) => {
     //     console.log('New notification received:', notification);
     
@@ -457,7 +532,7 @@ io.on('connection', (socket) => {
                 console.log('Current users:', Array.from(users.values()));
                 
                 // Emit the updated list of active users
-                socket.emit('activeUsers', Array.from(users.values()));
+                socket.emit('users', Array.from(users.values()));
                 broadcastAllUsers();
             }
 
@@ -540,7 +615,7 @@ io.on('connection', (socket) => {
 //     users.get(socket.id).paramsId = paramsId;
 //     }
 
-// socket.emit('activeUsers' , Array.from(users.values()));
+// socket.emit('users' , Array.from(users.values()));
 // console.log("Data: ",id , paramsId);
 // const paramsActiveUser = Array.from(users.values()).filter(user => user?.id === paramsId);
 // // console.log('Params active user:', paramsActiveUser);

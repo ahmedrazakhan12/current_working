@@ -1166,36 +1166,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                           <strong>{item.task?.taskName}</strong>
                         </Link>
                       </h6>
-                      <div style={{ marginTop: '-6px' }}>
-                        <div className="input-group m-0 p-0">
-                          <a
-                            aria-expanded="false"
-                            className="m-0 p-0"
-                            data-bs-toggle="dropdown"
-                            href="javascript:void(0);"
-                          >
-                            <i className="bx bx-cog" />
-                          </a>
-                          <ul className="dropdown-menu">
-                            <Link className="edit-task" to={`/editTask/${item.task.id}`}>
-                              <li className="dropdown-item">
-                                <i className="menu-icon tf-icons bx bx-edit text-primary" /> Update
-                              </li>
-                            </Link>
-                            <a
-                              className="delete"
-                              data-id="93"
-                              data-reload="true"
-                              data-type="tasks"
-                              href="javascript:void(0);"
-                            >
-                              <li className="dropdown-item" onClick={() => handleDelete(item.task.id)}>
-                                <i className="menu-icon tf-icons bx bx-trash text-danger" /> Delete
-                              </li>
-                            </a>
-                          </ul>
-                        </div>
-                      </div>
+                     
                     </div>
                     <div className="d-flex flex-column m-0 p-0">
                       <div>

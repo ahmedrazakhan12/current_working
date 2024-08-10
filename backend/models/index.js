@@ -16,7 +16,8 @@ const {chatModel} = require("./Chatmodel");
 const {Meeting} = require("./Meetingmodel");
 const {MeetingUser} = require("./Meetingusersmodel");
 const {notificationModel} = require("./Notificationmodel");
-
+const {groupUser} = require("./Groupusermodel");
+const {groupChatModel} = require("./Groupchatsmodel");
 const db = {};
 
 // Initialize models
@@ -37,7 +38,8 @@ db.chatModel = chatModel;
 db.Meeting = Meeting;
 db.MeetingUser =MeetingUser;
 db.notificationModel = notificationModel;
-
+db.groupChatModel = groupChatModel;
+db.groupUser = groupUser;
 // Add other models to db object
 // db.userModel = userModel;
 

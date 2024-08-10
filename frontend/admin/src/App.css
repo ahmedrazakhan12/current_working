@@ -610,3 +610,129 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
 .seen{
   color: blue;
 }
+.add-group-member {
+  display: flex;
+  flex-wrap: wrap;
+  width: 300px;
+}
+
+.group-members {
+  display: flex;
+  background: #c2c2c2;
+  padding: 0;
+  height: 20px;
+  padding: 1px 8px;
+  border-radius: 5px;
+  margin-right: 4px;
+  margin-bottom: 4px; /* Added margin-bottom for spacing between rows */
+  box-sizing: border-box; /* Ensures padding and border are included in the width calculation */
+}
+
+.group-members img {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.group-members p {
+  margin-left: 5px;
+  text-transform: capitalize;
+  font-size: 12px;
+  font-weight: 500;
+  color: black;
+}
+
+
+.group-footer{
+  
+  background: #000;
+}
+
+.container-group-photo{
+  /* margin: 0; */
+  width: 100%;
+  display: flex;
+    justify-content: center;
+    align-items: center;
+  height: 100%;
+}
+.container-group-photo img{
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  margin-left: -30px;
+  object-fit: cover;
+}
+
+
+/* From Uiverse.io by Satwinder04 */ 
+.input-container {
+  position: relative;
+  margin: 0px auto;
+    width: 200px;
+  margin-top: 40px;
+}
+
+.input-container input[type="text"] {
+  font-size: 12px;
+  width: 100%;
+  color: #828282;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  padding: 5px 0;
+  background-color: transparent;
+  outline: none;
+}
+
+.input-container .label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #ccc;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.input-container input[type="text"]:focus ~ .label,
+.input-container input[type="text"]:valid ~ .label {
+  top: -20px;
+  font-size: 16px;
+  color: #333;
+}
+
+.input-container .underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background-color: #bbbbbb;
+  transform: scaleX(0);
+  transition: all 0.3s ease;
+}
+
+.input-container input[type="text"]:focus ~ .underline,
+.input-container input[type="text"]:valid ~ .underline {
+  transform: scaleX(1);
+}
+
+.input-container input::placeholder {
+  font-size: 12px; /* Font size for the placeholder text */
+  color: #888; /* Optional: change the color of the placeholder text */
+}
+
+.confirm-group{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.tick-color{
+  background: #02a879;
+  border-radius: 50%;
+  padding: 5px 10px;
+  color: white;
+}

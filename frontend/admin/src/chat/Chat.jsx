@@ -109,7 +109,7 @@ socket.on('allusers', (res) => {
   <div className="messenger"  style={{height:'100%'}}>
     <input type="hidden" id="chat_type" defaultValue="" />
     <input type="hidden" id="chat_type_id" defaultValue="" />
-    <div style={{width:'40%'}}><Chatbar /></div>
+    <div className='my-chatbar'><Chatbar /></div>
     <div className="messenger-messagingView1">
   <div className="d-flex justify-content-center align-items-center mt-5">
     <img src="./assets/images/gmg.png" className="img-fluid" alt="Gmg Solutions Logo" />

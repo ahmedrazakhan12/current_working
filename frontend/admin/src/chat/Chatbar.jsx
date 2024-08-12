@@ -67,16 +67,19 @@ const Chatbar = () => {
 
   const[dbGroupData , setDbGroupData] = useState([]);
 
+    const fetchGroupData = ()=>{
+      axios.get(`http://localhost:5000/chat/getGroups/${loggedUser.id}`)
+      .then((res) => {
+      //   setChatBarUsers(res.data);
+      setDbGroupData(res.data);
+        console.log("Groups:", res.data);
+      })
+      .catch((err) => {
+        console.log("Error getting Groups:", err);
+      });
+    }
   useEffect(() => {
-    axios.get(`http://localhost:5000/chat/getGroups/${loggedUser.id}`)
-    .then((res) => {
-    //   setChatBarUsers(res.data);
-    setDbGroupData(res.data);
-      console.log("Groups:", res.data);
-    })
-    .catch((err) => {
-      console.log("Error getting Groups:", err);
-    });
+    fetchGroupData();
     },[loggedUser])
 
   socket.on('allusers', (res) => {
@@ -130,7 +133,16 @@ const Chatbar = () => {
   const handleChatUser = (id) => {
     navigate(`/chat/${id}`);
     setData([]);
+    setGroupData([]);
     setSearchValue("");
+    setIsSearchData(false);
+  };
+
+  const handleGroupChatUser = (id) => {
+    navigate(`/groupchat/${id}`);
+    setGroupData([]);
+    setSearchValue("");
+    setData([]);
     setIsSearchData(false);
   };
 
@@ -232,6 +244,9 @@ const handleSearchGroupChange = (e) => {
     })
       .then((res) => {
         console.log(res.data);
+        fetchGroupData();
+        setIsSearchData(false)
+        setView(true);
         Swal.fire({
           position: "top-end",
           title: "Group created successfully",
@@ -425,11 +440,11 @@ const handleSearchGroupChange = (e) => {
                 {dbGroupData.groups?.map((item, index) => (
   <table className="messenger-list-item mt-3" data-contact={7} key={item.id}>
     <tbody>
-      <tr data-action={0} onClick={() => handleChatUser(item.id)} style={{ cursor: 'pointer' }}>
+      <tr data-action={0} onClick={() => handleGroupChatUser(item?.id)} style={{ cursor: 'pointer' }}>
         <td>
           <div className="saved-messages avatar av-m">
             <div className="saved-messages avatar av-m">
-              <img src={item.groupImage} style={{ objectFit: 'cover' }} alt="" />
+              <img src={item?.groupImage} style={{ objectFit: 'cover' }} alt="" />
             </div>
           </div>
         </td>
@@ -443,6 +458,29 @@ const handleSearchGroupChange = (e) => {
     </tbody>
   </table>
 ))}
+
+{dbGroupData.getUserGroup?.map((item, index) => (
+  <table className="messenger-list-item mt-3" data-contact={7} key={item.id}>
+    <tbody>
+      <tr data-action={0} onClick={() => handleGroupChatUser(item?.id)} style={{ cursor: 'pointer' }}>
+        <td>
+          <div className="saved-messages avatar av-m">
+            <div className="saved-messages avatar av-m">
+              <img src={item?.groupImage} style={{ objectFit: 'cover' }} alt="" />
+            </div>
+          </div>
+        </td>
+        <td className='text-capitalize '>
+          <p data-id={7} data-type="user">
+            {item.groupName}
+            <span className='d-block m-0 p-0'>click to chat</span>
+          </p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+))}
+
 
                 <div
                   className="listOfContacts"

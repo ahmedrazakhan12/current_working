@@ -664,6 +664,11 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
   margin-left: -30px;
   object-fit: cover;
 }
+.messenger-messagingView{
+  background-color: #000;
+  background-image: url('./assets/images/chat-bg.jpg');
+  object-fit: contain;  
+}
 
 
 /* From Uiverse.io by Satwinder04 */ 
@@ -735,4 +740,27 @@ background: linear-gradient(180deg, rgba(223,223,223,0.34506302521008403) 0%, rg
   border-radius: 50%;
   padding: 5px 10px;
   color: white;
+}
+
+
+.messenger-list{
+  width: 40%;
+}
+
+.my-chatbar{
+  width: 40%;
+}
+@media (max-width: 767px) {
+  .messenger-list{
+    display: none;
+  }
+
+  .my-chatbar{
+    width: 100%;
+  }
+}
+
+
+.right-image{
+  margin-left: -25px;
 }

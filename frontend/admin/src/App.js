@@ -43,6 +43,7 @@ import MProjectInformation from './member/MProjectInformation'
 import Mfavorite from './member/Mfavorite';
 import Mtasks from './member/Mtasks';
 import MMeeting from './member/MMeeting';
+import GChatById from './chat/GChatById';
 function App() {
   
   const { isMenuExpanded } = useAppContext();
@@ -117,15 +118,17 @@ function App() {
                   <Route path="/chat/:id" element={<Protected Component={ChatById}  />} />
                   <Route path="/notifications" element={<Protected Component={Notification}  />} />
                   <Route path="/userview/:id" element={<Protected Component={Userview} />} />
+                  <Route path="/groupchat/:id" element={<Protected Component={GChatById} />} />
+
                   {data && data.role === "super-admin" &&
                     <>
-                     <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
-                     <Route path="/priority" element={<Protected Component={Priority} />} />
-                    <Route path="/addProject" element={<Protected Component={Addproject} />} />
-                     <Route path="/addTask/:id" element={<Protected Component={Addtasks} />} />
-                     <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
-                     <Route path="/editProject/:id" element={<Protected Component={EditPrject} />} />
-                     <Route path="/register" element={<Protected Component={Register} />} />
+                      <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
+                      <Route path="/priority" element={<Protected Component={Priority} />} />
+                      <Route path="/addProject" element={<Protected Component={Addproject} />} />
+                      <Route path="/addTask/:id" element={<Protected Component={Addtasks} />} />
+                      <Route path="/editTask/:id" element={<Protected Component={UpdateTasks} />} />
+                      <Route path="/editProject/:id" element={<Protected Component={EditPrject} />} />
+                      <Route path="/register" element={<Protected Component={Register} />} />
                       <Route path="/manageUsers" element={<Protected Component={Manageusers} />} />
                       <Route path="/editusers/:id" element={<Protected Component={Editusers} />} />
                       <Route path="/changeUserPassword/:id" element={<Protected Component={ChangeUserPass} />} />

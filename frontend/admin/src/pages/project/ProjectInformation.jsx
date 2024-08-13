@@ -563,7 +563,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
 
   return (
     <div className="container-fluid mt-3 mb-5">
-    {data.map((item , index)=>{
+    {data && data.map((item , index)=>{
         return(
             <div className="row">
             <div className="col-md-12">
@@ -2388,7 +2388,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                       <div className="file-previews">
                     {files.length > 0 && (
           <>
-          {files.map((file, index) => (
+          {files.length > 0 && files.map((file, index) => (
             <div key={index} className="file-preview">
               {file.type.startsWith('image/') ? (
                 <img
@@ -2453,6 +2453,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
         className="input_Project"
         name="text"
         id="file"
+        multiple
         type="file"
         onChange={handleFileChange}
       />

@@ -375,8 +375,11 @@ const filteredMessages = recieveMessages.filter(msg =>
 useEffect(()=>{
   socket.on('receiveTyping', (res) => {
     console.log('Typing Response:', res);
-    if(res.status === 1 && res.fromId === id){
+    if(res.status === 1 && Number(res.fromId) == Number(id)){
       setIsTyping(true)
+      setTimeout(() => {
+        setIsTyping(false)
+      } , 10000)
 
     }
     if(res.status === 0 ){
@@ -645,7 +648,24 @@ const [chatBarUsers , setChatBarUsers] = useState([])
         file: file,
         fileName: fileName,
         time: new Date().toISOString(),
+      }
+
+      
+      const notification = {
+        fromId: activeId,
+        usersID: [Number(id)],
+        text:`${loggedUser?.name} send you a message.`,
+        time: new Date().toLocaleString(),
+        route: '/chat',
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
         }
+      });
+
       setText('');
       setFile(null); 
       setShowEmogi(false);
@@ -751,7 +771,7 @@ useEffect(() => {
         <div className="messenger" style={{height:'100%'}}>
         <input type="hidden" id="chat_type" defaultValue="" />
         <input type="hidden" id="chat_type_id" defaultValue="" />
-      <div style={{width:'40%'}}><Chatbar /></div>
+      <div className='my-chatbar2'><Chatbar /></div>
     
     <div className={display === true ? "  messenger-messagingView  dynamic-display"  : "messenger-messagingView"} >
     <div className="m-header m-header-messaging viewheaderBigscreen">

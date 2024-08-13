@@ -133,6 +133,7 @@ useEffect(() => {
     scrollToBottom();
     
   },[id])
+  scrollToBottom();
   
 
   
@@ -446,12 +447,27 @@ socket.on('allusers', (res) => {
         ,          
         time: new Date().toISOString(),
         }
+        
       setText('');
       setFile(null); 
       setShowEmogi(false);
       socket.emit('sendMessageToUsers', messageData, (response) => {
         if (response.status === 'ok') {
           // console.log(response.msg);
+          const notification = {
+            fromId: activeId,
+            usersID: [...groupData?.groupUsers?.map(user => user.id) || [], Number(groupData?.creator?.id)],
+            text:`${loggedUser?.name} sent a new text in group ${groupData?.group?.groupName} `,
+            time: new Date().toLocaleString(),
+            route: `/groupchat/${id}`,
+          };
+          socket.emit('newNotification', notification, (response) => {
+            if (response && response.status === 'ok') {
+              console.log(response.msg);
+            } else {
+              console.error('Message delivery failed or no response from server');
+            }
+          });
         } else {
           console.error('Message delivery failed');
         }
@@ -461,7 +477,9 @@ socket.on('allusers', (res) => {
     }
   };
   
-
+useEffect(() => {
+  scrollToBottom();
+}, [])
   useEffect(() => {
     socket.on('userMessage', (data) => {
         console.log('userMessage:', data);
@@ -554,7 +572,7 @@ useEffect(() => {
         <div className="messenger" style={{height:'100%'}}>
         <input type="hidden" id="chat_type" defaultValue="" />
         <input type="hidden" id="chat_type_id" defaultValue="" />
-      <div  className='messenger-list'><Chatbar /></div>
+      <div  className='my-chatbar2'><Chatbar /></div>
     {groupData &&  groupData.length !== 0 && (
         <>
          <div className={display === true ? "  messenger-messagingView  dynamic-display"  : "messenger-messagingView"} >

@@ -90,7 +90,9 @@ const Navbar = () => {
       
             // Play custom sound
             const audio = new Audio(Notify);
-            audio.play();
+            audio.play().catch(error => {
+              console.error("Playback failed:", error);
+            });
           }
         });
       }
@@ -190,7 +192,7 @@ const Navbar = () => {
             <div className="nav-item">
               {/* <i className="bx bx-search" /> */}
               {/* <span id="global-search" /> */}
-              Welcome 👋, <b className="text-capitalize">{data.name}</b>, to GMG Solutions' System!
+              Welcome 👋, <b className="text-capitalize">{data?.name}</b>, to GMG Solutions' System!
             </div>
             <ul className="navbar-nav flex-row align-items-center ms-auto">
               <li className="nav-item navbar-dropdown dropdown">
@@ -203,10 +205,10 @@ const Navbar = () => {
                   <span
                     id="unreadNotificationsCount"
                     className={`badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ${
-                      notifications.length === 0 ? "d-none" : ""
+                      notifications?.length === 0 ? "d-none" : ""
                     }`}
                   >
-                    {notifications.length}
+                    {notifications?.length}
                   </span>
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
@@ -218,12 +220,12 @@ const Navbar = () => {
                     <div className="dropdown-divider" />
                   </li>
                   <div id="unreadNotificationsContainer">
-                    {notifications.length === 0 ? (
+                    {notifications?.length === 0 ? (
                       <li className="p-5 d-flex align-items-center justify-content-center">
                         <span>No Unread Notifications!</span>
                       </li>
                     ) : (
-                      notifications.map((notification, index) => (
+                      notifications.length > 0 && notifications.map((notification, index) => (
                         <>
                           <li key={index} className="p-3 cursor-pointer " onClick={() => navigate(`${notification?.route}`)}>
                             <p>
@@ -278,7 +280,7 @@ const Navbar = () => {
                     </li>
                     </>
                 )} */}
-                  {notifications.length > 0 && (
+                  {notifications?.length > 0 && (
                    <>
                   <li className="d-flex justify-content-between">
                     <Link to="/notifications" className="p-3">
@@ -308,7 +310,7 @@ const Navbar = () => {
                 >
                   <div className="avatar avatar-online">
                     <img
-                      src={data.pfpImage}
+                      src={data?.pfpImage}
                       alt=""
                       className=" rounded-circle"
                       style={{ objectFit: "cover" }}
@@ -322,7 +324,7 @@ const Navbar = () => {
                         <div className="flex-shrink-0 me-3">
                           <div className="avatar avatar-online">
                             <img
-                              src={data.pfpImage}
+                              src={data?.pfpImage}
                               alt=""
                               className="  rounded-circle"
                               style={{ objectFit: "cover" }}
@@ -331,10 +333,10 @@ const Navbar = () => {
                         </div>
                         <div className="flex-grow-1">
                           <span className="fw-semibold d-block text-capitalize">
-                            {data.name}
+                            {data?.name}
                           </span>
                           <small className="text-muted m-0 p-0">
-                            {data.email}
+                            {data?.email}
                           </small>
                         </div>
                       </div>

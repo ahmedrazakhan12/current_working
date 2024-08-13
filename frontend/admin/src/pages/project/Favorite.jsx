@@ -346,7 +346,7 @@ if (searchRef.current) {
     </div>
  
     <div className="mt-4 d-flex row">
-      {data.map((item ,index)=>{
+      {data.length > 0 && data.map((item ,index)=>{
         return(
           <div className="col-md-6">
         <div className="card mb-3">

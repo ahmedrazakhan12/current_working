@@ -59,7 +59,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Projects</span>
-                    <h3 className="card-title mb-2">{project.length}</h3>
+                    <h3 className="card-title mb-2">{project?.length}</h3>
                     <Link to="/manage"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>
@@ -73,7 +73,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Tasks</span>
-                    <h3 className="card-title mb-2">{task.length}</h3>
+                    <h3 className="card-title mb-2">{task?.length}</h3>
                     <Link to={"/tasks"}><small className="text-primary fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>
@@ -87,7 +87,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Users</span>
-                    <h3 className="card-title mb-2"> {users.length}</h3>
+                    <h3 className="card-title mb-2"> {users?.length}</h3>
                     <Link to="/manageUsers"><small className="text-info fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>

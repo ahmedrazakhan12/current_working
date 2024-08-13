@@ -103,7 +103,7 @@ exports.groupChat = async (req, res) => {
       });
     }
 
-    let imagePath = null;
+    let imagePath = "http://localhost:5000/public/uploads/pfp/groupImage.png";
     if (req.file) {
       console.log("File received: ");
       const photoFileName = req.file.filename;

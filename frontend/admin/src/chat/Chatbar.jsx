@@ -25,16 +25,20 @@ const Chatbar = () => {
     const [view , setView] = useState(false);
 
     useEffect(() => {
-        axios
-      .get("http://localhost:5000/admin/team")
-      .then((res) => {
-        console.log(res.data);
-        setGroupData(res.data.admins);
-      })
-      .catch((err) => {
-        console.log("Error fetching providers:", err);
-      });
-    },[])
+      axios
+        .get("http://localhost:5000/admin/team")
+        .then((res) => {
+          console.log("Liquid Data: ",res.data);
+          // Assuming `res.data` is an array of objects, each with an `id` property
+          const filteredData = res.data.admins.filter(item => Number(item.id) !== Number(activeId));
+          
+          setGroupData(filteredData);
+        })
+        .catch((err) => {
+          console.log("Error fetching providers:", err);
+        });
+    }, []); // Add `activeId` to the dependency array if it can change
+    
     useEffect(() => {
         if (!activeId) {
           navigate("/login");
@@ -54,17 +58,28 @@ const Chatbar = () => {
             });
         }
       }, [activeId, navigate]);
+      const fetchChatsBars = ()=>{
+        axios.get(`http://localhost:5000/chat/getChatbarUser/${loggedUser.id}`)
+        .then((res) => {
+    
+          const filteredData = res.data.filter(item => Number(item.id) !== Number(activeId));
+    
+          setChatBarUsers(filteredData);
+          console.log("Users:", filteredData);
+        })
+        .catch((err) => {
+          console.log("Error getting users:", err);
+        });
+      }
   useEffect(() => {
-    axios.get(`http://localhost:5000/chat/getChatbarUser/${loggedUser.id}`)
-    .then((res) => {
-      setChatBarUsers(res.data);
-      // console.log("Users:", res.data);
-    })
-    .catch((err) => {
-      console.log("Error getting users:", err);
-    });
+    fetchChatsBars()
   }, [loggedUser]);
 
+
+  useEffect(() => {
+    fetchGroupData();
+    fetchChatsBars()
+  } , [view]) 
   const[dbGroupData , setDbGroupData] = useState([]);
 
     const fetchGroupData = ()=>{
@@ -228,6 +243,7 @@ const handleSearchGroupChange = (e) => {
       reader.readAsDataURL(file);
     }
   };
+  const [error , setError] = useState("");
 
   const handleGroupCreate = () => {
     const formData = new FormData();
@@ -265,9 +281,11 @@ const handleSearchGroupChange = (e) => {
       })
       .catch((err) => {
         console.log(err);
+        setError(err.response.data.message);
+
       });
   };
-      
+  
 
   return (
     <div>
@@ -301,8 +319,8 @@ const handleSearchGroupChange = (e) => {
               
             </div>
             <div style={{display:'flex' , marginTop:'10px'}} className='mx-3'>
-                    <p style={{background:'grey' , color:'white' , borderRadius:'10px' , padding:'0px 10px' , marginRight:'5px' , cursor:'pointer'}} onClick={()=>setView(false)}>Chats</p>
-                    <p style={{background:'grey' , color:'white' , borderRadius:'10px' , padding:'0px 10px' , marginRight:'5px' , cursor:'pointer'}} onClick={()=>setView(true)}>Groups</p>
+                    <p className={view === false ? "isActive-chat " : "chattt"} style={{ color:'white' , borderRadius:'10px' , padding:'0px 10px' , marginRight:'5px' , cursor:'pointer'}} onClick={()=>setView(false)}>Chats</p>
+                    <p className={view === true ? "isActive-gChat " : "chattt"} style={{ color:'white' , borderRadius:'10px' , padding:'0px 10px' , marginRight:'5px' , cursor:'pointer'}} onClick={()=>setView(true)}>Groups</p>
                 </div>
             <div className="m-body contacts-container">
             <div className="row mx-2" style={{background:'#f7f7f7' }}>
@@ -412,7 +430,7 @@ const handleSearchGroupChange = (e) => {
                 </>
                 )}
 
-{data.length === 0 && isSearchData === false && view === true && (
+            {data.length === 0 && isSearchData === false && view === true && (
                   <>
                   <table className="messenger-list-item mt-3" data-contact={7}>
                   <tbody>
@@ -480,6 +498,11 @@ const handleSearchGroupChange = (e) => {
     </tbody>
   </table>
 ))}
+
+
+{dbGroupData && dbGroupData.length !== 0 || dbGroupData?.getUserGroup?.length !== 0 && (
+  <p className='text-center'>No Group Found</p>
+)}
 
 
                 <div
@@ -559,7 +582,7 @@ const handleSearchGroupChange = (e) => {
                     <input type="text" className="messenger-search m-0 " onChange={handleSearchGroupChange} placeholder="Search" />
                     
                     </div>
-                    <div className="m-body contacts-container">
+                    <div className="m-body contacts-container" style={{position:'relative'}}>
                     {groupData?.map((item, index) => (
                         <table className="messenger-list-item mt-3" data-contact={7}>
                         <tbody>
@@ -594,11 +617,12 @@ const handleSearchGroupChange = (e) => {
                         </tbody>
                     </table>
                     ))}
+                    {userGroupInfo.length > 0 && (
+                        <FontAwesomeIcon onClick={handleGroupMember} icon={faCircleArrowRight} style={{color:'#2180f3' ,  marginTop:'150px' , fontSize:'25px' , marginLeft:'250px' , cursor:'pointer'}} />
+                    )}
 
                     <div >
-                        {userGroupInfo.length > 0 && (
-                            <FontAwesomeIcon onClick={handleGroupMember} icon={faCircleArrowRight} style={{color:'#2180f3' , position:'absolute' , marginTop:'100px' , fontSize:'25px' , marginLeft:'300px' , cursor:'pointer'}} />
-                        )}
+                       
                         
                     </div>
                     <div
@@ -662,6 +686,7 @@ const handleSearchGroupChange = (e) => {
                 />
                  <input
         type="file"
+        accept=".jpg,.jpeg,.png"
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleFileChange}
@@ -669,12 +694,16 @@ const handleSearchGroupChange = (e) => {
                 </div>
                 <div class="input-container">
                 <input type="text" id="input" placeholder='Enter Group Name  ( Compulsory )' required="" onChange={(e)=>setGroupName(e.target.value)}/>
+            
                 <div class="underline"></div>
                 </div>
+                {error && <p className='error mx-3' style={{fontSize
+                  :'12px', color:'red'
+                }}>{error}</p>}
 
                 <div className='confirm-group'>
                     <div className='tick-color' onClick={handleGroupCreate}>
-                    <FontAwesomeIcon icon={faCheck} style={{marginTop:'4px'}}/>
+                    <FontAwesomeIcon icon={faCheck} />
                     </div>
                 </div>
             </div>

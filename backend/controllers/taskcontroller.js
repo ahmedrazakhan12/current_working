@@ -622,6 +622,7 @@ exports.getFilterProjectMember = async (req, res) => {
     // Step 5: Fetch related data for the filtered tasks
     const statusDb = await statusModel.findAll();
     const users = await taskUsersModel.findAll();
+    const projectmodel = await db.projectModel.findAll();
 
     // Step 6: Enrich tasks with related data
     const enrichedTasks = await Promise.all(tasks.map(async (task) => {
@@ -629,12 +630,14 @@ exports.getFilterProjectMember = async (req, res) => {
       const taskUsersData = await adminModel.findAll({ where: { id: taskUsers.map(user => user.userId) } });
       const taskStatus = statusDb.filter(status => status.id === task.status);
       const taskPriority = statusDb.filter(priority => priority.id === task.priority);
+      const filteredProjectCreator = projectmodel.find(project => project.id === task.projectId);
 
       return {
         task: task,
         users: taskUsersData,
         status: taskStatus,
-        priority: taskPriority
+        priority: taskPriority, 
+        projectCreator: filteredProjectCreator
       };
     }));
 
@@ -645,3 +648,26 @@ exports.getFilterProjectMember = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+const cron = require('node-cron');
+
+exports.taskTime = async (req, res) => {
+  try{
+    const {userId , taskId, hour, min} = req.body;
+
+    const taskTime = await db.Taskworktime.create({
+      userId,
+      taskId,
+      hour,
+      min
+    })
+
+    
+
+    res.status(200).json(taskTime);
+
+  }catch(error){
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}

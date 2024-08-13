@@ -582,8 +582,12 @@ exports.getMedia = async (req, res) => {
 exports.deleteMedia = async (req, res) => {
   try {
     const { id } = req.params;
-    const media = await db.taskFilesModel.destroy({ where: { id: id } });
+    console.log("deleteMedia: " , id);
+    
+    const media = await db.projectFilesModel.destroy({ where: { id: id } });
     if (!media) {
+      console.log("Media not found");
+      
       return res.status(404).json({
         status: 404,
         data: null,

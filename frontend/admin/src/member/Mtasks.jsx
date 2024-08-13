@@ -342,6 +342,8 @@ try {
     }
     axios.get(`http://localhost:5000/task/filter/${activeId}`, { params: { status } })  
     .then((res) => {
+      console.log(res.data);
+      
         setTableData(res.data);
     })
     .catch((err) => {

@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 
 import TaskById from '../pages/tasks/TaskById';
 import { useAppContext } from '../context/AppContext';
+import AddTimeModal from './AddTimeModal';
 
 const ProjectInformation = () => {
     const {id} = useParams();    
@@ -413,12 +414,19 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
     );
   };
 
- 
+  const [showModal3, setShowModal3] = useState(false);
+  const [sendTaskId , setSendTaskId] = useState('')
 
+  const handleShowModal = (id) => 
+  {
+    setSendTaskId(id)
+    setShowModal3(true)
+  };
+  const handleCloseModal = () => setShowModal3(false);
 
   return (
     <div className="container-fluid mt-3 mb-5">
-    {data.map((item , index)=>{
+    {data.length > 0 && data.map((item , index)=>{
         return(
             <div className="row">
             <div className="col-md-12">
@@ -430,20 +438,10 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                       <div className="mb-3">
                         <span className="badge bg-info">{item.tags.tagName}</span>
                       </div>
-                      <h2 className="fw-bold">
+                      <h2 className="fw-bold text-capitalize">
                         {item.project.projectName}
                        
-                        <a
-                          href="https://taskify.taskhub.company/chat?type=project&id=434"
-                          target="_blank"
-                        >
-                          <i
-                            className="bx bx-message-rounded-dots text-danger"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            data-bs-original-title="Discussion"
-                          />
-                        </a>
+                       
                       </h2>
                       <div className="row">
                         <div className="col-md-6 mt-3 mb-3">
@@ -473,12 +471,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                 ) : (
                   <span className="badge bg-primary">Not Assigned</span>
                 )}
-                            <Link
-                              className="btn btn-icon btn-sm btn-outline-primary btn-sm rounded-circle edit-project update-users-clients"
-                              to={`/editProject/${item.project.id}`}
-                            >
-                              <span className="bx bx-edit" />
-                            </Link>
+                          
                           </ul>
                         </div>
                         <div className="col-md-6  mt-3 mb-3">
@@ -1020,6 +1013,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
             <strong>
               {item.task.taskName}
             </strong>
+            
           </Link>
         </h6>
         <div className="d-flex align-items-center justify-content-center">
@@ -1162,12 +1156,19 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                   <div className="card-body px-3 py-3">
                     <div className="d-flex justify-content-between">
                       <h6 className="card-title">
-                        <Link onClick={() => handleShow(item.task.id)}>
+                        <Link onClick={() => handleShow(item.task.id)} >
                           <strong>{item.task?.taskName}</strong>
                         </Link>
                       </h6>
+                      <p><i class='bx bxs-time-five' style={{marginTop:'-10px'}} onClick={()=>handleShowModal(item.task.id)}></i></p>
                      
                     </div>
+                    <AddTimeModal
+                      sendTaskId={sendTaskId}
+                      show={showModal3} 
+                      handleShow={handleShowModal} 
+                      handleClose={handleCloseModal} 
+                    />
                     <div className="d-flex flex-column m-0 p-0">
                       <div>
                         <div className="input-group mt-2 m-0">
@@ -1523,7 +1524,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                 {isImage  && 
                  <a href={url} target='_blank' className="download" data-id={file.id}  data-type="projects" >
                     <li className="dropdown-item">
-                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                    <i class='menu-icon tf-icons bx bx-show'></i>
                       View
                     </li>
                   </a>
@@ -1531,7 +1532,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                   {isVideo  && 
                  <a href={url} target='_blank' className="download" data-id={file.id}  data-type="projects" >
                     <li className="dropdown-item">
-                    <i class='menu-icon tf-icons bx bxs-download'></i>
+                    <i class='menu-icon tf-icons bx bx-show'></i>
                       View
                     </li>
                   </a>
@@ -2098,6 +2099,7 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
           </div>
         )
     })}
+
 
       <TaskById show={showModal} handleClose={handleClose} taskId={taskId}  />
     </div>

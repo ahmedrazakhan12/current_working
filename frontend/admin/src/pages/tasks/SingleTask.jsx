@@ -138,7 +138,7 @@ axios
     // setSelectedPreview(selectedPreview);
 
     try {
-      await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
+      await axios.put(`http://localhost:5000/task/editStatus/${taskData?.projectId}`, {
         status: selectedValue,
       });
       const userNotificationsIds = projectUserID?.map(item => item.userId
@@ -187,7 +187,7 @@ axios
     // setSelectedPreview(selectedPreview);
 
     try {
-      await axios.put(`http://localhost:5000/task/editPriority/${id}`, {
+      await axios.put(`http://localhost:5000/task/editPriority/${taskData?.projectId}`, {
         priority: selectedValue,
       });
       const userNotificationsIds = projectUserID?.map(item => item.userId

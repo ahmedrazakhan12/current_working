@@ -459,6 +459,28 @@ const TaskById = ({ show, handleClose, taskId }) => {
   const handleModalClose = () => setShowModal(false);
   const handleModalShow = () => setShowModal(true);
 
+
+  const [totalTimeData, setTotalTimeData] = useState([]);
+
+  useEffect(() => {
+    // Fetch the task time data from the backend
+  if(taskId){
+    const fetchTaskTime = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/task/getTaskTime/${taskId}`);
+        console.log("http://localhost:5000/getTaskTime", res.data);
+        setTotalTimeData(res.data)
+        // Update the state with the total time
+      } catch (error) {
+        console.error("Error fetching task time:", error);
+      }
+    };
+    fetchTaskTime();
+  }
+
+}, [taskId]);
+
+
   return (
     <>
       <div >
@@ -663,27 +685,43 @@ const TaskById = ({ show, handleClose, taskId }) => {
                     </div>
 
                     <div class="nav-align-top mt-2">
-                      <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item">
-                          <button
-                            type="button"
-                            class="nav-link active"
-                            role="tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#navs-top-tasks"
-                            aria-controls="navs-top-tasks"
-                          >
-                            <i class="menu-icon tf-icons bx bx-image-alt text-success"></i>
-                            Media
-                          </button>
-                        </li>
-                      </ul>
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link active"
+        role="tab"
+        data-bs-toggle="tab"
+        data-bs-target="#navs-top-tasks-1"
+        aria-controls="navs-top-tasks-1"
+      >
+        <i class="menu-icon tf-icons bx bx-image-alt text-success"></i>
+        Media
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        role="tab"
+        data-bs-toggle="tab"
+        data-bs-target="#navs-top-documents-1"
+        aria-controls="navs-top-documents-1"
+      >
+        <i class="menu-icon tf-icons bx bx-time text-primary"></i>
+        Time
+      </button>
+    </li>
+  </ul>
 
-                      <div class="tab-content">
-                        <div
-                          class="tab-pane fade show active"
-                          id="navs-top-tasks"
-                          role="tabpanel"
+  <div class="tab-content">
+    <div
+      class="tab-pane fade show active"
+      id="navs-top-tasks-1"
+      role="tabpanel"
+    >
+        <div
+                          
                         >
                           <div>
                             {loginData?.role !== "member" && (
@@ -879,10 +917,103 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
 
 
                 </div>
+    </div>
 
-                      </div>
-                    </div>
-                  </div>
+    <div
+      class="tab-pane fade"
+      id="navs-top-documents-1"
+      role="tabpanel"
+    >
+      <div className="row mt-3">
+
+      <table id="table" className="table table-bordered ">
+                  <thead>
+                    <tr>
+                      <th style={{}} data-field="id">
+                        <div className="th-inner sortable both">ID</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{}} data-field="profile">
+                        <div className="th-inner ">Users</div>
+                        <div className="fht-cell" />
+                      </th>
+                    
+                      <th style={{ textAlign: "center" }} data-field="assigned">
+                        <div className="th-inner ">Working Hours</div>
+                        <div className="fht-cell" />
+                      </th>
+                   
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {totalTimeData && totalTimeData?.result?.map((item, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>
+                        <div className="d-flex mt-2">
+                           <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
+                           <div
+                              className="avatar avatar-md pull-up"
+                              title="Admin Infinitie"
+                            >
+                                <img
+                                  src={item?.userData?.pfpImage}
+                                  alt="Avatar"
+                                  style={{
+                                    objectFit: "cover",
+                                    borderRadius: "5px",
+                                  }}
+                                />
+                            </div>
+                           </Link>
+
+                            <div className="mx-2">
+                            <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
+                           
+                              <h6 className="mb-1 text-capitalize">
+                                {item?.userData?.name}{" "}
+                              </h6>
+                           </Link>
+                              <p
+                                className="text-muted  "
+                                style={{ fontSize: "14px", marginTop: "-4px" }}
+                              >
+                                {item?.userData?.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <h2
+                            className={
+                                "badge bg-primary me-1"
+                            }
+                            style={{ fontSize: "16px" , margin: "0" , textAlign: "center" }}
+                          >
+                            {item?.totalTime }  m 
+                          </h2>
+                        </td>
+                       
+                       
+                      </tr>
+                    ))}
+                    {totalTimeData.result && totalTimeData.result.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="text-center">
+                          No data found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+        {/* <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac leo nunc. Vestibulum et mauris vel ante finibus maximus.</p> */}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+                  </div>  
                 </div>
                 <input type="hidden" id="media_type_id" defaultValue={93} />
               </div>

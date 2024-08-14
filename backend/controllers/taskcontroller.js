@@ -298,7 +298,7 @@ exports.updateStatus = async (req, res) => {
     });
   }
     console.log(id ,status);
-    await taskModel.update({ status: status }, { where: { id: id } });
+    await taskModel.update({ status: status }, { where: { projectId: id } });
     res.status(200).send("Status successfully updated.");
   } catch (error) {
     console.error(error);
@@ -323,7 +323,7 @@ exports.updatePriority = async (req, res) => {
     });
   }
     console.log(id ,priority);
-    await taskModel.update({ priority: priority }, { where: { id: id } });
+    await taskModel.update({ priority: priority }, { where: { projectId: id } });
     res.status(200).send("priority successfully updated.");
   } catch (error) {
     console.error(error);
@@ -671,3 +671,69 @@ exports.taskTime = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 }
+exports.getTaskTime = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    // Fetch all records that match the taskId
+    const workTimes = await db.Taskworktime.findAll({
+      where: {
+        taskId: taskId,
+      },
+    });
+
+    // Create a map to store total hours and minutes for each user
+    const userTimes = {};
+
+    workTimes.forEach((workTime) => {
+      const userId = workTime.userId;
+
+      // Initialize the user time if not already done
+      if (!userTimes[userId]) {
+        userTimes[userId] = {
+          totalHours: 0,
+          totalMinutes: 0,
+        };
+      }
+
+      // Add the hours and minutes to the user's total
+      userTimes[userId].totalHours += workTime.hour;
+      userTimes[userId].totalMinutes += workTime.min;
+    });
+
+    // Format the time for each user and handle minute overflow
+    const result = await Promise.all(
+      Object.keys(userTimes).map(async (userId) => {
+        let { totalHours, totalMinutes } = userTimes[userId];
+
+        // Handle overflow of minutes to hours
+        totalHours += Math.floor(totalMinutes / 60);
+        totalMinutes = totalMinutes % 60;
+
+        // Format the time as "HH:MM"
+        const formattedTime = `${totalHours}:${totalMinutes.toString().padStart(2, '0')}`;
+
+        // Fetch user data
+        const userData = await adminModel.findOne({
+          where: {
+            id: userId
+          }
+        });
+
+        return {
+          userData,
+          totalTime: formattedTime,
+        };
+      })
+    );
+
+    // Send the result to the frontend
+    res.status(200).json({
+       result,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+

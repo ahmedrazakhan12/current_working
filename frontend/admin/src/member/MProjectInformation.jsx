@@ -1838,6 +1838,9 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
                 </div>
               </div>
             </div>
+
+
+             
             {/* <div
               className="modal fade"
               id="create_milestone_modal"

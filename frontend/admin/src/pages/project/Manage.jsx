@@ -569,6 +569,7 @@ if (searchRef.current) {
                 <button
                   className="btn btn-sm rounded-pill btn-outline-primary"
                   type="button"
+                  onClick={() => navigate(`/projectInformation/${item.project.id}`)}
                 >
                   Tasks
                 </button>

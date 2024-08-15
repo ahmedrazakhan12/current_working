@@ -246,10 +246,6 @@ body {
   border-bottom: 2px solid var(--primary-color);
 }
 .messenger-tab {
-  /* overflow: auto; */
-  /* height: calc(100vh - var(--listView-header-height) - 2px); */
-  display: none;
-  position: relative;
 }
 .add-to-favorite {
   display: none;

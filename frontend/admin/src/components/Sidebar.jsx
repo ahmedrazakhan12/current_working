@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/images/yourlogo.png";
+// import logo from "../assets/images/yourlogo.png";
 const Sidebar = () => {
   const {
     setIsOpen,
@@ -32,6 +32,18 @@ const Sidebar = () => {
       });
   }, [activeId]);
 
+  const [logo , setLogo] = useState([])
+  useEffect(() => {
+    axios.get(`http://localhost:5000/general/logos/`)
+    .then((res)=>{
+      console.log(res.data);
+      
+      setLogo(res.data[0].logo)
+    })
+    .catch((err)=>{
+      console.log(err)
+    })
+  },[])
   return (
     <>
       <aside

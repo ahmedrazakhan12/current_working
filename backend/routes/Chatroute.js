@@ -9,6 +9,10 @@ router.post("/createGroup", multer ,chatController.groupChat);
 router.get("/getGroups/:id", chatController.getGroups);
 router.get("/getChatById/:id", chatController.getGroupsChat);
 router.get("/getChattingById/:id", chatController.getChattingById);
+router.post("/addGroupMember" ,chatController.addGroupMember);
+router.put("/updateGcPfp" ,multer , chatController.updateGcPfp);
+router.put("/updateGcName" ,chatController.updateGcName);
+router.delete("/deleteGroup/:id" ,chatController.deleteGroup);
 
 // router.post("/verifyToken", );
 

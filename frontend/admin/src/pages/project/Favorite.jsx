@@ -533,7 +533,7 @@ if (searchRef.current) {
                 </b>
                 {' '}Tasks
               </span>
-              <a href="projects/tasks/draggable/419">
+              <a onClick={() => navigate(`/projectInformation/${item.project.id}`)}>
                 <button
                   className="btn btn-sm rounded-pill btn-outline-primary"
                   type="button"

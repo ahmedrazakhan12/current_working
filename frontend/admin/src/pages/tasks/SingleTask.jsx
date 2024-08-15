@@ -402,6 +402,78 @@ axios
   const handleModalClose = () => setShowModal(false);
   const handleModalShow = () => setShowModal(true);
 
+
+  
+
+  const [totalTimeData, setTotalTimeData] = useState([]);
+  const fetchTaskTime = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/task/getTaskTime/${id}`);
+      console.log("http://localhost:5000/getTaskTime", res.data);
+      setTotalTimeData(res.data)
+      // Update the state with the total time
+    } catch (error) {
+      console.error("Error fetching task time:", error);
+    }
+  };
+  
+  useEffect(() => {
+    // Fetch the task time data from the backend
+  if(id){
+    fetchTaskTime();
+  }
+
+}, [id]);
+
+
+const handleDeleteUserTime = (id) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    customClass: {
+      popup: "custom-swal-popup",
+    },
+
+    willOpen: () => {
+      document.querySelector('.swal2-container').style.zIndex = '9999';
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      axios
+        .delete(`http://localhost:5000/task/deleteUserTime/${id}`)
+        .then(() => {
+          // fetchTaskTim/e();
+          fetchTaskTime();
+          Swal.fire({
+            position: "top-end",
+            title: "Time deleted",
+            showConfirmButton: false,
+            timer: 1500,
+          
+          });
+        })
+
+        .catch((error) => {
+          Swal.fire({
+            title: "Error!",
+            text: "There was a problem deleting your time.",
+            icon: "error",
+            customClass: {
+              popup: "custom-swal-popup",
+            },
+            willOpen: () => {
+              document.querySelector('.swal2-container').style.zIndex = '9999';
+            }
+          });
+        });
+    }
+  });
+}
   return (
     <>
        <div className="container">
@@ -598,25 +670,44 @@ axios
                       </div>
                     </div>
 
-                    <div class="nav-align-top mt-2">
-                      <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item">
-                          <button
-                            type="button"
-                            class="nav-link active"
-                            role="tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#navs-top-tasks"
-                            aria-controls="navs-top-tasks"
-                          >
-                            <i class="menu-icon tf-icons bx bx-image-alt text-success"></i>
-                            Media
-                          </button>
-                        </li>
-                      </ul>
 
-                      <div class="tab-content">
-                        <div
+                    <div class="nav-align-top mt-2">
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link active"
+        role="tab"
+        data-bs-toggle="tab"
+        data-bs-target="#navs-top-tasks-1"
+        aria-controls="navs-top-tasks-1"
+      >
+        <i class="menu-icon tf-icons bx bx-image-alt text-success"></i>
+        Media
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        role="tab"
+        data-bs-toggle="tab"
+        data-bs-target="#navs-top-documents-1"
+        aria-controls="navs-top-documents-1"
+      >
+        <i class="menu-icon tf-icons bx bx-time text-primary"></i>
+        Time
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <div
+      class="tab-pane fade show active"
+      id="navs-top-tasks-1"
+      role="tabpanel"
+    >
+        <div
                           class="tab-pane fade show active"
                           id="navs-top-tasks"
                           role="tabpanel"
@@ -813,9 +904,129 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
 
 
                 </div>
+    </div>
 
-                      </div>
-                    </div>
+    <div
+      class="tab-pane fade"
+      id="navs-top-documents-1"
+      role="tabpanel"
+    >
+      <div className="row mt-3">
+
+      <table id="table" className="table table-bordered ">
+                  <thead>
+                    <tr>
+                      <th style={{}} data-field="id">
+                        <div className="th-inner sortable both">ID</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{}} data-field="profile">
+                        <div className="th-inner ">Users</div>
+                        <div className="fht-cell" />
+                      </th>
+                    
+                      <th style={{ textAlign: "center" }} data-field="assigned">
+                        <div className="th-inner ">Working Hours</div>
+                        <div className="fht-cell" />
+                      </th>
+                      <th style={{ textAlign: "center" }} data-field="assigned">
+                        <div className="th-inner ">Last Updated</div>
+                        <div className="fht-cell" />
+                      </th>
+
+                      {loginData?.role !== "member" && (
+                          <th style={{ textAlign: "center" }} data-field="assigned">
+                          <div className="th-inner ">Action</div>
+                          <div className="fht-cell" />
+                        </th>
+                      )}
+                   
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {totalTimeData && totalTimeData?.result?.map((item, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>
+                        <div className="d-flex mt-2">
+                           <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
+                           <div
+                              className="avatar avatar-md pull-up"
+                              title="Admin Infinitie"
+                            >
+                                <img
+                                  src={item?.userData?.pfpImage}
+                                  alt="Avatar"
+                                  style={{
+                                    objectFit: "cover",
+                                    borderRadius: "5px",
+                                  }}
+                                />
+                            </div>
+                           </Link>
+
+                            <div className="mx-2">
+                            <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
+                           
+                              <h6 className="mb-1 text-capitalize">
+                                {item?.userData?.name}{" "}
+                              </h6>
+                           </Link>
+                              <p
+                                className="text-muted  "
+                                style={{ fontSize: "14px", marginTop: "-4px" }}
+                              >
+                                {item?.userData?.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <h2
+                            className={
+                                "badge bg-primary me-1"
+                            }
+                            style={{ fontSize: "16px" , margin: "0" , textAlign: "center" }}
+                          >
+                            {item?.totalTime }  m 
+                          </h2>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                        <h2
+                            className={
+                                "badge bg-warning me-1"
+                            }
+                            style={{ fontSize: "12px" , margin: "0" , textAlign: "center" }}
+                          >
+                            {item?.lastUpdatedDate} 
+                          </h2>
+                          
+                       
+                        </td>
+                      {loginData?.role !== "member" && (
+                        <td style={{ textAlign: "center" }}>
+                          <i className="bx bx-trash" onClick={() => handleDeleteUserTime(item?.userData?.id)} style={{cursor:'pointer', color:'red'}} aria-hidden="true"/>
+                        </td>
+                      
+                      )}
+                      </tr>
+                    ))}
+                    {totalTimeData.result && totalTimeData.result.length === 0 && (
+                      <tr>
+                        <td colSpan={loginData?.role !== "member" ? 5 : 4} className="text-center">
+                          No data found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+        {/* <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac leo nunc. Vestibulum et mauris vel ante finibus maximus.</p> */}
+      </div>
+    </div>
+  </div>
+</div>
+
+               
                   </div>
                 </div>
                 <input type="hidden" id="media_type_id" defaultValue={93} />
@@ -914,7 +1125,10 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                       name="text"
                       id="file"
                       type="file"
+                      multiple
                       onChange={handleTaskFileChange}
+                      accept=".mp4, .avi, .mov, .wmv, .sql, .pdf, .docx, .zip, .png, .jpg, .jpeg"
+
                     />
                       
                     </label>

@@ -283,6 +283,8 @@ io.on('connection', (socket) => {
         }
     });
 
+
+  
     socket.on('seenMessages', async (data, callback) => {
         console.log("Seen messages: ", data);
         const sender = users.get(socket.id);
@@ -479,6 +481,49 @@ io.on('connection', (socket) => {
         }
     });
     
+    socket.on('groupTyping', (typing, callback) => {
+        const sender = users.get(socket.id);
+        if (!sender) {
+            // console.log('Typing sender not found in users map.');
+            if (callback) {
+                return callback({ status: 'error', typing: 'Sender not found' });
+            }
+        }
+    
+        const { usersIds } = typing;
+        if(!usersIds){
+            if (callback) {
+                console.log('usersIds not found');
+                
+                return callback({ status: 'error', typing: 'usersIds not found' });
+            }
+        }
+        // Ensure usersIds is defined and is an array
+        if (Array.isArray(usersIds)) {
+            // Find the recipient's socket
+            usersIds.forEach(userId => {
+                const recipient = Array.from(users.values()).find(user => user.id == userId);
+                console.log("Recipient for userId", userId, ":", recipient);
+    
+                if (recipient && recipient.socketId) {
+                    io.to(recipient.socketId).emit('groupTyping', typing);
+                    console.log(`Typing sent to user ${recipient.socketId}:`, typing);
+                } else {
+                    console.log(`Recipient with ID ${userId} not found or has no socketId`);
+                }
+            });
+        } else {
+            console.error('usersIds is not an array or is undefined');
+            if (callback) {
+                return callback({ status: 'error', typing: 'Invalid usersIds' });
+            }
+        }
+    
+        // Send an acknowledgment back to the client
+        if (typeof callback === 'function') {
+            callback({ status: 'ok', msg: 'Typing event received' });
+        }
+    });
     
     
     // Function to get socket IDs by user IDs

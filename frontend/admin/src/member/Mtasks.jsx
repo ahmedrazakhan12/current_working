@@ -6,6 +6,7 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Swal from 'sweetalert2';
 import { useAppContext } from '../context/AppContext';
+import AddTimeModal from './AddTimeModal';
 const Tasks = () => {
   const [data , setData] = useState([]);
   const [dbStatus , setDbStatus] = useState([]);
@@ -208,7 +209,7 @@ const handleChange = async (event , id , taskName  , projectId ,projectName) => 
   // setSelectedPreview(selectedPreview);
 
   try {
-    await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
+    await axios.put(`http://localhost:5000/task/editStatusInGroup/${id}`, {
       status: selectedValue,
     });
     const userNotificationsIds = [
@@ -286,7 +287,7 @@ if (searchRef.current) {
 // setSelectedPreview(selectedPreview);
 
 try {
-  await axios.put(`http://localhost:5000/task/editPriority/${id}`, {
+  await axios.put(`http://localhost:5000/task/editPriorityInGroup/${id}`, {
     priority: selectedValue,
   });
 
@@ -382,6 +383,17 @@ const handleFullTasks = (id) => {
   );
 };
 
+
+const [showModal3, setShowModal3] = useState(false);
+const [sendTaskId , setSendTaskId] = useState('')
+
+const handleShowModal = (id) => 
+{
+  setSendTaskId(id)
+  setShowModal3(true)
+};
+const handleCloseModal = () => setShowModal3(false);
+
   return (
     <div>
       <div className="container-fluid">
@@ -431,7 +443,7 @@ const handleFullTasks = (id) => {
                 overflowX: 'auto', // Use 'auto' instead of 'scroll' for better UX
               }}
             >
-                 {Object.keys(groupedItems).map((status, index) => (
+      {Object.keys(groupedItems).map((status, index) => (
     <div key={status} className="col" style={{ display: 'inline-block' }}>
         <h4 className="fw-bold  text-capitalize text-center mb-5">{status}</h4>
         {groupedItems[status].length > 0 ? (
@@ -458,8 +470,16 @@ const handleFullTasks = (id) => {
             </strong>
           </Link>
         </h6>
+        <p><i class='bx bxs-time-five' style={{marginTop:'-10px'}} onClick={()=>handleShowModal(item.task.id)}></i></p>
+                     
+        </div>
+        <AddTimeModal
+        sendTaskId={sendTaskId}
+        show={showModal3} 
+        handleShow={handleShowModal} 
+        handleClose={handleCloseModal} 
+      />             
       
-      </div>
           <div className="card-subtitle text-muted mb-3">
          {item.task.projectName}
       </div>
@@ -593,6 +613,8 @@ const handleFullTasks = (id) => {
                           <strong>{item.task?.taskName}</strong>
                         </Link>
                       </h6>
+                      <p><i class='bx bxs-time-five' style={{marginTop:'-10px'}} onClick={()=>handleShowModal(item.task.id)}></i></p>
+
                     </div>
                     <div className="d-flex flex-column m-0 p-0">
                       <div>

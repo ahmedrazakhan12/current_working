@@ -305,7 +305,30 @@ exports.updateStatus = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 }
+exports.editStatusInGroup = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    console.log(id ,status);
+    
+    const error =
+    validateStatus(status) ;
 
+  if (error) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      message: error,
+    });
+  }
+    console.log(id ,status);
+    await taskModel.update({ status: status }, { where: { id: id } });
+    res.status(200).send("Status successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
 
 exports.updatePriority = async (req, res) => {
   try {
@@ -331,6 +354,31 @@ exports.updatePriority = async (req, res) => {
   }
 }
 
+
+
+exports.editPriorityInGroup = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { priority } = req.body;
+
+    const error =
+    validateStatus(priority) ;
+
+  if (error) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      message: error,
+    });
+  }
+    console.log(id ,priority);
+    await taskModel.update({ priority: priority }, { where: { id: id } });
+    res.status(200).send("priority successfully updated.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+}
 
 
 
@@ -680,9 +728,10 @@ exports.getTaskTime = async (req, res) => {
       where: {
         taskId: taskId,
       },
+      order: [['updatedAt', 'DESC']], // Sort by most recent update
     });
 
-    // Create a map to store total hours and minutes for each user
+    // Create a map to store total hours, minutes, and last updated time for each user
     const userTimes = {};
 
     workTimes.forEach((workTime) => {
@@ -693,18 +742,24 @@ exports.getTaskTime = async (req, res) => {
         userTimes[userId] = {
           totalHours: 0,
           totalMinutes: 0,
+          lastUpdated: workTime.updatedAt, // Initialize with the current workTime updatedAt
         };
       }
 
       // Add the hours and minutes to the user's total
       userTimes[userId].totalHours += workTime.hour;
       userTimes[userId].totalMinutes += workTime.min;
+
+      // Update the last updated time if this workTime is more recent
+      if (workTime.updatedAt > userTimes[userId].lastUpdated) {
+        userTimes[userId].lastUpdated = workTime.updatedAt;
+      }
     });
 
     // Format the time for each user and handle minute overflow
     const result = await Promise.all(
       Object.keys(userTimes).map(async (userId) => {
-        let { totalHours, totalMinutes } = userTimes[userId];
+        let { totalHours, totalMinutes, lastUpdated } = userTimes[userId];
 
         // Handle overflow of minutes to hours
         totalHours += Math.floor(totalMinutes / 60);
@@ -712,6 +767,10 @@ exports.getTaskTime = async (req, res) => {
 
         // Format the time as "HH:MM"
         const formattedTime = `${totalHours}:${totalMinutes.toString().padStart(2, '0')}`;
+
+        // Separate the date and time
+        const lastUpdatedDate = lastUpdated.toISOString().substring(0, 10); // "YYYY-MM-DD"
+        const lastUpdatedTime = lastUpdated.toISOString().substring(11, 19); // "HH:MM:SS"
 
         // Fetch user data
         const userData = await adminModel.findOne({
@@ -723,17 +782,177 @@ exports.getTaskTime = async (req, res) => {
         return {
           userData,
           totalTime: formattedTime,
+          lastUpdatedDate,  // Separate date
+          lastUpdatedTime,  // Separate time
         };
       })
     );
 
     // Send the result to the frontend
     res.status(200).json({
-       result,
+      result,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+exports.deleteTaskTime = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await db.Taskworktime.destroy({
+      where: {
+        userId: id
+      }
+    });
+    res.status(200).json({ message: "Task time deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+// exports.getTaskTime = async (req, res) => {
+//   try {
+//     const { taskId } = req.params;
+
+//     // Fetch all records that match the taskId
+//     const workTimes = await db.Taskworktime.findAll({
+//       where: {
+//         taskId: taskId,
+//       },
+//       order: [['updatedAt', 'DESC']], // Sort by most recent update
+//     });
+
+//     // Create a map to store total hours and minutes for each user
+//     const userTimes = {};
+
+//     // Find the latest updated timestamp
+//     const lastUpdatedTime = workTimes.length > 0 ? workTimes[0].updatedAt : new Date();
+
+//     workTimes.forEach((workTime) => {
+//       const userId = workTime.userId;
+
+//       // Initialize the user time if not already done
+//       if (!userTimes[userId]) {
+//         userTimes[userId] = {
+//           totalHours: 0,
+//           totalMinutes: 0,
+//         };
+//       }
+
+//       // Add the hours and minutes to the user's total
+//       userTimes[userId].totalHours += workTime.hour;
+//       userTimes[userId].totalMinutes += workTime.min;
+//     });
+
+//     // Format the time for each user and handle minute overflow
+//     const result = await Promise.all(
+//       Object.keys(userTimes).map(async (userId) => {
+//         let { totalHours, totalMinutes } = userTimes[userId];
+
+//         // Handle overflow of minutes to hours
+//         totalHours += Math.floor(totalMinutes / 60);
+//         totalMinutes = totalMinutes % 60;
+
+//         // Format the time as "HH:MM"
+//         const formattedTime = `${totalHours}:${totalMinutes.toString().padStart(2, '0')}`;
+
+//         // Fetch user data
+//         const userData = await adminModel.findOne({
+//           where: {
+//             id: userId
+//           }
+//         });
+
+//         return {
+//           userData,
+//           totalTime: formattedTime,
+//         };
+//       })
+//     );
+
+//     // Format last updated time as "YYYY-MM-DD HH:MM:SS"
+//     const lastUpdatedFormatted = lastUpdatedTime.toISOString().replace('T', ' ').substring(0, 19);
+
+//     // Send the result to the frontend
+//     res.status(200).json({
+//       result,
+//       lastUpdated: lastUpdatedFormatted,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
+
+// exports.getTaskTime = async (req, res) => {
+//   try {
+//     const { taskId } = req.params;
+
+//     // Fetch all records that match the taskId
+//     const workTimes = await db.Taskworktime.findAll({
+//       where: {
+//         taskId: taskId,
+//       },
+//     });
+
+//     // Create a map to store total hours and minutes for each user
+//     const userTimes = {};
+
+//     workTimes.forEach((workTime) => {
+//       const userId = workTime.userId;
+
+//       // Initialize the user time if not already done
+//       if (!userTimes[userId]) {
+//         userTimes[userId] = {
+//           totalHours: 0,
+//           totalMinutes: 0,
+//         };
+//       }
+
+//       // Add the hours and minutes to the user's total
+//       userTimes[userId].totalHours += workTime.hour;
+//       userTimes[userId].totalMinutes += workTime.min;
+//     });
+
+//     // Format the time for each user and handle minute overflow
+//     const result = await Promise.all(
+//       Object.keys(userTimes).map(async (userId) => {
+//         let { totalHours, totalMinutes } = userTimes[userId];
+
+//         // Handle overflow of minutes to hours
+//         totalHours += Math.floor(totalMinutes / 60);
+//         totalMinutes = totalMinutes % 60;
+
+//         // Format the time as "HH:MM"
+//         const formattedTime = `${totalHours}:${totalMinutes.toString().padStart(2, '0')}`;
+
+//         // Fetch user data
+//         const userData = await adminModel.findOne({
+//           where: {
+//             id: userId
+//           }
+//         });
+
+//         return {
+//           userData,
+//           totalTime: formattedTime,
+//         };
+//       })
+//     );
+
+//     // Send the result to the frontend
+//     res.status(200).json({
+//        result,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 

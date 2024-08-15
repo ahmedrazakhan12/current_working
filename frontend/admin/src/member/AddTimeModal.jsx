@@ -3,6 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 function AddTimeModal({ show, handleClose , sendTaskId}) {
   const [hours, setHours] = useState(0);
@@ -37,9 +38,28 @@ function AddTimeModal({ show, handleClose , sendTaskId}) {
         min: minutes
     })
     .then((response) => {
+      Swal.fire({
+        position: "top-end",
+        title: "Time has been successfully saved!",
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+         popup: 'custom-swal' 
+        }
+    });
         console.log("Server response:", response.data);
     })
     .catch((error) => {
+      Swal.fire({
+        position: "top-end",
+        title: "Time has been successfully saved!",
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          popup: 'custom-swal-danger' 
+         }
+    });
+
         console.error("Error sending data:", error);
     });
 
@@ -94,7 +114,7 @@ const handlesubmit = (e) => {
             Close
           </Button>
           <Button variant="primary" onClick={handleSave}>
-            Save Changes
+            Add
           </Button>
         </Modal.Footer>
       </Modal>

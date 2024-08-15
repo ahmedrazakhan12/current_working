@@ -263,6 +263,20 @@ const handleSearchGroupChange = (e) => {
         fetchGroupData();
         setIsSearchData(false)
         setView(true);
+        const notification = {
+          fromId: activeId,
+          usersID: usersID,
+          text:`${loggedUser?.name} Added you to a Group: ${groupName}.`,
+          time: new Date().toLocaleString(),
+          route: '/chat',
+        };
+        socket.emit('newNotification', notification, (response) => {
+          if (response && response.status === 'ok') {
+            console.log(response.msg);
+          } else {
+            console.error('Message delivery failed or no response from server');
+          }
+        });
         Swal.fire({
           position: "top-end",
           title: "Group created successfully",
@@ -322,7 +336,7 @@ const handleSearchGroupChange = (e) => {
                     <p className={view === false ? "isActive-chat " : "chattt"} style={{ color:'white' , borderRadius:'10px' , padding:'0px 10px' , marginRight:'5px' , cursor:'pointer'}} onClick={()=>setView(false)}>Chats</p>
                     <p className={view === true ? "isActive-gChat " : "chattt"} style={{ color:'white' , borderRadius:'10px' , padding:'0px 10px' , marginRight:'5px' , cursor:'pointer'}} onClick={()=>setView(true)}>Groups</p>
                 </div>
-            <div className="m-body contacts-container">
+            <div className="m-body contacts-container overflow-auto">
             <div className="row mx-2" style={{background:'#f7f7f7' }}>
                 <div className="col-12">
                 
@@ -350,12 +364,12 @@ const handleSearchGroupChange = (e) => {
                       
                 </div>
               </div>
-              <div
-                className="show messenger-tab users-tab app-scroll"
-                data-view="users"
-              >
-              
-                {data.length === 0 && isSearchData === false && view === false && (
+                    
+              <div style={{height:'63vh' , overflow:'scroll'}} className='app-scroll'>
+                {/* <div style={{overflow:'s  croll'}}> */}
+
+                <div>
+             {data.length === 0 && isSearchData === false && view === false && (
                   <>
                   <table className="messenger-list-item mt-3" data-contact={7}>
                   <tbody>
@@ -432,7 +446,7 @@ const handleSearchGroupChange = (e) => {
 
             {data.length === 0 && isSearchData === false && view === true && (
                   <>
-                  <table className="messenger-list-item mt-3" data-contact={7}>
+                  <table className="messenger-list-item mt-3 " >
                   <tbody>
         
                     <tr  data-action={0} onClick={()=>handleChatUser(loggedUser.id)} style={{cursor:'pointer'}}>
@@ -450,13 +464,13 @@ const handleSearchGroupChange = (e) => {
                       </td>
                     </tr>
                   </tbody>
-                </table>
+                    </table>
                 <p className="messenger-title">
                   <span>All Messages</span>
                 </p>
         
                 {dbGroupData.groups?.map((item, index) => (
-  <table className="messenger-list-item mt-3" data-contact={7} key={item.id}>
+  <table className="messenger-list-item mt-3 overflow-scroll" data-contact={7} key={item.id}>
     <tbody>
       <tr data-action={0} onClick={() => handleGroupChatUser(item?.id)} style={{ cursor: 'pointer' }}>
         <td>
@@ -525,10 +539,11 @@ const handleSearchGroupChange = (e) => {
                   <p>No user found</p>
                   </>
                 )}
-        
-        
+             </div>
+                {/* </div> */}
               </div>
-              <div className="messenger-tab search-tab app-scroll" data-view="search">
+                    
+              {/* <div className="messenger-tab search-tab app-scroll" data-view="search">
                 <p className="messenger-title">
                   <span>Search</span>
                 </p>
@@ -537,7 +552,7 @@ const handleSearchGroupChange = (e) => {
                     <span>Type to Search..</span>
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
                 </div>
         )}
@@ -582,7 +597,7 @@ const handleSearchGroupChange = (e) => {
                     <input type="text" className="messenger-search m-0 " onChange={handleSearchGroupChange} placeholder="Search" />
                     
                     </div>
-                    <div className="m-body contacts-container" style={{position:'relative'}}>
+                    <div className="m-body contacts-container " style={{position:'relative'}}>
                     {groupData?.map((item, index) => (
                         <table className="messenger-list-item mt-3" data-contact={7}>
                         <tbody>
@@ -639,16 +654,7 @@ const handleSearchGroupChange = (e) => {
                 
                 
                     </div>
-                    <div className="messenger-tab search-tab app-scroll" data-view="search">
-                        <p className="messenger-title">
-                        <span>Search</span>
-                        </p>
-                        <div className="search-records">
-                        <p className="message-hint center-el">
-                            <span>Type to Search..</span>
-                        </p>
-                        </div>
-                    </div>
+                   
                     </div>
                         </div>
         )}

@@ -13,8 +13,11 @@ import Picker from '@emoji-mart/react';
 import {BsCheck2All} from "react-icons/bs"
 import { BsCheck } from 'react-icons/bs';
 import Chatbar from './Chatbar';
+import Swal from 'sweetalert2';
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
 
-
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 const GChatById = () => {
   const { socket , location } = useAppContext();
   const { id } = useParams();
@@ -42,7 +45,15 @@ const GChatById = () => {
     }
   };
   const handleIconClick = () => {
-    fileInputRef.current.click();
+    // fileInputRef.current.click();
+    Swal.fire({
+      title: 'This feature will be available soon!',
+      icon: 'info',
+      text: 'Regards Gmg Solutions',
+      showCancelButton: false,
+      showConfirmButton:false,
+      timer: 2000
+    })
   };
   const activeId = localStorage.getItem("id");
   const navigate = useNavigate();
@@ -67,30 +78,34 @@ const GChatById = () => {
     }
   }, [activeId, navigate]);
 
+
+  const fetchGroupData = async () => {
+    axios.get(`http://localhost:5000/chat/getChatById/${id}`)
+    .then((res) => {
+      // if (
+      //   res?.data && 
+      //   res?.data?.groupUsers &&
+      //   Array.isArray(res?.data?.groupUsers) && 
+      //   (res?.data?.groupUsers?.some(user => user?.id === loggedUser?.id) || 
+      //   res?.data?.creator?.id === loggedUser?.id)
+      // ) {
+        setGroupData(res.data);
+      // } else {
+      //   setGroupData([]);
+      // //   navigate("/");
+      // }
+  
+      
+      
+    })
+    .catch((err) => {
+      console.log("Error getting Groups//////:", err);
+    });
+  }
   
   useEffect(() => {
     console.log("Client ID: ", id); // Check if the ID is valid
-    axios.get(`http://localhost:5000/chat/getChatById/${id}`)
-      .then((res) => {
-        // if (
-        //   res?.data && 
-        //   res?.data?.groupUsers &&
-        //   Array.isArray(res?.data?.groupUsers) && 
-        //   (res?.data?.groupUsers?.some(user => user?.id === loggedUser?.id) || 
-        //   res?.data?.creator?.id === loggedUser?.id)
-        // ) {
-          setGroupData(res.data);
-        // } else {
-        //   setGroupData([]);
-        // //   navigate("/");
-        // }
-    
-        
-        
-      })
-      .catch((err) => {
-        console.log("Error getting Groups//////:", err);
-      });
+    fetchGroupData();
   }, [id]);
   
 
@@ -125,7 +140,6 @@ useEffect(() => {
 useEffect(() => {
     scrollToBottom();
 } , [recieveDbMessages])
-  const [isTyping , setIsTyping] = useState(false);
   useEffect(() => {
     // alert(id)
     // alert(isSeen)
@@ -133,8 +147,17 @@ useEffect(() => {
     scrollToBottom();
     
   },[id])
-  scrollToBottom();
   
+  useEffect(() => {
+    // Use setTimeout to ensure that the scroll happens after the DOM is fully rendered
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+
+    // Clean up the timer if the component unmounts
+    return () => clearTimeout(timer);
+  }, []);
+
 
   
   const handleSendText = (e) => {
@@ -142,8 +165,16 @@ useEffect(() => {
     
         if (e.target.value.length !== 0 || text.length !== 0) {
         scrollToBottom();
-        const messageData = { fromId: activeId, toId: id, status: 1 };
-        socket.emit('typing', messageData, (response) => {
+        const messageData = { 
+          fromId: Number(activeId),
+          image: loggedUser?.pfpImage,
+          groupId: Number(id),
+          usersIds: [
+          ...(groupData?.groupUsers?.map(user => user.id) || []),
+          Number(groupData?.creator?.id)],
+          status: 1
+          };
+        socket.emit('groupTyping', messageData, (response) => {
         if (response && response.status === 'ok') {
         // console.log(response.msg);
         } else {
@@ -151,18 +182,7 @@ useEffect(() => {
         }
         });
 
-        }else{
-        const messageData = { fromId: activeId, toId: id, status: 0 };
-
-        socket.emit('typing', messageData, (response) => {
-        if (response && response.status === 'ok') {
-        console.log(response.msg);
-        } else {
-        console.error('Message delivery failed or no response from server');
         }
-        });
-        }
-
         return () => {
         const messageData = { fromId: activeId, toId: id, status: 0 };
 
@@ -176,23 +196,47 @@ useEffect(() => {
         };
   };
 
+  const [isTyping , setIsTyping] = useState([]);
+  const [typingUsers, setTypingUsers] = useState([]); // To store the users who are typing
 
+  useEffect(() => {
+    socket.on('groupTyping', (data) => {
+      if (Number(data.groupId) === Number(id)) {
+        // console.log('groupTyping:', data);
+        scrollToBottom();
+        
+        // Check if the typing user is not the logged-in user
+        if (Number(data.fromId) !== Number(activeId)) {
+          setTypingUsers(prevTyping => {
+            const alreadyTyping = prevTyping.some(user => user.fromId === data.fromId);
+            const currentUser = prevTyping.some(user => Number(user.toId) !== Number(activeId));
+            if (!alreadyTyping) {
+              return [...prevTyping, data]; // Add the new typing user
+            }
+            if (!currentUser) {
+              return [...prevTyping, data]; // Add the new typing user
+            }
+            return prevTyping;
+          });
 
-  console.log("isTyping" , isTyping);
+          // Remove user after 10 seconds
+          setTimeout(() => {
+            setTypingUsers(prevTyping => prevTyping.filter(user => user.fromId !== data.fromId));
+          }, 10000);
+        }
+      }
+    });
+
+    // Cleanup on component unmount
+    return () => {
+        socket.off('groupTyping');
+    };
+}, [id, activeId, socket]); // Add dependencies
+
   
-useEffect(()=>{
-  socket.on('receiveTyping', (res) => {
-    console.log('Typing Response:', res);
-    if(res.status === 1 && res.fromId === id){
-      setIsTyping(true)
 
-    }
-    if(res.status === 0 ){
-      setIsTyping(false)
-    }
-    scrollToBottom();
-  });
-},[id])
+  
+
   
   const [activeUsers, setActiveUsers] = useState([]);
   const [activeStatus, setActiveStatus] = useState(false);
@@ -563,6 +607,272 @@ useEffect(() => {
   }, [recieveMessages]);
 
 
+  const [searchAddMember , setSearchAddMember] = useState([]);
+  const handleSearchGroupChange = (e) => {
+    const searchTerm = e.target.value;
+  
+    axios
+      .get(`http://localhost:5000/admin/search/${searchTerm}`)
+      .then((res) => {
+        // Get the search result
+        const searchResult = res.data;
+  
+        // Filter out users that are already in the group and exclude activeId
+        const filteredUsers = searchResult.filter(user => 
+          !groupData?.groupUsers?.some(groupUser => groupUser.id === user.id) &&
+          Number(user.id) !== Number(activeId)
+        );
+  
+        // Set the filtered users to state
+        setSearchAddMember(filteredUsers);
+      })
+      .catch((err) => {
+        console.log("Error searching providers:", err);
+      });
+  };
+  
+
+  
+  const [userGroupInfo, setUserGroupInfo] = useState([]);
+
+  const [usersID, setUsersID] = useState([]);
+  
+  console.log(usersID);
+  console.log(userGroupInfo);
+  
+  
+  const handleAddGroupMember = (user) => {
+    if (usersID.includes(user.id)) {
+        // Display an error message or handle the error case
+        console.error('User ID already exists');
+
+        Swal.fire({
+            position: "top-end",
+            title: "User already exists.",
+            showConfirmButton: false,
+            timer: 1500,
+            customClass: {
+              popup: 'custom-swal-danger'
+            }
+          });
+        return; // Exit the function early
+      }
+
+
+    setUserGroupInfo((prevName) => [...prevName,user]);
+    setUsersID((prevIDs) => [...prevIDs, user.id]);
+
+
+   
+  };
+
+
+  const handleSubmitMember = () => {
+    if(usersID.length === 0){{
+      Swal.fire({
+        position: "top-end",
+        title: "Please select at least one user.",
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          popup: 'custom-swal-danger'
+        }
+      })
+    }}
+  if(usersID.length !== 0){
+    axios.post('http://localhost:5000/chat/addGroupMember', {
+      groupId: id,
+      userId: usersID
+    })
+    .then((response) => {
+      setShow(false)
+      const notification = {
+        fromId: activeId,
+        usersID: [usersID],
+        text:`${loggedUser?.name} Added you to a Group: ${groupData?.name}.`,
+        time: new Date().toLocaleString(),
+        route: '/chat',
+      };
+      socket.emit('newNotification', notification, (response) => {
+        if (response && response.status === 'ok') {
+          console.log(response.msg);
+        } else {
+          console.error('Message delivery failed or no response from server');
+        }
+      });
+      fetchGroupData();
+      setUsersID([])
+      setUserGroupInfo([])
+      setSearchAddMember([])
+      scrollToBottom()
+
+      Swal.fire({
+        position: "top-end",
+        title: "Group members added successfully.",
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          popup: 'custom-swal-success'
+        }
+      })
+      console.log(response.data);
+    })
+    .catch((error) => {
+      Swal.fire({
+        position: "top-end",
+        title: "Failed to add group members.",
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          popup: 'custom-swal-danger'
+        }
+      })
+      console.error(error);
+    });
+  }
+
+  }
+  const handleRemoveUser = (user) => {
+    setUserGroupInfo((prevName) => prevName.filter((u) => u.id !== user.id));
+    setUsersID((prevIDs) => prevIDs.filter((id) => id !== user.id));
+  };
+
+  const [show, setShow] = useState(false);
+  const [show1, setShow1] = useState(false);
+
+  const handleClose = () => {
+    setShow(false)
+    setUsersID([])
+    setUserGroupInfo([])
+    
+  };
+
+  
+  const handleClose1 = () => {
+    setShow1(false)
+    
+  };
+  const handleShow = () => setShow(true);
+
+  const handleShow1 = () => setShow1(true);
+
+
+  const [groupName, setGroupName] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null);
+
+  const handleGroupNameChange = (e) => {
+    setGroupName(e.target.value);
+  };
+
+  const handleProfilePictureChange = (e) => {
+    setProfilePicture(e.target.files[0]);
+    
+  };
+  console.log("profilePictureprofilePictureprofilePictureprofilePictureprofilePictureprofilePicture: " , profilePicture);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Prepare data for group name submission
+      const groupNameData = { groupName , id };
+
+      if(groupName !== ""){
+         // Send the group name data to API
+        await axios.put('http://localhost:5000/chat/updateGcName', groupNameData);
+
+      }
+      // Prepare form data for file submission
+      if (profilePicture) { // Ensure profilePicture is a valid file
+        const formData = new FormData();
+        formData.append('pfpImage', profilePicture);
+        formData.append('id', id);
+  
+        await axios.put('http://localhost:5000/chat/updateGcPfp', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+      fetchGroupData();
+      setShow1(false)
+      // Optionally, handle success (e.g., reset form, show message)
+      setGroupName('');
+      setProfilePicture(null);
+      alert('Submitted successfully!');
+    } catch (error) {
+      // Handle error (e.g., show error message)
+      console.error('Error submitting form:', error);
+      alert('Submission failed!');
+    }
+  };
+
+
+  
+  const formatDate = (date) => {
+    const parsedDate = parseISO(date); // Assuming date is an ISO string
+    if (isToday(parsedDate)) {
+      return 'Today';
+    }
+    if (isYesterday(parsedDate)) {
+      return 'Yesterday';
+    }
+    return format(parsedDate, 'MMM d, yyyy'); // e.g., Aug 15, 2024
+  };
+  
+  let lastMessageDate = null;
+
+
+  const handleDeleteGroup = () => {
+   Swal.fire({
+     title: 'Are you sure?',
+     text: "You won't be able to revert this!",
+     icon: 'warning',
+     showCancelButton: true,
+     confirmButtonColor: '#3085d6',
+     cancelButtonColor: '#d33',
+     confirmButtonText: 'Yes, delete it!'
+   })
+   .then((result) => {
+     if (result.isConfirmed) {
+       axios.delete(`http://localhost:5000/chat/deleteGroup/${id}`)
+       .then((res) => {
+         navigate('/chat')
+         const notification = {
+          fromId: activeId,
+          usersID: [
+            ...(groupData?.groupUsers?.map(user => user.id) || [])
+          ],
+          text:`${loggedUser?.name} deleted the Group: ${groupData?.group?.groupName}.`,
+          time: new Date().toLocaleString(),
+          route: '/chat',
+        };
+        socket.emit('newNotification', notification, (response) => {
+          if (response && response.status === 'ok') {
+            console.log(response.msg);
+          } else {
+            console.error('Message delivery failed or no response from server');
+          }
+        });
+         Swal.fire(
+           {
+            position: 'top-end',
+            title: 'Group deleted successfully',
+            showConfirmButton: false,
+            timer: 1500,
+            customClass: {
+              popup: 'custom-swal'
+            }
+           }
+         )
+       })
+       .catch((err) => {
+         console.log(err)
+       })
+     }
+   })
+
+  }
 
   return (
     <>
@@ -609,8 +919,142 @@ useEffect(() => {
             <a onClick={() => setDisplay2(!display2)} className="show-infoSide cursor-pointer">
             <i class='bx bxs-info-circle' style={{color:'#2180f3' , fontSize:'24px'}}></i>
             </a>
+            <div class="dropdown">
+          <button style={{background:"transparent" , border: "none",marginLeft:'-20px'
+          }}  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i className='bx bx-dots-vertical'></i>
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <a class="dropdown-item cursor-pointer" onClick={handleShow}>Add Group Member</a>
+          <a class="dropdown-item cursor-pointer" onClick={handleShow1}>Setting</a>
+          <a class="dropdown-item cursor-pointer" onClick={handleDeleteGroup}>Delete Group</a>
+          <a class="dropdown-item cursor-pointer"  >More</a>
+          </div>
+        </div>
           </nav>
         </nav>
+        <Modal
+        show={show1}
+        onHide={handleClose1}
+        backdrop="static"
+        keyboard={false}
+        dialogClassName="modal-dialog-centered" // Add this line
+
+      >
+        <form onSubmit={handleSubmit} encType='multipart/form-data'>
+        <Modal.Header closeButton>
+          <Modal.Title>Setting</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+      <div className="row">
+        <div className="col-lg-12">
+          <label htmlFor="groupName" className="form-label">Group Name</label>
+          <input
+            type="text"
+            id="groupName"
+            className="form-control"
+            placeholder="Group Name"
+            value={groupName}
+            onChange={handleGroupNameChange}
+          />
+        </div>
+        <div className="col-lg-12">
+          <label htmlFor="profilePicture" className="form-label">Profile Picture</label>
+          <input
+            type="file"
+            name='pfpImage'
+            id="profilePicture"
+            className="form-control"
+            accept=".png, .jpg, .jpeg"
+            onChange={handleProfilePictureChange}
+          />
+        </div>
+      </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose1}>
+            Close
+          </Button>
+          <Button variant="primary"type="submit">Add </Button>
+        </Modal.Footer>
+    </form>
+      </Modal>
+
+
+        <Modal
+        show={show}
+        onHide={handleClose}
+        backdrop="static"
+        keyboard={false}
+        dialogClassName="modal-dialog-centered" // Add this line
+
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Add Member</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+        <div className='add-group-member '>
+                    {userGroupInfo?.map((item, index) => (
+                            <div className='group-members '>
+                            <img src={`${item.pfpImage}`} alt="" />
+                            <p>{item.name}</p>
+                            <a onClick={()=>handleRemoveUser(item)}><i class='bx bx-x ' style={{color:"black" , marginTop:'-5px' , cursor:"pointer"}}></i></a>
+                        </div>
+                    ))}
+        </div>
+        <input type="text" className='form-control' placeholder='search user' onChange={handleSearchGroupChange} />
+        {searchAddMember?.map((item , index)=>(
+          <>
+           <table className="messenger-list-item mt-3" data-contact={7}>
+                 <tbody>
+        
+                   <tr  data-action={0} onClick={()=>handleAddGroupMember(item)} style={{cursor:'pointer'}}>
+                     <td >
+                       <div className="saved-messages avatar av-m">
+                         {/* <img src={item.pfpImage} style={{objectFit:'cover'}} alt="" /> */}
+                       
+                         <div className="">
+                         <div className="saved-messages avatar av-m">
+                          <img src={item.pfpImage} style={{objectFit:'cover'}} alt="" />
+                        </div>
+        
+                      </div>
+        
+                       </div>
+                     </td>
+                     <td className='text-capitalize '>
+                       <p data-id={7} data-type="user">
+                         {/* <span>You</span> */}
+                       </p>
+                       {item.name}
+                       <span className='d-block m-0 p-0'>click to add</span>
+                       {/* <p>{activeUsers.filter(data => Number(data.id) === Number(item.id) ? 'id' : 'not')}</p> */}
+                     
+        
+                        {/* <p>{ activeUsers.map(e => \e.id == item.id) ? 'online': 'ofline'}</p> */}
+                     </td>
+                   </tr>
+                 </tbody>
+           
+            </table>
+
+            
+           </>
+
+     ))}
+
+     {searchAddMember.length === 0 && (
+       <p className='text-center'>No user found</p>
+     )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleSubmitMember}>Add </Button>
+        </Modal.Footer>
+      </Modal>
+
         <div className="internet-connection">
           <span className="ic-connected">Connected</span>
           <span className="ic-connecting">Connecting...</span>
@@ -633,28 +1077,51 @@ useEffect(() => {
    
 
                   <div className="messages" id="messages">
-                {recieveDbMessages.map((msg, index) => (
+                {/* {recieveDbMessages.map((msg, index) => 
+           
+            
+           
+                   (
                  
                   <div key={index} >
                         <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' , color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
                         <span className={` ${Number(msg.fromId) === Number(activeId) ? 'float-end left-image' : 'float-start right-image'}`}><img src={msg?.user?.pfpImage} style={{ position:'absolute',width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover' , marginTop:'20px'}} alt="" /></span> 
                        
                         <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text} 
-                        {/* <p style={{position:'absolute' , marginTop:'-15px' , marginLeft:'50px'}} className={` ${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`} >   <BsCheck2All style={msg.seen == 1 ? {color:'rgb(63, 122, 249)'} : {color:'white'}} /></p> */}
+                        
                         </p>
                        
-                        {/* <p  className={` ${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`} > {msg.seen == 1 && "Message SEen"}</p> */}
+                        
                           
             
                   
 
-                  {/* <span className="message-time">
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span> */}
+                  
                 </div>
                 ))}
-            
+             */}
+ {recieveDbMessages.map((msg, index) => {
+        const messageDate = new Date(msg.time);
+        const showDate = lastMessageDate === null || (messageDate - lastMessageDate) > 2 * 24 * 60 * 60 * 1000;
+        lastMessageDate = messageDate;
 
+        return (
+          <div key={index}>
+            {showDate && (
+               <p className="messenger-title3">
+               <span>{formatDate(msg.time)}</span>
+             </p>
+            
+            )}
+            <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{ fontSize: '10px', color: '#6d6d6d', marginBottom: '-110px' }}>{formatTimeWithAMPM(msg.time)}</p>
+            <span className={` ${Number(msg.fromId) === Number(activeId) ? 'float-end left-image' : 'float-start right-image'}`}>
+              <img src={msg?.user?.pfpImage} style={{ position: 'absolute', width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover', marginTop: '20px' }} alt="" />
+            </span>
+            <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text}</p>
+            <br /><br /><br />
+          </div>
+        );
+      })}
                     {recieveMessages?.map((msg, index) => (
                       <div key={index} >
                         {msg.text && !msg.file ? (
@@ -720,17 +1187,26 @@ useEffect(() => {
     )}
             
                 
-                <div style={{marginLeft:'-10px'}} className={isTyping === true ? 'd-block ' : 'd-none'}>
-        <div className="message-card typing">
-          <div className="message">
-            <span className="typing-dots">
-              <span className="dot dot-1 " />
-              <span className="dot dot-2 " />
-              <span className="dot dot-3 " />
-            </span>
-          </div>
-        </div>
-               </div>
+            <div style={{marginLeft: '-35px'}} className={typingUsers.length > 0 ? 'd-block' : 'd-none'}>
+  <div className="message-card typing">
+    <div className="message">
+      <span className="typing-dots">
+        <span className="dot dot-1" />
+        <span className="dot dot-2" />
+        <span className="dot dot-3" />
+      </span>
+      {typingUsers.map(user => (
+        <img 
+          key={user.fromId} 
+          src={user.image} 
+          alt="User Avatar" 
+          style={{ width: '20px', height: '20px', borderRadius: '50%', marginLeft: '5px' }} 
+        />
+      ))}
+    </div>
+  </div>
+</div>
+
                <div ref={messageEndRef} />
             
 

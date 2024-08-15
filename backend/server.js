@@ -15,6 +15,7 @@ const ProjectPriorityRoute = require("./routes/Projectpriorityroute");
 const chatRoute = require("./routes/Chatroute");
 const meetingRoute = require("./routes/Meetingroute");
 const notifyRoute = require("./routes/Notifyroute");
+const generalRoute = require("./routes/Generalroute");
 const db = require("./models"); // Adjust the path as necessary
 
 
@@ -61,7 +62,7 @@ app.use("/projectPriority", ProjectPriorityRoute);
 app.use("/chat", chatRoute);
 app.use("/meeting", meetingRoute);
 app.use("/notify", notifyRoute);
-
+app.use("/general", generalRoute);
 
 const server = require('http').createServer(app);
 

@@ -280,7 +280,7 @@ const handleProjectPriorityChange = async (event , id) => {
   // setSelectedPreview(selectedPreview);
 
   try {
-    await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
+    await axios.put(`http://localhost:5000/task/editStatusInGroup/${id}`, {
       status: selectedValue,
     });
     const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
@@ -333,7 +333,7 @@ const handlePriorityChange = async (event , id , taskName) => {
   // setSelectedPreview(selectedPreview);
 
   try {
-    await axios.put(`http://localhost:5000/task/editPriority/${id}`, {
+    await axios.put(`http://localhost:5000/task/editPriorityInGroup/${id}`, {
       priority: selectedValue,
     });
 
@@ -582,20 +582,10 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                       <div className="mb-3">
                         <span className="badge bg-info">Learning and Education</span>
                       </div>
-                      <h2 className="fw-bold">
+                      <h2 className="fw-bold text-capitalize">
                         {item.project.projectName}
                        
-                        <a
-                          href="https://taskify.taskhub.company/chat?type=project&id=434"
-                          target="_blank"
-                        >
-                          <i
-                            className="bx bx-message-rounded-dots text-danger"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            data-bs-original-title="Discussion"
-                          />
-                        </a>
+                       
                       </h2>
                       <div className="row">
                         <div className="col-md-6 mt-3 mb-3">
@@ -1168,7 +1158,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
       <div className="d-flex justify-content-between">
         <h6 className="card-title">
           <Link
-          to={`/viewTask/${item.task.id}`}
+         onClick={() => handleShow(item.task.id)}
           >
             <strong>
               {item.task.taskName}
@@ -1210,31 +1200,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
              
             </ul>
           </div>
-          <a
-            className="quick-view"
-            data-id="93"
-            data-type="task"
-            href="javascript:void(0);"
-          >
-            <i
-              className="bx bx bx-info-circle text-info"
-              data-bs-original-title="Quick View"
-              data-bs-placement="right"
-              data-bs-toggle="tooltip"
-            />
-          </a>
-          <a
-            className="mx-2"
-            href="https://taskify.taskhub.company/chat?type=task&id=93"
-            target="_blank"
-          >
-            <i
-              className="bx bx-message-rounded-dots text-danger"
-              data-bs-original-title="Discussion"
-              data-bs-placement="right"
-              data-bs-toggle="tooltip"
-            />
-          </a>
+       
         </div>
       </div>
       {data.map((item,index)=>{
@@ -2454,6 +2420,8 @@ const isImage = urlEndsWithAny(url, imageExtensions); // Add other image extensi
         name="text"
         id="file"
         multiple
+        accept=".mp4, .avi, .mov, .wmv, .sql, .pdf, .docx, .zip, .png, .jpg, .jpeg"
+
         type="file"
         onChange={handleFileChange}
       />

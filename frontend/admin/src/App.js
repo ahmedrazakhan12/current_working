@@ -44,6 +44,7 @@ import Mfavorite from './member/Mfavorite';
 import Mtasks from './member/Mtasks';
 import MMeeting from './member/MMeeting';
 import GChatById from './chat/GChatById';
+import ChangeDisplay from './pages/setting/ChangeDisplay';
 function App() {
   
   const { isMenuExpanded } = useAppContext();
@@ -69,7 +70,27 @@ function App() {
       });
     
   }, [activeId]);
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/general/logos/`)
+      .then((res) => {
+        console.log(res.data);
 
+        // Update the favicon
+        const link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          const newLink = document.createElement("link");
+          newLink.rel = "icon";
+          newLink.href = res.data[0].favicon; // Use the fetched logo URL
+          document.head.appendChild(newLink);
+        } else {
+          link.href = res.data[0].favicon;
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   return (
     // <Router>
@@ -122,6 +143,7 @@ function App() {
 
                   {data && data.role === "super-admin" &&
                     <>
+                      <Route path="/changeDisplay" element={<Protected Component={ChangeDisplay} />} />
                       <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
                       <Route path="/priority" element={<Protected Component={Priority} />} />
                       <Route path="/addProject" element={<Protected Component={Addproject} />} />

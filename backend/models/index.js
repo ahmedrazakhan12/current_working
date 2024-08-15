@@ -20,6 +20,7 @@ const {groupUser} = require("./Groupusermodel");
 const {groupChatModel} = require("./Groupchatsmodel");
 const {groupUserChatting} = require("./Groupchattingmodel");
 const {Taskworktime} = require("./Taskworktimemodel");
+const {generalModel} = require("./General");
 const db = {};
 
 // Initialize models
@@ -44,6 +45,7 @@ db.groupChatModel = groupChatModel;
 db.groupUser = groupUser;
 db.groupUserChatting = groupUserChatting;
 db.Taskworktime = Taskworktime;
+db.generalModel = generalModel;
 // Add other models to db object
 // db.userModel = userModel;
 

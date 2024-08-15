@@ -223,7 +223,7 @@ const calculateDuration = (startDate, endDate) => {
   // setSelectedPreview(selectedPreview);
 
   try {
-    await axios.put(`http://localhost:5000/task/editStatus/${id}`, {
+    await axios.put(`http://localhost:5000/task/editStatusInGroup/${id}`, {
       status: selectedValue,
     });
     const userNotificationsIds = data?.flatMap(item => item?.users?.map(user => user.id));
@@ -281,7 +281,7 @@ const handlePriorityChange = async (event , id , taskName) => {
   // setSelectedPreview(selectedPreview);
 
   try {
-    await axios.put(`http://localhost:5000/task/editPriority/${id}`, {
+    await axios.put(`http://localhost:5000/task/editPriorityInGroup/${id}`, {
       priority: selectedValue,
     });
 
@@ -1008,7 +1008,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
       <div className="d-flex justify-content-between">
         <h6 className="card-title">
           <Link
-          to={`/viewTask/${item.task.id}`}
+          onClick={() => handleShow(item.task.id)}
           >
             <strong>
               {item.task.taskName}

@@ -461,25 +461,83 @@ const TaskById = ({ show, handleClose, taskId }) => {
 
 
   const [totalTimeData, setTotalTimeData] = useState([]);
-
+  const fetchTaskTime = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/task/getTaskTime/${taskId}`);
+      console.log("http://localhost:5000/getTaskTime", res.data);
+      setTotalTimeData(res.data)
+      // Update the state with the total time
+    } catch (error) {
+      console.error("Error fetching task time:", error);
+    }
+  };
   useEffect(() => {
     // Fetch the task time data from the backend
   if(taskId){
-    const fetchTaskTime = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/task/getTaskTime/${taskId}`);
-        console.log("http://localhost:5000/getTaskTime", res.data);
-        setTotalTimeData(res.data)
-        // Update the state with the total time
-      } catch (error) {
-        console.error("Error fetching task time:", error);
-      }
-    };
+   
     fetchTaskTime();
   }
 
 }, [taskId]);
 
+function formatTime(time) {
+  // Split the time string into hours, minutes, and seconds
+  const [hours, minutes, seconds] = time.split(':').map(Number);
+
+  // Convert hours to 12-hour format
+  const adjustedHours = hours % 12 || 12;
+  const period = hours >= 12 ? 'PM' : 'AM';
+
+  // Format the time
+  const formattedTime = `${adjustedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  
+  return formattedTime;
+}
+
+const handleDeleteUserTime = (id) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    customClass: {
+      popup: "custom-swal-popup",
+    },
+    willOpen: () => {
+      document.querySelector('.swal2-container').style.zIndex = '9999';
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      axios
+        .delete(`http://localhost:5000/task/deleteUserTime/${id}`)
+        .then(() => {
+          // fetchTaskTim/e();
+          fetchTaskTime();
+          Swal.fire({
+            position: "top-end",
+            title: "Time deleted",
+            showConfirmButton: false,
+            timer: 1500,
+          
+          });
+        })
+        
+        .catch((error) => {
+          Swal.fire({
+            title: "Error!",
+            text: "There was a problem deleting your time.",
+            icon: "error",
+            customClass: {
+              popup: "custom-swal-popup",
+            }
+          });
+        });
+    }
+  });
+}
 
   return (
     <>
@@ -943,6 +1001,16 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                         <div className="fht-cell" />
                       </th>
                    
+                      <th style={{ textAlign: "center" }} data-field="assigned">
+                        <div className="th-inner ">Last Updated</div>
+                        <div className="fht-cell" />
+                      </th>
+                      {loginData?.role !== "member" && (
+                          <th style={{ textAlign: "center" }} data-field="assigned">
+                          <div className="th-inner ">Action</div>
+                          <div className="fht-cell" />
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -993,13 +1061,31 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                             {item?.totalTime }  m 
                           </h2>
                         </td>
+
+                        <td style={{ textAlign: "center" }}>
+                        <h2
+                            className={
+                                "badge bg-warning me-1"
+                            }
+                            style={{ fontSize: "12px" , margin: "0" , textAlign: "center" }}
+                          >
+                            {item?.lastUpdatedDate} 
+                          </h2>
+                          
                        
+                        </td>
                        
+                        {loginData?.role !== "member" && (
+                        <td style={{ textAlign: "center" }}>
+                          <i className="bx bx-trash" onClick={() => handleDeleteUserTime(item?.userData?.id)} style={{cursor:'pointer', color:'red'}} aria-hidden="true"/>
+                        </td>
+                      
+                      )}
                       </tr>
                     ))}
                     {totalTimeData.result && totalTimeData.result.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="text-center">
+                        <td colSpan={loginData?.role !== "member" ? 5 : 4} className="text-center">
                           No data found
                         </td>
                       </tr>
@@ -1111,6 +1197,8 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                       name="text"
                       id="file"
                       type="file"
+                      multiple
+
                       onChange={handleTaskFileChange}
                     />
                       

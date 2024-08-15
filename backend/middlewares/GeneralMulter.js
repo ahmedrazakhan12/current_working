@@ -26,6 +26,11 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-}).single('pfpImage' );
+}).fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'favicon', maxCount: 1 }
+]);
+
+module.exports = upload;
 
 module.exports = upload;

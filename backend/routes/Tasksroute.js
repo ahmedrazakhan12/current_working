@@ -11,6 +11,9 @@ router.post("/addTask", taskController.addTask);
 router.put("/editTask/:id", taskController.updateTask);
 router.put("/editStatus/:id", taskController.updateStatus);
 router.put("/editPriority/:id", taskController.updatePriority);
+router.put("/editPriorityInGroup/:id", taskController.editPriorityInGroup);
+router.put("/editStatusInGroup/:id", taskController.editStatusInGroup);
+
 router.delete("/deleteTask/:id", taskController.deleteTask);
 router.get("/getTask/:id", taskController.getTaskById);
 router.post("/addMedia/:id", mediaUpload, taskController.addMedia);
@@ -20,5 +23,6 @@ router.get("/filter", taskController.getFilterProject);
 router.get("/filter/:id", taskController.getFilterProjectMember);
 router.post("/addTaskTime", taskController.taskTime);
 router.get("/getTaskTime/:taskId", taskController.getTaskTime);
+router.delete("/deleteUserTime/:id", taskController.deleteTaskTime);
 
 module.exports = router;

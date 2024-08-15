@@ -127,8 +127,43 @@ exports.groupChat = async (req, res) => {
     console.log(error);
     res.status(500).json({ error: "Server error" });
   }
-};
+};exports.addGroupMember = async (req, res) => {
+  try {
+    const { groupId } = req.body;
+    let usersID = JSON.parse(req.body.userId); // Parse JSON string back to its original form
 
+    // Ensure usersID is an array
+    if (!Array.isArray(usersID)) {
+      usersID = [usersID]; // Convert single value to an array
+    }
+
+    console.log(groupId, usersID);
+
+    // Check for existing group members
+    const existingMembers = await db.groupUser.findAll({
+      where: {
+        groupId: groupId,
+        userId: usersID
+      }
+    });
+
+    // Filter out already existing members
+    const existingUserIds = existingMembers.map(member => member.userId);
+    const newUserIds = usersID.filter(userId => !existingUserIds.includes(userId));
+
+    // Add only new users
+    if (newUserIds.length > 0) {
+      const membersToAdd = newUserIds.map(userId => ({ groupId, userId }));
+
+      await db.groupUser.bulkCreate(membersToAdd);
+    }
+
+    res.status(200).json({ message: "Group member(s) added successfully!" });
+  } catch (error) {
+    console.error(error); // Log error details for debugging
+    res.status(500).json({ error: "Server error" });
+  }
+}
 
 exports.getGroups = async (req, res) => {
   try {
@@ -286,5 +321,98 @@ exports.getChattingById = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Server error" });
+  }
+}
+
+
+exports.updateGcName = async (req, res) => {
+  const { groupName, id } = req.body;
+  console.log("groupName, id: ", groupName, id);
+  
+  if (!groupName || !id) {
+    return res.status(400).json({ error: 'Group name and ID are required' });
+  }
+
+  try {
+    // Update the group name in your database
+     await db.groupChatModel.update(
+      { groupName: groupName },
+      { where: { id } }
+    )
+
+ 
+    res.status(200).json({ message: 'Group name updated successfully' });
+  } catch (error) {
+    console.error('Error updating group name:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
+}
+exports.updateGcPfp = async (req, res) => {
+  const { id } = req.body;
+  const file = req.file;
+
+  console.log("id: ", id , "file: ", file);
+  
+
+  if (!id) {
+    return res.status(400).json({ error: 'Group ID is required' });
+  }
+  if (!file) {
+    return res.status(400).json({ error: 'File is required' });
+  }
+
+  try {
+    let imagePath = "http://localhost:5000/public/uploads/pfp/groupImage.png";
+
+    if (file) {
+      console.log("File received: ");
+      const photoFileName = file.filename;
+      console.log("PhotoFileName: ", photoFileName);
+      imagePath = `http://localhost:5000/public/uploads/pfp/${photoFileName}`;
+    }
+
+    await db.groupChatModel.update(
+      { groupImage: imagePath },
+      { where: { id: id } }
+    );
+
+    res.status(200).json({ message: 'Profile picture updated successfully' });
+  } catch (error) {
+    console.error('Error updating profile picture:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+exports.deleteGroup = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Group ID is required' });
+  }
+
+  try {
+    await db.groupChatModel.destroy({
+      where: {
+        id: id
+      }
+    });
+
+    await db.groupUser.destroy({
+      where: {
+        groupId: id
+      }
+    })
+
+    await db.groupUserChatting.destroy({
+      where: {
+        groupId: id
+      }
+    })
+    res.status(200).json({ message: 'Group deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting group:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }

@@ -12,7 +12,10 @@ import data2 from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import {BsCheck2All} from "react-icons/bs"
 import { BsCheck } from 'react-icons/bs';
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
+
 import Chatbar from './Chatbar';
+import Swal from 'sweetalert2';
 
 
 const Chat = () => {
@@ -42,7 +45,15 @@ const Chat = () => {
     }
   };
   const handleIconClick = () => {
-    fileInputRef.current.click();
+    // fileInputRef.current.click();
+    Swal.fire({
+      title: 'This feature will be available soon!',
+      icon: 'info',
+      text: 'Regards Gmg Solutions',
+      showCancelButton: false,
+      showConfirmButton:false,
+      timer: 2000
+    })
   };
   const activeId = localStorage.getItem("id");
   const navigate = useNavigate();
@@ -110,6 +121,11 @@ const Chat = () => {
       socket.on('receiveMsg', (msg ,messageId) => {
         console.log('Message received:', msg);
         setRecieveMessages(prevMessages => [...prevMessages, msg ,messageId]);
+        setTimeout(() => {
+          // fetchChats();
+          setIsSeen(false);
+          // setRecieveMessages([]);
+        }, 1000);
         
       });
 
@@ -170,26 +186,24 @@ useEffect(() => {
   
   const previousRouteRef = useRef(location.pathname); // Initialize with the current route
 
-
   useEffect(() => {
-    // Listen for the 'receiveSeenMessage' event
+    // Function to handle 'receiveSeenMessage' event
     const handleReceiveSeenMessage = (data) => {
-      console.log('Seen Messages:', data);
-      if (data && Number(data?.fromId) === Number(activeId) && Number(data?.toId) === Number(id) && data.status === 1) {
+      if (data && Number(data.fromId) === Number(activeId) && Number(data.toId) === Number(id)) {
         setIsSeen(true);
+       
       }
-
-      
     };
-
+  
+    // Set up socket event listener
     socket.on('receiveSeenMessage', handleReceiveSeenMessage);
-
+  
+    // Cleanup function to remove the event listener
     return () => {
-      // Clean up the listener when the component unmounts or id/activeId/socket changes
       socket.off('receiveSeenMessage', handleReceiveSeenMessage);
     };
-  }, [id, activeId, socket , location.pathname]);
-
+  }, [id, activeId, socket]); // Removed location.pathname as it's not used in the effect
+  
 
   useEffect(() => {
     // Emit 'sendLeaveChat' if route changes
@@ -346,36 +360,16 @@ const filteredMessages = recieveMessages.filter(msg =>
         }
       });
 
-    }else{
-      const messageData = { fromId: activeId, toId: id, status: 0 };
-
-      socket.emit('typing', messageData, (response) => {
-        if (response && response.status === 'ok') {
-          console.log(response.msg);
-        } else {
-          console.error('Message delivery failed or no response from server');
-        }
-      });
     }
 
-    return () => {
-      const messageData = { fromId: activeId, toId: id, status: 0 };
-
-      socket.emit('typing', messageData, (response) => {
-        if (response && response.status === 'ok') {
-          console.log(response.msg);
-        } else {
-          console.error('Message delivery failed or no response from server');
-        }
-      });
-  };
+   
   };
   console.log("isTyping" , isTyping);
   
 useEffect(()=>{
   socket.on('receiveTyping', (res) => {
     console.log('Typing Response:', res);
-    if(res.status === 1 && Number(res.fromId) == Number(id)){
+    if( Number(res.fromId) === Number(id)){
       setIsTyping(true)
       setTimeout(() => {
         setIsTyping(false)
@@ -677,15 +671,15 @@ const [chatBarUsers , setChatBarUsers] = useState([])
         }
       });
 
-      const typingData = { fromId: activeId, toId: id, status: 0 };
+      // const typingData = { fromId: activeId, toId: id, status: 0 };
 
-      socket.emit('typing', typingData, (response) => {
-        if (response && response.status === 'ok') {
-          // console.log(response.msg);
-        } else {
-          console.error('Message delivery failed or no response from server');
-        }
-      });
+      // socket.emit('typing', typingData, (response) => {
+      //   if (response && response.status === 'ok') {
+      //     // console.log(response.msg);
+      //   } else {
+      //     console.error('Message delivery failed or no response from server');
+      //   }
+      // });
     }
   };
   
@@ -762,7 +756,19 @@ useEffect(() => {
 
 
 
-
+  const formatDate = (date) => {
+    const parsedDate = parseISO(date); // Assuming date is an ISO string
+    if (isToday(parsedDate)) {
+      return 'Today';
+    }
+    if (isYesterday(parsedDate)) {
+      return 'Yesterday';
+    }
+    return format(parsedDate, 'MMM d, yyyy'); // e.g., Aug 15, 2024
+  };
+  
+  let lastMessageDate = null;
+  
   return (
     <>
   
@@ -835,70 +841,125 @@ useEffect(() => {
       </div>
             
    
+      {/* {recieveDbMessages && recieveDbMessages.map((msg, index) => (
+                 
+                 <div key={index} >
+                 {msg.text && !msg.file ? (
+                     <div>
+                       <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' , color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
+                       <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text} 
+                       </p>
+                      
+                         
+                     </div>
+                 ) : (
+                   msg.file && (
+                     <div  className={`${
+                       Number(msg.fromId) === Number(activeId) ? 'chat-image-view-left' : 'chat-image-view-right'
+                     }`}>
+                       {msg.file.startsWith('data:image/') && (
+                         <>
+                         
+                         <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
+                         <img src={msg.file} alt={msg.fileName} className="message-image mt-3" /> 
+                         
+                         </>
+                       )}
+                       {msg.file.startsWith('data:video/') && (
+                         <>
+                         <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
+
+                         <video controls className="message-video">
+                           <source src={msg.file} type={msg.file.split(';')[0].split(':')[1]} />
+                           Your browser does not support the video tag.
+                         </video>
+                         </>
+                       )}
+                       {msg.file.startsWith('data:application/') && (
+                         // <a href={msg.file} download={msg.fileName} className="message-document">
+                         <div className='doc-bg'> 
+                         <p className='text-center'>File : {msg.fileName}</p>
+                         <img src="/assets/images/document.jpg" alt="" />
+                         <p className='text-center'>Document</p>
+                         </div>
+                         // </a>
+                       )}
+                     </div>
+                   )
+                 )}
+                 <br /><br /><br />
+                 {!hasSeen && index === lastSeenMessageIndex && (
+           <div style={{float:'right'}}>
+             <img src={userDataById?.pfpImage} style={{ width: '15px', height: '15px', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+           </div>
+         )}
+
+               
+               </div>
+               ))} */}
 
                   <div className="messages" id="messages">
-                {recieveDbMessages.map((msg, index) => (
-                 
-                  <div key={index} >
-                  {msg.text && !msg.file ? (
-                      <div>
-                        <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' , color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
-                        <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text} 
-                        {/* <p style={{position:'absolute' , marginTop:'-15px' , marginLeft:'50px'}} className={` ${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`} >   <BsCheck2All style={msg.seen == 1 ? {color:'rgb(63, 122, 249)'} : {color:'white'}} /></p> */}
-                        </p>
-                       
-                        {/* <p  className={` ${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`} > {msg.seen == 1 && "Message SEen"}</p> */}
-                          
-                      </div>
-                  ) : (
-                    msg.file && (
-                      <div  className={`${
-                        Number(msg.fromId) === Number(activeId) ? 'chat-image-view-left' : 'chat-image-view-right'
-                      }`}>
-                        {msg.file.startsWith('data:image/') && (
-                          <>
-                          
-                          <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
-                          <img src={msg.file} alt={msg.fileName} className="message-image mt-3" /> 
-                          
-                          </>
-                        )}
-                        {msg.file.startsWith('data:video/') && (
-                          <>
-                          <span className={` ${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{fontSize:'10px' , marginBottom:'100px',color:'#6d6d6d', position:'absolute' }}>{formatTimeWithAMPM(msg.time)} </span>
+                  {recieveDbMessages.map((msg, index) => {
+        const messageDate = new Date(msg.time);
+        const showDate = lastMessageDate === null || (messageDate - lastMessageDate) > 2 * 24 * 60 * 60 * 1000;
+        lastMessageDate = messageDate;
 
-                          <video controls className="message-video">
-                            <source src={msg.file} type={msg.file.split(';')[0].split(':')[1]} />
-                            Your browser does not support the video tag.
-                          </video>
-                          </>
-                        )}
-                        {msg.file.startsWith('data:application/') && (
-                          // <a href={msg.file} download={msg.fileName} className="message-document">
-                          <div className='doc-bg'> 
-                          <p className='text-center'>File : {msg.fileName}</p>
-                          <img src="/assets/images/document.jpg" alt="" />
-                          <p className='text-center'>Document</p>
-                          </div>
-                          // </a>
-                        )}
-                      </div>
-                    )
+        return (
+          <div key={index}>
+            {showDate && (
+                  <p className="messenger-title3">
+                  <span>{formatDate(msg.time)}</span>
+                </p>
+            )}
+            {msg.text && !msg.file ? (
+              <div>
+                <p className={`${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{ fontSize: '10px', color: '#6d6d6d', marginBottom: '-110px' }}>{formatTimeWithAMPM(msg.time)}</p>
+                <p className={`${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text}
+                  {/* <p style={{ position: 'absolute', marginTop: '-15px', marginLeft: '50px' }} className={`${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`}> <BsCheck2All style={msg.seen == 1 ? { color: 'rgb(63, 122, 249)' } : { color: 'white' }} /></p> */}
+                </p>
+                {/* <p className={`${Number(msg.fromId) === Number(activeId) ? 'd-block' : 'd-none'}`}>{msg.seen == 1 && "Message SEen"}</p> */}
+              </div>
+            ) : (
+              msg.file && (
+                <div className={`${Number(msg.fromId) === Number(activeId) ? 'chat-image-view-left' : 'chat-image-view-right'}`}>
+                  {msg.file.startsWith('data:image/') && (
+                    <>
+                      <span className={`${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{ fontSize: '10px', marginBottom: '100px', color: '#6d6d6d', position: 'absolute' }}>{formatTimeWithAMPM(msg.time)}</span>
+                      <img src={msg.file} alt={msg.fileName} className="message-image mt-3" />
+                    </>
                   )}
-                  <br /><br /><br />
-                  {!hasSeen && index === lastSeenMessageIndex && (
-            <div style={{float:'right'}}>
-              <img src={userDataById?.pfpImage} style={{ width: '15px', height: '15px', borderRadius: '50%', objectFit: 'cover' }} alt="" />
-            </div>
-          )}
-
-                  {/* <span className="message-time">
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span> */}
+                  {msg.file.startsWith('data:video/') && (
+                    <>
+                      <span className={`${Number(msg.fromId) === Number(activeId) ? 'left-time' : 'right-time'}`} style={{ fontSize: '10px', marginBottom: '100px', color: '#6d6d6d', position: 'absolute' }}>{formatTimeWithAMPM(msg.time)}</span>
+                      <video controls className="message-video">
+                        <source src={msg.file} type={msg.file.split(';')[0].split(':')[1]} />
+                        Your browser does not support the video tag.
+                      </video>
+                    </>
+                  )}
+                  {msg.file.startsWith('data:application/') && (
+                    <div className='doc-bg'>
+                      <p className='text-center'>File : {msg.fileName}</p>
+                      <img src="/assets/images/document.jpg" alt="" />
+                      <p className='text-center'>Document</p>
+                    </div>
+                  )}
                 </div>
-                ))}
+              )
+            )}
+            <br /><br /><br />
             
-
+            {!hasSeen && index === lastSeenMessageIndex && (
+              <div style={{ float: 'right' }}>
+                <img src={userDataById?.pfpImage} style={{ width: '15px', height: '15px', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+              </div>
+            )}
+            {/* <span className="message-time">
+              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span> */}
+          </div>
+        );
+      })}
                     {filteredMessages.map((msg, index) => (
                       <div key={index} >
                         {msg.text && !msg.file ? (
@@ -950,6 +1011,20 @@ useEffect(() => {
                         </span> */}
                       </div>
                     ))}
+                                {isTyping === true && 
+                
+                <div style={{marginLeft:'-10px'}} >
+            <div className="message-card typing">
+              <div className="message">
+                <span className="typing-dots">
+                  <span className="dot dot-1 " />
+                  <span className="dot dot-2 " />
+                  <span className="dot dot-3 " />
+                </span>
+              </div>
+            </div>
+                   </div>
+                }
                     
                     {/* <br /><br /><br /> */}
                           {hasSeen && activeStatus === true && (
@@ -1002,20 +1077,8 @@ useEffect(() => {
                       </span>
                   </div>
                 ))} */}
-            
 
-                
-                <div style={{marginLeft:'-10px'}} className={isTyping === true ? 'd-block ' : 'd-none'}>
-        <div className="message-card typing">
-          <div className="message">
-            <span className="typing-dots">
-              <span className="dot dot-1 " />
-              <span className="dot dot-2 " />
-              <span className="dot dot-3 " />
-            </span>
-          </div>
-        </div>
-               </div>
+
                <div ref={messageEndRef} />
             
 
@@ -1065,7 +1128,8 @@ useEffect(() => {
     <span className="fas fa-smile" />
     </button>
    {file === null && 
-    <textarea
+    <input
+    type='text'
     name="message"
     className="m-send app-scroll"
     value={text}

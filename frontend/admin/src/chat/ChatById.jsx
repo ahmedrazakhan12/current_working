@@ -121,10 +121,11 @@ const Chat = () => {
       socket.on('receiveMsg', (msg ,messageId) => {
         console.log('Message received:', msg);
         setRecieveMessages(prevMessages => [...prevMessages, msg ,messageId]);
+        setIsTyping(false);
+        // setIsSeen(false);
+        
         setTimeout(() => {
           // fetchChats();
-          setIsSeen(false);
-          // setRecieveMessages([]);
         }, 1000);
         
       });
@@ -191,10 +192,9 @@ useEffect(() => {
     const handleReceiveSeenMessage = (data) => {
       if (data && Number(data.fromId) === Number(activeId) && Number(data.toId) === Number(id)) {
         setIsSeen(true);
-       
       }
     };
-  
+    setIsSeen(false);
     // Set up socket event listener
     socket.on('receiveSeenMessage', handleReceiveSeenMessage);
   
@@ -269,9 +269,11 @@ useEffect(() => {
     const handleReceiveLeaveChat = (data) => {
       console.log('receiveLeaveChat:', data);
       if (data && Number(data?.fromId) === Number(id) && Number(data?.toId) === Number(activeId)) {
-        setIsSeen(false);
-        setRecieveMessages([]); // Clear previous messages
-        fetchChats();
+        setTimeout(() => {
+          setIsSeen(false);
+        }, 1000);
+        // setRecieveMessages([]); // Clear previous messages
+        // fetchChats();
 
       }
     };
@@ -373,7 +375,7 @@ useEffect(()=>{
       setIsTyping(true)
       setTimeout(() => {
         setIsTyping(false)
-      } , 10000)
+      } , 7000)
 
     }
     if(res.status === 0 ){
@@ -639,6 +641,8 @@ const [chatBarUsers , setChatBarUsers] = useState([])
         fromId: activeId,
         toId: id,
         text,
+        userDetail:loggedUser,
+        toUserDetail: [activeId  , userDataById ,text],
         file: file,
         fileName: fileName,
         time: new Date().toISOString(),
@@ -648,7 +652,8 @@ const [chatBarUsers , setChatBarUsers] = useState([])
       const notification = {
         fromId: activeId,
         usersID: [Number(id)],
-        text:`${loggedUser?.name} send you a message.`,
+        text:`${loggedUser?.name} has sent you a message.`,
+        
         time: new Date().toLocaleString(),
         route: '/chat',
       };
@@ -659,7 +664,7 @@ const [chatBarUsers , setChatBarUsers] = useState([])
           console.error('Message delivery failed or no response from server');
         }
       });
-
+     
       setText('');
       setFile(null); 
       setShowEmogi(false);

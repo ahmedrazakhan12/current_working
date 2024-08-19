@@ -337,18 +337,64 @@ exports.deleteProject = async (req, res) => {
 };
 
 
+// exports.getAllProjects = async (req, res) => {
+//   try {
+//     const projects = await projectModel.findAll();
+//     const users = await projectUsersModel.findAll();
+//     const tags = await projectTagsModel.findAll();
+//     const status = await projectStatusModel.findAll();
+//     const creator = await adminModel.findAll();
+//     const tasks = await taskModel.findAll();
+
+//     const data = await Promise.all(projects.map(async (project) => {
+//       const filteredUsersIds = users.filter(user => user.projectId === project.id);
+//       const filteredCreatorIds = creator.filter(creator => creator.id === project.creator );
+//       const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+//       const filteredStasus = status.filter(user => user.id === project.status);
+//       const filteredPriorities = status.filter(user => user.id === project.priority);
+//       const filteredTags = tags.filter(tag => tag.projectId === project.id);
+//       const filterTasks = tasks.filter(task => task.projectId === project.id);
+
+//       return {
+//         project: project,
+//         creator: filteredCreatorIds,
+//         users: filteredUsers,
+//         tags: filteredTags,
+//         status:filteredStasus,
+//         priority:filteredPriorities,
+//         tasks:filterTasks
+        
+//       };
+//     }));
+
+//     res.status(200).json(data);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// }
+
 exports.getAllProjects = async (req, res) => {
   try {
-    const projects = await projectModel.findAll();
+    const { page = 1, limit = 10 } = req.query; // Get page and limit from query params
+    const offset = (page - 1) * limit;
+
+    // Fetch the projects with pagination
+    const projects = await projectModel.findAndCountAll({
+      limit: parseInt(limit),
+      offset: offset,
+    });
+
+    // Fetch related data as before
     const users = await projectUsersModel.findAll();
     const tags = await projectTagsModel.findAll();
     const status = await projectStatusModel.findAll();
     const creator = await adminModel.findAll();
     const tasks = await taskModel.findAll();
 
-    const data = await Promise.all(projects.map(async (project) => {
+    const data = await Promise.all(projects.rows.map(async (project) => {
       const filteredUsersIds = users.filter(user => user.projectId === project.id);
-      const filteredCreatorIds = creator.filter(creator => creator.id === project.creator );
+      const filteredCreatorIds = creator.filter(creator => creator.id === project.creator);
       const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
       const filteredStasus = status.filter(user => user.id === project.status);
       const filteredPriorities = status.filter(user => user.id === project.priority);
@@ -360,19 +406,24 @@ exports.getAllProjects = async (req, res) => {
         creator: filteredCreatorIds,
         users: filteredUsers,
         tags: filteredTags,
-        status:filteredStasus,
-        priority:filteredPriorities,
-        tasks:filterTasks
-        
+        status: filteredStasus,
+        priority: filteredPriorities,
+        tasks: filterTasks
       };
     }));
 
-    res.status(200).json(data);
+    res.status(200).json({
+      data: data,
+      totalItems: projects.count,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(projects.count / limit)
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
   }
 }
+
 
 
 exports.getAllMemberProjects = async (req, res) => {

@@ -421,7 +421,7 @@ const Profile = () => {
             </form>
             {/* /Account */}
           </div>
-          <div className="card">
+          {/* <div className="card">
             <h5 className="card-header">Delete Account</h5>
             <div className="card-body">
               <div className="mb-3 col-12 mb-0">
@@ -443,7 +443,7 @@ const Profile = () => {
                 Delete Account
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

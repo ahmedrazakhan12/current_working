@@ -33,7 +33,10 @@ exports.adminLogin = async (req, res) => {
       });
     }
 
-    const user = await adminModel.findOne({ where: { email } });
+    const user = await adminModel.findOne({  where: { 
+      email: email,
+      deleted: 0 // Ensure the user is not deleted
+    } });
 
     if (!user) {
       return res.status(400).json({
@@ -373,14 +376,16 @@ exports.superAdminChangePassword = async (req, res) => {
 exports.getAllAdmins = async (req, res) => {
   try {
     const admins = await adminModel.findAll({
-      order: [["id", "ASC"]], // Order by id in ascending order
+      where: { deleted: 0 }, // Filter to include only records where deleted is 0
+      order: [["id", "ASC"]] // Order by id in ascending order
     });
+    
 
     const adminsWithProjectsAndTasks = await Promise.all(
       admins.map(async (admin) => {
         // Fetch projects for each admin
         const adminProjects = await db.projectUsersModel.findAll({
-          where: { userId: admin.id },
+          where: { userId: admin.id  },
         });
 
         // Fetch tasks for each admin
@@ -406,10 +411,65 @@ exports.getAllAdmins = async (req, res) => {
 };
 
 
+exports.getAllDeletedAdmins = async (req, res) => {
+  try {
+    const admins = await adminModel.findAll({
+      where: { deleted: 1 }, // Filter to include only records where deleted is 0
+      order: [["id", "ASC"]] // Order by id in ascending order
+    });
+    
+
+    const adminsWithProjectsAndTasks = await Promise.all(
+      admins.map(async (admin) => {
+        // Fetch projects for each admin
+        const adminProjects = await db.projectUsersModel.findAll({
+          where: { userId: admin.id  },
+        });
+
+        // Fetch tasks for each admin
+        const adminTasks = await db.taskUsersModel.findAll({
+          where: { userId: admin.id },
+        });
+
+        return {
+          ...admin.dataValues,
+          projectCount: adminProjects.length,
+          taskCount: adminTasks.length,
+        };
+      })
+    );
+
+    res.status(200).json({
+      admins: adminsWithProjectsAndTasks,
+    });
+  } catch (error) {
+    console.error("Error in finding admins:", error);
+    return res.status(500).json({ message: "Failed to find admins" });
+  }
+};
+
+exports.restore = async (req, res) => {
+  try {
+    const id = req.params.id;
+    // Delete the admin
+    await adminModel.update(
+      { deleted: 0 }, // Set the deleted column to 0
+      { where: { id: id } } // Specify which record to update
+    );
+
+    console.log("Admin restored successfully");
+
+    res.status(200).json({ message: "Admin restored successfully" });
+  } catch (error) {
+    console.error("Error in restoring admin:", error);
+    return res.status(500).json({ message: "Failed to restored admin" });
+  }
+};
+
 exports.getAdminById = async (req, res) => {
   try {
     const id = req.params.id;
-    const admin = await adminModel.findOne({ where: { id: id } });
+    const admin = await adminModel.findOne({ where: { id: id   , deleted: 0 } });
     res.status(200).json(admin);
   } catch (error) {
     console.error("Error in Finding admins:", error);
@@ -421,7 +481,13 @@ exports.adminDelete = async (req, res) => {
   try {
     const id = req.params.id;
     // Delete the admin
-    await adminModel.destroy({ where: { id: id } });
+    await adminModel.update(
+      { deleted: 1 }, // Set the deleted column to 0
+      { where: { id: id } } // Specify which record to update
+    );
+    await db.projectUsersModel.destroy({ where: { userId: id } });
+    await db.taskUsersModel.destroy({ where: { userId: id } });
+    
     console.log("Admin deleted successfully");
 
     res.status(200).json({ message: "Admin deleted successfully" });
@@ -461,9 +527,13 @@ exports.adminSearch = async (req, res) => {
     const { key } = req.params;
     const admins = await adminModel.findAll({
       where: {
-        [Op.or]: [{ name: { [Op.like]: `%${key}%` } }],
-      },
+        [Op.and]: [
+          { name: { [Op.like]: `%${key}%` } },
+          { deleted: 0 }
+        ]
+      }
     });
+    
     res.status(200).json(admins);
   } catch (error) {
     console.error("Error in finding admins:", error);

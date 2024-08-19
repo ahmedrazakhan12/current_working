@@ -4,14 +4,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { Pagination } from "react-bootstrap";
 import Swal from "sweetalert2";
 import Navbar from "../../components/Navbar";
-const Manageusers = () => {
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
+
+const DeletedUsers = () => {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // Adjust items per page as needed
   const navigate = useNavigate();
   const fetchData = () => {
     axios
-      .get("http://localhost:5000/admin/team")
+      .get("http://localhost:5000/admin/deletedTeam")
       .then((res) => {
         console.log(res.data);
         setData(res.data.admins);
@@ -82,23 +85,23 @@ const Manageusers = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handleUserDelete = (id) => {
+  const handleUserRestore = (id) => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "You want to restore this user!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, restore it!",
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`http://localhost:5000/admin/delete/${id}`)
+          .put(`http://localhost:5000/admin/restore/${id}`)
           .then((res) => {
             Swal.fire({
               position: "top-end",
-              title: "User deleted successfully",
+              title: "User restored successfully",
               showConfirmButton: false,
               timer: 1500,
               customClass: {
@@ -125,7 +128,7 @@ const Manageusers = () => {
               className="card-body p-3  bg-white mt-4 shadow blur border-radius-lg"
             >
               <div className="table-responsive p-2">
-                <div
+                {/* <div
                   className="pt-2 pb-2"
                   style={{
                     display: "flex",
@@ -165,8 +168,8 @@ const Manageusers = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-
+                </div> */}
+                <h5>Deleted Users</h5>
                 <table id="table" className="table table-bordered ">
                   <thead>
                     <tr>
@@ -280,14 +283,7 @@ const Manageusers = () => {
                         <td style={{ textAlign: "center" }}>
                           {loggedInData.id !== item.id ? (
                             <>
-                            <Link to={`/editusers/${item.id}`}>
-                            <i className="bx bx-edit mx-2" />
-                          </Link>
-
-                          <Link to={`/changeUserpassword/${item.id}`}>
-                            <i className="bx bx-lock text-warning" />
-                          </Link>
-
+                            
                           <button
                             title="Delete"
                             type="button"
@@ -296,9 +292,10 @@ const Manageusers = () => {
                               background: "none",
                               margin: "0",
                             }}
-                            onClick={() => handleUserDelete(item.id)}
+                            onClick={() => handleUserRestore(item.id)}
                           >
-                            <i className="bx bx-trash text-danger " />
+                                 <FontAwesomeIcon icon={faArrowsRotate} style={{color:"green"}}/>
+
                           </button>
                           </>
                           ) : ('----')}
@@ -306,6 +303,12 @@ const Manageusers = () => {
                         </td>
                       </tr>
                     ))}
+
+                    {currentItems.length === 0 && (
+                       <tr>
+                        <td colSpan={6} className="text-center">No data found.</td>
+                       </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -357,4 +360,4 @@ const Manageusers = () => {
   );
 };
 
-export default Manageusers;
+export default DeletedUsers;

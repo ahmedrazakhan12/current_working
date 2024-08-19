@@ -178,6 +178,26 @@ const Sidebar = () => {
                       </div>
                     </span>
                   </li>
+
+                  <li
+                    className={
+                      location.pathname === "/deletedUsers"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                  >
+                    <span className="menu-link">
+                      <div>
+                        <Link
+                          style={{ textDecoration: "none", color: "inherit" }}
+                          to={"/deletedUsers "}
+                        >
+                          Deleted Users
+                        </Link>
+                      </div>
+                    </span>
+                  </li>
+
                   <li
                     className={
                       location.pathname === "/register"

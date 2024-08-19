@@ -11,7 +11,9 @@ const Dashboard = () => {
   useEffect(() => {
     axios.get('http://localhost:5000/project/getAllProject')
     .then((res) => {
-      setProject(res.data);
+      setProject(res.data.totalItems);
+      console.log("Logggings: ,.",res.data);
+      
     })
     .catch((err) => {
       console.log(err);
@@ -42,6 +44,19 @@ const Dashboard = () => {
     });
   }, []); 
 
+  const [meeting , setMeeting] = useState([]);
+
+  useEffect(()=>{
+    axios.get("http://localhost:5000/meeting/getMeeting")
+    .then((res) => {
+      setMeeting(res.data);
+      console.log("Meeting",res.data);
+      
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  },[])
   return (
     <>
     
@@ -59,7 +74,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Projects</span>
-                    <h3 className="card-title mb-2">{project?.length}</h3>
+                    <h3 className="card-title mb-2">{project && project}</h3>
                     <Link to="/manage"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>
@@ -89,6 +104,21 @@ const Dashboard = () => {
                     <span className="fw-semibold d-block mb-1">Total Users</span>
                     <h3 className="card-title mb-2"> {users?.length}</h3>
                     <Link to="/manageUsers"><small className="text-info fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="card-title d-flex align-items-start justify-content-between">
+                      <div className="avatar flex-shrink-0">
+                        <i className="menu-icon tf-icons bx bx-shape-polygon  bx-md text-success" />
+                      </div>
+                    </div>
+                    <span className="fw-semibold d-block mb-1">Total Meetings</span>
+                    <h3 className="card-title mb-2"> {meeting?.length}</h3>
+                    <Link to="/manageUsers"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>
               </div>

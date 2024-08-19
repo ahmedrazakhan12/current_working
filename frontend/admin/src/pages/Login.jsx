@@ -76,6 +76,7 @@ const Login = () => {
 
         localStorage.setItem("id", res.data.data.id);
         navigate("/");
+        socket.connect();
         // window.location.reload();
         Swal.fire({
           position: "top-end",
@@ -104,7 +105,7 @@ const Login = () => {
  
   const decodeToken = (token) => {
     if (!token) {
-      alert("Token is undefined or empty");
+      // alert("Token is undefined or empty");
     }
     const base64Url = token.split(".")[1];
     if (!base64Url) {

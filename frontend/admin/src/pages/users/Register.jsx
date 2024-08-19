@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Navbar from '../../components/Navbar';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -22,7 +25,16 @@ const Register = () => {
   const [passwordType, setPasswordType] = useState("password");
 
   const navigate = useNavigate();
-
+  const handlePhoneChange = (value, country) => {
+    // Combine country code and phone number
+    const combinedPhoneNumber = `+${value}`;
+  
+    setFormData({
+      ...formData,
+      contact: combinedPhoneNumber,  // Store the combined phone number with country code
+    });
+  };
+  
   const handleChange = (e) => {
     if (e.target.name === 'pfpImage') {
       const file = e.target.files[0];
@@ -175,15 +187,41 @@ const Register = () => {
                     <label className="form-label" htmlFor="phone">
                       Phone Number
                     </label>
-                    <input
-                      type="text"
-                      id="phone"
-                      name="contact"
-                      placeholder="Please Enter Phone Number"
-                      className="form-control"
-                      value={formData.contact}
-                      onChange={handleChange}
-                    />
+                    <PhoneInput
+      country={'us'}
+      // value={formData.contact}
+      onChange={handlePhoneChange}  // Correctly pass the value
+      inputProps={{
+        name: 'contact',
+        required: true,
+        placeholder: 'Please Enter Phone Number',
+      }}
+      containerStyle={{
+        width: '100%',
+        // maxWidth: '400px',
+        // margin: '0 auto',
+        // marginBottom: '20px',
+      }}
+      inputStyle={{
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+        // padding: '10px',
+        fontSize: '16px',
+        width: '100%',
+      }}
+      buttonStyle={{
+        backgroundColor: '#f8f8f8',
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+        fontSize: '14px',
+      }}
+      dropdownStyle={{
+        backgroundColor: '#fff',
+        borderRadius: '5px',
+        border: '1px solid #ccc',
+        fontSize: '14px',
+      }}
+    />
                   </div>
                   <div className="mb-3 col-md-6">
                     <label className="form-label" htmlFor="role">

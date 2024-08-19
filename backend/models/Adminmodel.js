@@ -50,6 +50,11 @@ const adminModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    deleted: {
+      type: DataTypes.INTEGER, // Use INTEGER for flag-like values
+      allowNull: false,
+      defaultValue: 0, // Default value is 0
+    },
 
     
 

@@ -7,6 +7,8 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Pagination } from "react-bootstrap";
 import { useAppContext } from '../../context/AppContext';
+import ReactPaginate from 'react-paginate';
+
 
 const Manage = () => { const navigate = useNavigate();
   const [data, setData] = useState([]);
@@ -19,7 +21,10 @@ const Manage = () => { const navigate = useNavigate();
   const itemsPerPage = 10;
   const activeId = localStorage.getItem("id");
 
-
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  
+  
   useEffect(() => {
     axios.get(`http://localhost:5000/admin/adminInfo/`, {
       headers: { Authorization: `${activeId}` }
@@ -31,21 +36,29 @@ const Manage = () => { const navigate = useNavigate();
       console.log(err);
     });
   }, [activeId]);
-  const fetchData = () => {
-    axios.get('http://localhost:5000/project/getAllProject')
+  const fetchData = (page = 1) => {
+    axios.get(`http://localhost:5000/project/getAllProject?page=${page}&limit=10`)
       .then((res) => {
-        console.log("Projects",res.data);
-        setData(res.data);
+        console.log("Projects", res.data);
+        setData(res.data.data);
+        setTotalItems(res.data.totalItems);
+        setCurrentPage(res.data.currentPage);
+        setTotalPages(res.data.totalPages);
       })
       .catch((err) => {
         console.log(err);
       });
   };
+  
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(currentPage);
+  }, [currentPage]);
 
-
+  
+  const handlePageClick = (selectedPage) => {
+    const page = selectedPage.selected + 1; // `selected` is zero-based
+    fetchData(page);
+  };
   useEffect(() => {
     axios.get(`http://localhost:5000/projectStatus/getAllStatus`)
     .then((res) => {
@@ -692,19 +705,25 @@ if (searchRef.current) {
       }
 
      {/* Pagination */}
-     {/* <Pagination className="mt-3 justify-content-center">
-          <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} />
-          {[...Array(totalPages).keys()].map(number => (
-            <Pagination.Item
-              key={number + 1}
-              active={number + 1 === currentPage}
-              onClick={() => setCurrentPage(number + 1)}
-            >
-              {number + 1}
-            </Pagination.Item>
-          ))}
-          <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} />
-        </Pagination> */}
+     <ReactPaginate
+      previousLabel={"Previous"}
+      nextLabel={"Next"}
+      breakLabel={"..."}
+      pageCount={totalPages}
+      marginPagesDisplayed={2}
+      pageRangeDisplayed={5}
+      onPageChange={handlePageClick}
+      containerClassName={"pagination"}
+      pageClassName={"page-item"}
+      pageLinkClassName={"page-link"}
+      previousClassName={"page-item"}
+      previousLinkClassName={"page-link"}
+      nextClassName={"page-item"}
+      nextLinkClassName={"page-link"}
+      breakClassName={"page-item"}
+      breakLinkClassName={"page-link"}
+      activeClassName={"active"}
+    />
     </div>
    
   </div>

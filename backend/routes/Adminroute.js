@@ -12,6 +12,8 @@ router.put("/adminSingleProfile/:id", multer, adminController.adminSingleProfile
 router.post("/register", multer, adminController.adminRegister);
 router.put("/changePassword", adminController.superAdminChangePassword);
 router.get("/team", adminController.getAllAdmins);
+router.get("/deletedTeam", adminController.getAllDeletedAdmins);
+router.put("/restore/:id", adminController.restore);
 router.get("/team/:id", adminController.getAdminById);
 router.delete("/delete/:id", adminController.adminDelete);
 router.put("/changeAdminPassword/:id", adminController.adminChangePassword);

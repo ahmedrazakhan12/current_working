@@ -192,6 +192,7 @@ exports.deleteTask = async (req, res) => {
     await taskModel.destroy({ where: { id: id } });
     await taskUsersModel.destroy({ where: { taskId: id } });
     await db.taskFilesModel.destroy({ where: { taskId: id } });
+    await db.Taskworktime.destroy({ where: { taskId: id } });
 
     console.log("Project successfully deleted.");
     res.status(200).json({ message: "Project deleted successfully" });

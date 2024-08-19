@@ -18,7 +18,6 @@ const nameMaxLength = 20;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Contact number criteria (modify as needed)
-const contactPattern = /^\d{10}$/; // Assuming 10-digit phone number format
 
 // const validateAllfields = ({
 //   name,
@@ -63,16 +62,17 @@ const validateEmail = (email) => {
   }
   //   return null; // Indicates valid
 };
+// Define a pattern for phone numbers with country code
+const contactPattern = /^\+?[1-9]\d{1,14}$/; // E.164 format
 
-// Validate contact number
 const validateContact = (contact) => {
   if (!contact) {
     return "Contact number is required.";
   }
   if (!contactPattern.test(contact)) {
-    return "Invalid contact number format. It should be a 10-digit number.";
+    return "Invalid contact number format. It should start with a '+' followed by the country code and phone number.";
   }
-  //   return null; // Indicates valid
+  return null; // Indicates valid
 };
 
 // Validate password

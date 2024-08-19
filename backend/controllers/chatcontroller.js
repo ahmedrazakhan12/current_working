@@ -37,36 +37,173 @@ exports.GetChats = async (req, res) => {
   }
 };
 
+const sequelize = require("../config/database");
 
+// exports.GetChatBarUsers = async (req, res) => {
+//   try {
+//     const { id } = req.params;
 
+//     // Fetch all chats involving the user, ordered by the latest message timestamp
+//     const chats = await chatModel.findAll({
+//       where: {
+//         [Op.or]: [
+//           { fromId: id },
+//           { toId: id }
+//         ]
+//       },
+//       order: [
+//         ['time', 'DESC']  // Order by the timestamp of the latest message
+//       ]
+//     });
+
+//     // Create a Map to store the latest chat per user
+//     const latestChatsMap = new Map();
+
+//     chats.forEach(chat => {
+//       const otherUserId = chat.fromId === parseInt(id) ? chat.toId : chat.fromId;
+//       // Only store the latest chat for each user
+//       if (!latestChatsMap.has(otherUserId)) {
+//         latestChatsMap.set(otherUserId, chat);
+//       }
+//     });
+
+//     // Extract user IDs from the latest chats
+//     const userIdsArray = Array.from(latestChatsMap.keys());
+
+//     // Fetch user details based on unique user IDs
+//     const users = await adminModel.findAll({
+//       where: {
+//         id: {
+//           [Op.in]: userIdsArray
+//         }
+//       },
+//       // Order users based on the order of user IDs
+//       order: [
+//         [sequelize.fn('FIELD', sequelize.col('id'), ...userIdsArray)]
+//       ]
+//     });
+
+//     // Send the user details in the response
+//     res.send(users);
+//   } catch (error) {
+//     console.error('Error fetching chat bar users:', error);
+//     res.status(500).send('Internal server error');
+//   }
+// }
+
+// exports.GetChatBarUsers = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     // Fetch all chats involving the user, ordered by the latest message timestamp
+//     const chats = await chatModel.findAll({
+//       where: {
+//         [Op.or]: [
+//           { fromId: id },
+//           { toId: id }
+//         ]
+//       },
+//       order: [
+//         ['time', 'DESC']  // Order by the timestamp of the latest message
+//       ]
+//     });
+
+//     // Create a Map to store the latest chat per user and unseen message count
+//     const latestChatsMap = new Map();
+
+//     chats.forEach(chat => {
+//       const otherUserId = chat.fromId === parseInt(id) ? chat.toId : chat.fromId;
+
+//       // Initialize the map with an object if it doesn't already exist
+//       if (!latestChatsMap.has(otherUserId)) {
+//         latestChatsMap.set(otherUserId, { chat, unseenCount: 0 });
+//       }
+
+//       // If chat is not yet seen and is from the other user, count it
+//       if (chat.seen === 0 && chat.toId === parseInt(id)) {
+//         const chatData = latestChatsMap.get(otherUserId);
+//         chatData.unseenCount += 1;
+//         latestChatsMap.set(otherUserId, chatData);
+//       }
+
+//       // Always update the latest chat for each user
+//       const chatData = latestChatsMap.get(otherUserId);
+//       chatData.chat = chat;
+//       latestChatsMap.set(otherUserId, chatData);
+//     });
+
+//     // Extract user IDs from the latest chats
+//     const userIdsArray = Array.from(latestChatsMap.keys());
+
+//     // Fetch user details based on unique user IDs
+//     const users = await adminModel.findAll({
+//       where: {
+//         id: {
+//           [Op.in]: userIdsArray
+//         }
+//       },
+//       // Order users based on the order of user IDs
+//       order: [
+//         [sequelize.fn('FIELD', sequelize.col('id'), ...userIdsArray)]
+//       ]
+//     });
+
+//     // Combine users with their respective unseen message count and latest text
+//     const usersWithLatestChatInfo = users.map(user => {
+//       const { chat, unseenCount } = latestChatsMap.get(user.id);
+//       return {
+//         ...user.toJSON(),  // Convert the Sequelize model instance to a plain object
+//         unseenMessages: unseenCount,
+//         latestText: chat.text,  // Include the latest text from the chat
+//       };
+//     });
+
+//     // Send the user details, unseen message counts, and latest text in the response
+//     res.send(usersWithLatestChatInfo);
+//   } catch (error) {
+//     console.error('Error fetching chat bar users:', error);
+//     res.status(500).send('Internal server error');
+//   }
+// }
 
 exports.GetChatBarUsers = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch all chat records where the user is involved
+    // Fetch all chats involving the user, ordered by the latest message timestamp
     const chats = await chatModel.findAll({
       where: {
         [Op.or]: [
           { fromId: id },
           { toId: id }
         ]
-      }
+      },
+      order: [
+        ['time', 'DESC']  // Order by the timestamp of the latest message
+      ]
     });
 
-    // Create a Set to store unique user IDs
-    const uniqueUserIds = new Set();
+    // Create a Map to store the latest chat per user and unseen message count
+    const latestChatsMap = new Map();
 
-    // Add both fromId and toId to the Set, excluding cases where fromId and toId are the same
     chats.forEach(chat => {
-      if (chat.fromId !== chat.toId) {
-        uniqueUserIds.add(chat.fromId);
-        uniqueUserIds.add(chat.toId);
+      const otherUserId = chat.fromId === parseInt(id) ? chat.toId : chat.fromId;
+
+      // If there is already a chat stored for this user, compare timestamps to ensure the latest chat is kept
+      if (!latestChatsMap.has(otherUserId) || latestChatsMap.get(otherUserId).chat.time < chat.time) {
+        latestChatsMap.set(otherUserId, { chat, unseenCount: 0 });
+      }
+
+      // If chat is not yet seen and is from the other user, count it
+      if (chat.seen === 0 && chat.toId === parseInt(id)) {
+        const chatData = latestChatsMap.get(otherUserId);
+        chatData.unseenCount += 1;
+        latestChatsMap.set(otherUserId, chatData);
       }
     });
 
-    // Convert the Set to an array of user IDs
-    const userIdsArray = Array.from(uniqueUserIds);
+    // Extract user IDs from the latest chats
+    const userIdsArray = Array.from(latestChatsMap.keys());
 
     // Fetch user details based on unique user IDs
     const users = await adminModel.findAll({
@@ -74,16 +211,33 @@ exports.GetChatBarUsers = async (req, res) => {
         id: {
           [Op.in]: userIdsArray
         }
-      }
+      },
+      // Order users based on the order of user IDs
+      order: [
+        [sequelize.fn('FIELD', sequelize.col('id'), ...userIdsArray)]
+      ]
     });
 
-    // Send the user details in the response
-    res.send(users);
+    // Combine users with their respective unseen message count and latest text
+    const usersWithLatestChatInfo = users.map(user => {
+      const { chat, unseenCount } = latestChatsMap.get(user.id);
+      return {
+        ...user.toJSON(),  // Convert the Sequelize model instance to a plain object
+        unseenMessages: unseenCount,
+        latestText: chat.text,  // Include the latest text from the chat
+        latestChatTime: chat.time,  // Include the timestamp of the latest chat
+      };
+    });
+
+    // Send the user details, unseen message counts, and latest text in the response
+    res.send(usersWithLatestChatInfo);
   } catch (error) {
     console.error('Error fetching chat bar users:', error);
     res.status(500).send('Internal server error');
   }
 }
+
+
 
 exports.groupChat = async (req, res) => {
   try {

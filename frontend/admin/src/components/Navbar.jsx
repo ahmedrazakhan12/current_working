@@ -106,6 +106,23 @@ const Navbar = () => {
     };
   }, [activeId, navigate, socket]);
 
+  const [dbNotifications, setDbNotifications] = useState([]);
+
+  const fetchNotifications = () => {
+    axios.get(`http://localhost:5000/notify/getNotification/${localStorage.getItem("id")}`)
+        .then((res) => {
+          console.log("fetchNotifications: ", res.data.data);
+          
+          setDbNotifications(res.data.data);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+};
+
+useEffect(() => {
+  fetchNotifications();
+} , [])
   function formatTime(datetimeString) {
     // Convert the string to a Date object
     let dateObj = new Date(datetimeString);
@@ -157,15 +174,31 @@ const Navbar = () => {
   //           console.log(err);
   //       })
   //   },[])
+  const getLimitedNotifications = () => {
+    // Combine socket and DB notifications
+    const combinedNotifications = [
+      ...notifications,
+      ...dbNotifications
+    ];
+
+    // Limit to 10 notifications, prioritizing socket notifications
+    return combinedNotifications.slice(0, 10);
+  };
+
+  const limitedNotifications = getLimitedNotifications();
 
   const handleLogout = () => {
-    // const socket = io("http://localhost:5000");
+    // Ensure the socket is disconnected
+    if (socket) {
+        socket.disconnect();
+    }
 
+    // Clear local storage and navigate to login
     localStorage.removeItem("token");
-     localStorage.clear();
-
+    localStorage.clear();
     navigate("/login");
-  };
+};
+
 
   return (
     <>
@@ -211,93 +244,62 @@ const Navbar = () => {
                     {notifications?.length}
                   </span>
                 </a>
-                <ul className="dropdown-menu dropdown-menu-end">
-                  <li className="dropdown-header dropdown-header-highlighted">
-                    <i className="bx bx-bell bx-md me-2" />
-                    Notifications
-                  </li>
-                  <li>
-                    <div className="dropdown-divider" />
-                  </li>
-                  <div id="unreadNotificationsContainer">
-                    {notifications?.length === 0 ? (
-                      <li className="p-5 d-flex align-items-center justify-content-center">
-                        <span>No Unread Notifications!</span>
-                      </li>
-                    ) : (
-                      notifications.length > 0 && notifications.map((notification, index) => (
-                        <>
-                          <li key={index} className="p-3 cursor-pointer " onClick={() => navigate(`${notification?.route}`)}>
-                            <p>
-                              <b className="text-capitalize">
-                                {index + 1}. 
-                              </b>{" "}
-                              <b className="text-capitalize">
-                                {notification.text}
-                              </b>
-                             
-                            </p>
-                            <small className="text-capitalize float-start">
-                                {extractDate(notification?.time)}
-                              </small>
-                            <small className="text-capitalize float-end">
-                                {formatTime(notification?.time)}
-                              </small>
-                          </li>
-                          <div className="dropdown-divider" />
-                        </>
-                      ))
-                    )}
-                 {/* {currentItems.length > 0 && currentItems.map((notification, index) => (
-  <React.Fragment key={index}>
-    <li className="p-3 cursor-pointer" onClick={() => navigate(`${notification?.route}`)}>
-      <p>
-        <b className="text-capitalize">
-          {index + 1}. 
-        </b>{" "}
-        <b className="text-capitalize">
-          {notification.text}
-        </b>
-      </p>
-      <small className="text-capitalize float-start">
-        {extractDate(notification?.time)}
-      </small>
-      <small className="text-capitalize float-end">
-        {formatTime(notification?.time)}
-      </small>
-    </li>
-    <div className="dropdown-divider" />
-  </React.Fragment>
-))} */}
-
-                    <li>{/* <div className="dropdown-divider" /> */}</li>
-                  </div>
-                {/* {notifications.length === 0 && (
-                   <>
-                    <li>
-                    <div className="dropdown-divider" />
-  
+                <ul className="dropdown-menu dropdown-menu-end app-scroll" style={{height:'40vh' , overflowX:'hidden' , overflowY:'scroll'}}>
+                <li className="dropdown-header dropdown-header-highlighted">
+                  <i className="bx bx-bell bx-md me-2" />
+                  Notifications
+                </li>
+                <li>
+                  <div className="dropdown-divider" />
+                </li>
+                <div id="unreadNotificationsContainer">
+                  {limitedNotifications?.length === 0 ? (
+                    <li className="p-5 d-flex align-items-center justify-content-center">
+                      {/* <span>No Unread Notifications!</span> */}
                     </li>
-                    </>
-                )} */}
-                  {notifications?.length > 0 && (
-                   <>
-                  <li className="d-flex justify-content-between">
-                    <Link to="/notifications" className="p-3">
-                      <b>View All</b>
-                    </Link>
-                    <a
-                      href="#"
-                      className="p-3 text-end"
-                      id="mark-all-notifications-as-read"
-                      onClick={() => setNotifications([])}
-                    >
-                      <b>Mark All as Read</b>
-                    </a>
-                  </li>
-                   </>
+                  ) : (
+                    limitedNotifications.map((notification, index) => (
+                      <React.Fragment key={index}>
+                        <li className="p-3 cursor-pointer" onClick={() => navigate(`${notification?.route}`)}>
+                          <p>
+                            <b className="text-capitalize">
+                              {index + 1}.
+                            </b>{" "}
+                            <b className="text-capitalize">
+                              {notification.text}
+                            </b>
+                          </p>
+                          <small className="text-capitalize float-start">
+                            {extractDate(notification?.time)}
+                          </small>
+                          <small className="text-capitalize float-end">
+                            {formatTime(notification?.time)}
+                          </small>
+                        </li>
+                        <div className="dropdown-divider" />
+                      </React.Fragment>
+                    ))
                   )}
-                </ul>
+                  <li>{/* <div className="dropdown-divider" /> */}</li>
+                </div>
+                {limitedNotifications?.length > 0 && (
+                  <>
+                    <li className="d-flex justify-content-between">
+                      <Link to="/notifications" className="p-3">
+                        <b>View All</b>
+                      </Link>
+                      <a
+                        href="#"
+                        className="p-3 text-end"
+                        id="mark-all-notifications-as-read"
+                        onClick={() => setNotifications([])}
+                      >
+                        <b>Mark All as Read</b>
+                      </a>
+                    </li>
+                  </>
+                )}
+              </ul>
               </li>
 
               

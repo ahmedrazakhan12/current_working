@@ -45,6 +45,7 @@ import Mtasks from './member/Mtasks';
 import MMeeting from './member/MMeeting';
 import GChatById from './chat/GChatById';
 import ChangeDisplay from './pages/setting/ChangeDisplay';
+import DeletedUsers from './pages/users/DeletedUsers';
 function App() {
   
   const { isMenuExpanded } = useAppContext();
@@ -113,6 +114,7 @@ function App() {
                   <Route path="/favorite" element={<Protected Component={Favorite} />} />
                   <Route path="/tasks" element={<Protected Component={Tasks} />} />
                   <Route path="/meeting" element={<Protected Component={Meeting} />} />
+                  <Route path="/userview/:id" element={<Protected Component={Userview} />} />
 
                 </>
                   :
@@ -138,11 +140,11 @@ function App() {
                   <Route path="/chat" element={<Protected Component={Chat} />} />
                   <Route path="/chat/:id" element={<Protected Component={ChatById}  />} />
                   <Route path="/notifications" element={<Protected Component={Notification}  />} />
-                  <Route path="/userview/:id" element={<Protected Component={Userview} />} />
                   <Route path="/groupchat/:id" element={<Protected Component={GChatById} />} />
 
                   {data && data.role === "super-admin" &&
                     <>
+                      <Route path="/deletedUsers" element={<Protected Component={DeletedUsers} />} />
                       <Route path="/changeDisplay" element={<Protected Component={ChangeDisplay} />} />
                       <Route path="/viewStatus" element={<Protected Component={Viewstatus} />} />
                       <Route path="/priority" element={<Protected Component={Priority} />} />

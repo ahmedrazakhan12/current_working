@@ -222,7 +222,7 @@ useEffect(() => {
           // Remove user after 10 seconds
           setTimeout(() => {
             setTypingUsers(prevTyping => prevTyping.filter(user => user.fromId !== data.fromId));
-          }, 10000);
+          }, 7000);
         }
       }
     });
@@ -527,9 +527,10 @@ useEffect(() => {
   useEffect(() => {
     socket.on('userMessage', (data) => {
         console.log('userMessage:', data);
+        
         if (data.toId === id) {
             setRecieveMessages(prevMessages => [...prevMessages, data]);
-        }
+          }
     });
 
     // Cleanup the event listener to avoid duplicates

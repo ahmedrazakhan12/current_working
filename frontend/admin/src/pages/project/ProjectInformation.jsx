@@ -3405,44 +3405,44 @@ export default ProjectInformation
 
                     
 //               {/* Pagination */}
-//               {/* <Pagination className="mt-3 justify-content-center ">
-//                 <Pagination.Prev onClick={prevPage} disabled={currentPage === 1} />
+              // {/* <Pagination className="mt-3 justify-content-center ">
+              //   <Pagination.Prev onClick={prevPage} disabled={currentPage === 1} />
 
-//                 {[...Array(Math.ceil(data.length / itemsPerPage)).keys()].map(
-//                   (number) => {
-//                     // Limit pagination items to maximum of 10
-//                     if (
-//                       number < currentPage + 5 &&
-//                       number >= currentPage - 4 &&
-//                       number + 1 <= Math.ceil(data.length / itemsPerPage)
-//                     ) {
-//                       return (
-//                         <Pagination.Item
-//                           key={number + 1}
-//                           active={number + 1 === currentPage}
-//                           onClick={() => paginate(number + 1)}
-//                         >
-//                           <span
-//                             className={
-//                               number === currentPage - 1
-//                                 ? " text-white text-xs font-weight-bold"
-//                                 : "text-dark text-xs font-weight-bold"
-//                             }
-//                           >
-//                             {number + 1}
-//                           </span>
-//                         </Pagination.Item>
-//                       );
-//                     } else {
-//                       return null;
-//                     }
-//                   }
-//                 )}
-//                 <Pagination.Next
-//                   onClick={nextPage}
-//                   disabled={currentPage === totalPages}
-//                 />
-//               </Pagination> */}
+              //   {[...Array(Math.ceil(data.length / itemsPerPage)).keys()].map(
+              //     (number) => {
+              //       // Limit pagination items to maximum of 10
+              //       if (
+              //         number < currentPage + 5 &&
+              //         number >= currentPage - 4 &&
+              //         number + 1 <= Math.ceil(data.length / itemsPerPage)
+              //       ) {
+              //         return (
+              //           <Pagination.Item
+              //             key={number + 1}
+              //             active={number + 1 === currentPage}
+              //             onClick={() => paginate(number + 1)}
+              //           >
+              //             <span
+              //               className={
+              //                 number === currentPage - 1
+              //                   ? " text-white text-xs font-weight-bold"
+              //                   : "text-dark text-xs font-weight-bold"
+              //               }
+              //             >
+              //               {number + 1}
+              //             </span>
+              //           </Pagination.Item>
+              //         );
+              //       } else {
+              //         return null;
+              //       }
+              //     }
+              //   )}
+              //   <Pagination.Next
+              //     onClick={nextPage}
+              //     disabled={currentPage === totalPages}
+              //   />
+              // </Pagination> */}
 //             </div>
 //           </div>
 //       </div>

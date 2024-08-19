@@ -12,7 +12,7 @@ const MDashboard = () => {
   useEffect(() => {
     axios.get(`http://localhost:5000/project/getAllMemberProjects/${activeId}`)
     .then((res) => {
-      setProject(res.data);
+      setProject(res?.data);
       console.log(res.data);
       
     })
@@ -34,6 +34,19 @@ const MDashboard = () => {
     });
   }, []);
 
+  const [meeting , setMeeting] = useState([]);
+
+  useEffect(()=>{
+    axios.get(`http://localhost:5000/meeting/getMemberMeeting/${activeId}`)
+    .then((res) => {
+      setMeeting(res.data);
+      console.log(res.data);
+      
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  },[])
 
   
 
@@ -45,7 +58,7 @@ const MDashboard = () => {
         <div className="container-fluid">
           <div className="col-lg-12 col-md-12 order-1">
             <div className="row mt-4">
-              <div className="col-lg-6 col-md-6 col-sm-6 col-12 mb-4">
+              <div className="col-lg-4 col-md-4 col-sm-12 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
@@ -59,7 +72,7 @@ const MDashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-6 col-md-6 col-sm-6 col-12 mb-4">
+              <div className="col-lg-4 col-md-4 col-sm-12 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">
                     <div className="card-title d-flex align-items-start justify-content-between">
@@ -74,7 +87,20 @@ const MDashboard = () => {
                   </div>
                 </div>
               </div>
-           
+              <div className="col-lg-4 col-md-4 col-sm-12 col-12 mb-4">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="card-title d-flex align-items-start justify-content-between">
+                      <div className="avatar flex-shrink-0">
+                        <i className="menu-icon tf-icons bx bx-shape-polygon  bx-md text-success" />
+                      </div>
+                    </div>
+                    <span className="fw-semibold d-block mb-1">Total Meetings</span>
+                    <h3 className="card-title mb-2"> {meeting?.length}</h3>
+                    <Link to="/manageUsers"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
+                  </div>
+                </div>
+              </div>
               {/* <div className="col-lg-3 col-md-6 col-sm-6 col-12 mb-4">
                 <div className="card">
                   <div className="card-body">

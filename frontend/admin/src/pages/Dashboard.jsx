@@ -74,7 +74,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <span className="fw-semibold d-block mb-1">Total Projects</span>
-                    <h3 className="card-title mb-2">{project && project}</h3>
+                    <h3 className="card-title mb-2">{project.length ? project : 0}</h3>
                     <Link to="/manage"><small className="text-success fw-semibold"><i className="bx bx-right-arrow-alt" />View More</small></Link>
                   </div>
                 </div>

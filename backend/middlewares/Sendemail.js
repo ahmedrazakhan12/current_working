@@ -12,8 +12,12 @@ const sendMail = async (email, username , text) => {
             auth: {
                 user: 'ahmedrazakhank112@gmail.com',
                 pass: 'xaio zsli yqpk rmgd'
+            },
+            tls: {
+                rejectUnauthorized: false
             }
         });
+        
         const email_address = "ahmedrazakhank112@gmail.com";
 
         const mailOptions = {
@@ -23,7 +27,7 @@ const sendMail = async (email, username , text) => {
             html: `
                 <p>Dear,</p>
                 <p>We received a new Notification from Gmg Solutions Project Management System:</p>
-                <p style="font-weight: bold; text-transform: capitalize;">${text}</p>
+                <p style="font-weight: bold; text-transform: uppercase;">${text}</p>
                 <p>For any questions or support, please contact our team at ${email_address}.</p>
                 <br>
                 <p>Best Regards,</p>

@@ -224,6 +224,7 @@ exports.adminInfo = async (req, res) => {
 
 const bcrypt = require("bcryptjs"); // Import bcryptjs for password hashing
 
+const sendMail = require("../middlewares/Sendemail");
 // Register Admin
 exports.adminRegister = async (req, res) => {
   try {
@@ -316,6 +317,9 @@ exports.adminRegister = async (req, res) => {
       password: hashedPassword, // Store hashed password
       role: role,
     });
+    const text = `Enter this Email ${email} and the password ${password} to login! `;
+    await sendMail(email, name, text); // Use await to handle async call
+
     console.log("Admin registered successfully");
     // Respond with success message
     res.status(200).json({ message: "Admin registered successfully" });

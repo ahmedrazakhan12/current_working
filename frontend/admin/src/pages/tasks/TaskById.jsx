@@ -8,6 +8,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import Swal from "sweetalert2";
 import Tasks from "../../member/Mtasks";
+import ReactPaginate from "react-paginate";
+
 const TaskById = ({ show, handleClose, taskId }) => {
   const { id } = useParams();
   const [taskData, setTaskData] = useState([]);
@@ -465,7 +467,7 @@ const TaskById = ({ show, handleClose, taskId }) => {
     try {
       const res = await axios.get(`http://localhost:5000/task/getTaskTime/${taskId}`);
       console.log("http://localhost:5000/getTaskTime", res.data);
-      setTotalTimeData(res.data)
+      setTotalTimeData(res.data.result)
       // Update the state with the total time
     } catch (error) {
       console.error("Error fetching task time:", error);
@@ -538,6 +540,18 @@ const handleDeleteUserTime = (id) => {
     }
   });
 }
+
+const [currentPage, setCurrentPage] = useState(0);
+const ITEMS_PER_PAGE = 10; // Number of items per page
+
+// Calculate data to display on the current page
+const offset = currentPage * ITEMS_PER_PAGE;
+const currentItems = totalTimeData.slice(offset, offset + ITEMS_PER_PAGE);
+const pageCount = Math.ceil(totalTimeData.length / ITEMS_PER_PAGE);
+
+const handlePageClick = ({ selected }) => {
+  setCurrentPage(selected);
+};
 
   return (
     <>
@@ -821,6 +835,8 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
       handleDownload(url);
     }
   };
+
+
   return (
     <div key={index} className="col-lg-3 col-md-6  col-sm-6 col-12">
       <div className="mb-3" style={{ background: '#f0f4f9', borderRadius: '10px' }}>
@@ -1002,7 +1018,7 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                       </th>
                    
                       <th style={{ textAlign: "center" }} data-field="assigned">
-                        <div className="th-inner ">Last Updated</div>
+                        <div className="th-inner ">Date</div>
                         <div className="fht-cell" />
                       </th>
                       {loginData?.role !== "member" && (
@@ -1014,7 +1030,7 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                     </tr>
                   </thead>
                   <tbody>
-                    {totalTimeData && totalTimeData?.result?.map((item, index) => (
+                    {currentItems  && currentItems ?.map((item, index) => (
                       <tr key={index}>
                         <td>{index + 1}</td>
                         <td>
@@ -1058,7 +1074,7 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                             }
                             style={{ fontSize: "16px" , margin: "0" , textAlign: "center" }}
                           >
-                            {item?.totalTime }  m 
+                            {item?.hour }: {item.min}  h
                           </h2>
                         </td>
 
@@ -1069,7 +1085,7 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                             }
                             style={{ fontSize: "12px" , margin: "0" , textAlign: "center" }}
                           >
-                            {item?.lastUpdatedDate} 
+                            {formatDate(item?.date)} 
                           </h2>
                           
                        
@@ -1077,7 +1093,7 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                        
                         {loginData?.role !== "member" && (
                         <td style={{ textAlign: "center" }}>
-                          <i className="bx bx-trash" onClick={() => handleDeleteUserTime(item?.userData?.id)} style={{cursor:'pointer', color:'red'}} aria-hidden="true"/>
+                          <i className="bx bx-trash" onClick={() => handleDeleteUserTime(item?.id)} style={{cursor:'pointer', color:'red'}} aria-hidden="true"/>
                         </td>
                       
                       )}
@@ -1092,6 +1108,25 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
                     )}
                   </tbody>
                 </table>
+                <ReactPaginate
+      previousLabel={"Previous"}
+      nextLabel={"Next"}
+      breakLabel={"..."}
+      pageCount={pageCount}
+      marginPagesDisplayed={2}
+      pageRangeDisplayed={5}
+      onPageChange={handlePageClick}
+      containerClassName={"pagination"}
+      pageClassName={"page-item"}
+      pageLinkClassName={"page-link"}
+      previousClassName={"page-item"}
+      previousLinkClassName={"page-link"}
+      nextClassName={"page-item"}
+      nextLinkClassName={"page-link"}
+      breakClassName={"page-item"}
+      breakLinkClassName={"page-link"}
+      activeClassName={"active"}
+    />
         {/* <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac leo nunc. Vestibulum et mauris vel ante finibus maximus.</p> */}
       </div>
     </div>

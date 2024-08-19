@@ -916,7 +916,9 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                   role="tabpanel"
                 >
                   <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div />
+                  <div class="alert alert-warning" role="alert">
+                  Note: Double Tap to see full task.
+                  </div>
                     <button
             className="btn btn-sm nd btn-primary m-0"
             style={{float:'right' }}
@@ -926,6 +928,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                           <i className="bx bx-plus" />
                         </button>
                   </div>
+                    <div />
                   {/* tasks */}
                   <div className="mt-2">
                     {/* <div className="row">
@@ -1130,6 +1133,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
               style={{ borderRadius: "6px" }}
               className="card-body px-1  mt-0  border-radius-lg"
             >
+
 
                           
             <div

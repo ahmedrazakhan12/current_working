@@ -187,7 +187,15 @@ const Register = () => {
                     <label className="form-label" htmlFor="phone">
                       Phone Number
                     </label>
-                    <PhoneInput
+                    <input
+                    type="number"
+                    id="phone"
+                    name="contact"
+                    placeholder="Please Enter Phone Number"
+                    className="form-control"
+                    value={formData.contact || ""}
+                    onChange={handleChange}
+                  />    {/* <PhoneInput
       country={'us'}
       // value={formData.contact}
       onChange={handlePhoneChange}  // Correctly pass the value
@@ -221,7 +229,7 @@ const Register = () => {
         border: '1px solid #ccc',
         fontSize: '14px',
       }}
-    />
+    /> */}
                   </div>
                   <div className="mb-3 col-md-6">
                     <label className="form-label" htmlFor="role">

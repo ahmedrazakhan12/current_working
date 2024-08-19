@@ -418,38 +418,15 @@ const handleFullTasks = (id) => {
         ))}   
         </select>
       </div>
-      <div className="col-md-5 mb-3">
+      <div className="col-md-6 mb-3">
           <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
       </div>
-      <div className="col-md-1 d-flex w-10 h-100 mt-1">
-      <button
-            className="btn btn-sm nd btn-primary me-2"
-            style={{marginLeft:'-15px' }}
-            data-bs-original-title="Filter"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            id="tags_filter"
-            type="button"
-            onClick={() =>navigate('/addProject')}
-          >
-            <i className="bx bx-plus" />
-          </button>
-          <button
-            className="btn btn-sm btn-primary "
-            data-bs-original-title="List View"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            type="button"
-          >
-            <i className="bx bx-list-ul" />
-          </button>
       
-        
-      </div>
-
       
     </div>
-
+    <div class="alert alert-warning" role="alert">
+          Note: Double Tap to see full task.
+          </div>
                  
     <div
               className="card pt-4 pb-4 px-3 d-flex flex-row"

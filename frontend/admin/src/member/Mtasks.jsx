@@ -436,13 +436,16 @@ const handleCloseModal = () => setShowModal3(false);
   
     </div>
 
-                 
+    <div class="alert alert-warning" role="alert">
+          Note: Double Tap to see full task.
+          </div>   
     <div
               className="card pt-4 pb-4 px-3 d-flex flex-row"
               style={{
                 overflowX: 'auto', // Use 'auto' instead of 'scroll' for better UX
               }}
             >
+              
       {Object.keys(groupedItems).map((status, index) => (
     <div key={status} className="col" style={{ display: 'inline-block' }}>
         <h4 className="fw-bold  text-capitalize text-center mb-5">{status}</h4>
@@ -474,6 +477,7 @@ const handleCloseModal = () => setShowModal3(false);
                      
         </div>
         <AddTimeModal
+        projectId = {item?.task?.projectId}
         sendTaskId={sendTaskId}
         show={showModal3} 
         handleShow={handleShowModal} 

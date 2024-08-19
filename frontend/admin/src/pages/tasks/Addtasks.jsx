@@ -230,7 +230,7 @@ const handleChange = (e) => {
       navigate(-1);
       Swal.fire({
         position: 'top-end',
-        title: 'Project Added Successfully',
+        title: 'Task Added Successfully',
         showConfirmButton: false,
         customClass: {
           popup: 'custom-swal'

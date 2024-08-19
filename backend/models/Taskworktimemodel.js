@@ -27,6 +27,14 @@ const Taskworktime = sequelize.define(
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+    date:{
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    projectId:{
+      type : DataTypes.INTEGER,
+      allowNull:false
+    }
   },
   {
     // Additional model options can be defined here

@@ -7,6 +7,8 @@ import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import Swal from "sweetalert2";
+import ReactPaginate from "react-paginate";
+
 const TaskById = () => {
   const { id } = useParams();
   const [taskData, setTaskData] = useState({});
@@ -409,8 +411,8 @@ axios
   const fetchTaskTime = async () => {
     try {
       const res = await axios.get(`http://localhost:5000/task/getTaskTime/${id}`);
-      console.log("http://localhost:5000/getTaskTime", res.data);
-      setTotalTimeData(res.data)
+      // console.log("http://localhost:5000/getTaskTime", res.data);
+      setTotalTimeData(res.data.result)
       // Update the state with the total time
     } catch (error) {
       console.error("Error fetching task time:", error);
@@ -474,6 +476,20 @@ const handleDeleteUserTime = (id) => {
     }
   });
 }
+
+
+const [currentPage, setCurrentPage] = useState(0);
+const ITEMS_PER_PAGE = 10; // Number of items per page
+
+// Calculate data to display on the current page
+const offset = currentPage * ITEMS_PER_PAGE;
+const currentItems = totalTimeData.slice(offset, offset + ITEMS_PER_PAGE);
+const pageCount = Math.ceil(totalTimeData.length / ITEMS_PER_PAGE);
+
+const handlePageClick = ({ selected }) => {
+  setCurrentPage(selected);
+};
+
   return (
     <>
        <div className="container">
@@ -911,117 +927,137 @@ const isImage = urlEndsWithAny(url, imageTaskExtensions); // Add other image ext
       id="navs-top-documents-1"
       role="tabpanel"
     >
-      <div className="row mt-3">
+   <div className="row mt-3">
 
-      <table id="table" className="table table-bordered ">
-                  <thead>
-                    <tr>
-                      <th style={{}} data-field="id">
-                        <div className="th-inner sortable both">ID</div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{}} data-field="profile">
-                        <div className="th-inner ">Users</div>
-                        <div className="fht-cell" />
-                      </th>
+<table id="table" className="table table-bordered ">
+            <thead>
+              <tr>
+                <th style={{}} data-field="id">
+                  <div className="th-inner sortable both">ID</div>
+                  <div className="fht-cell" />
+                </th>
+                <th style={{}} data-field="profile">
+                  <div className="th-inner ">Users</div>
+                  <div className="fht-cell" />
+                </th>
+              
+                <th style={{ textAlign: "center" }} data-field="assigned">
+                  <div className="th-inner ">Working Hours</div>
+                  <div className="fht-cell" />
+                </th>
+             
+                <th style={{ textAlign: "center" }} data-field="assigned">
+                  <div className="th-inner ">Date</div>
+                  <div className="fht-cell" />
+                </th>
+                {loginData?.role !== "member" && (
+                    <th style={{ textAlign: "center" }} data-field="assigned">
+                    <div className="th-inner ">Action</div>
+                    <div className="fht-cell" />
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems  && currentItems ?.map((item, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>
+                  <div className="d-flex mt-2">
+                     <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
+                     <div
+                        className="avatar avatar-md pull-up"
+                        title="Admin Infinitie"
+                      >
+                          <img
+                            src={item?.userData?.pfpImage}
+                            alt="Avatar"
+                            style={{
+                              objectFit: "cover",
+                              borderRadius: "5px",
+                            }}
+                          />
+                      </div>
+                     </Link>
+
+                      <div className="mx-2">
+                      <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
+                     
+                        <h6 className="mb-1 text-capitalize">
+                          {item?.userData?.name}{" "}
+                        </h6>
+                     </Link>
+                        <p
+                          className="text-muted  "
+                          style={{ fontSize: "14px", marginTop: "-4px" }}
+                        >
+                          {item?.userData?.email}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <h2
+                      className={
+                          "badge bg-primary me-1"
+                      }
+                      style={{ fontSize: "16px" , margin: "0" , textAlign: "center" }}
+                    >
+                      {item?.hour }: {item.min}  h 
+                    </h2>
+                  </td>
+
+                  <td style={{ textAlign: "center" }}>
+                  <h2
+                      className={
+                          "badge bg-warning me-1"
+                      }
+                      style={{ fontSize: "12px" , margin: "0" , textAlign: "center" }}
+                    >
+                      {formatDate(item?.date)} 
+                    </h2>
                     
-                      <th style={{ textAlign: "center" }} data-field="assigned">
-                        <div className="th-inner ">Working Hours</div>
-                        <div className="fht-cell" />
-                      </th>
-                      <th style={{ textAlign: "center" }} data-field="assigned">
-                        <div className="th-inner ">Last Updated</div>
-                        <div className="fht-cell" />
-                      </th>
-
-                      {loginData?.role !== "member" && (
-                          <th style={{ textAlign: "center" }} data-field="assigned">
-                          <div className="th-inner ">Action</div>
-                          <div className="fht-cell" />
-                        </th>
-                      )}
-                   
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {totalTimeData && totalTimeData?.result?.map((item, index) => (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>
-                        <div className="d-flex mt-2">
-                           <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
-                           <div
-                              className="avatar avatar-md pull-up"
-                              title="Admin Infinitie"
-                            >
-                                <img
-                                  src={item?.userData?.pfpImage}
-                                  alt="Avatar"
-                                  style={{
-                                    objectFit: "cover",
-                                    borderRadius: "5px",
-                                  }}
-                                />
-                            </div>
-                           </Link>
-
-                            <div className="mx-2">
-                            <Link to={`/Userview/${item?.userData?.id}`} target="_blank">
-                           
-                              <h6 className="mb-1 text-capitalize">
-                                {item?.userData?.name}{" "}
-                              </h6>
-                           </Link>
-                              <p
-                                className="text-muted  "
-                                style={{ fontSize: "14px", marginTop: "-4px" }}
-                              >
-                                {item?.userData?.email}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          <h2
-                            className={
-                                "badge bg-primary me-1"
-                            }
-                            style={{ fontSize: "16px" , margin: "0" , textAlign: "center" }}
-                          >
-                            {item?.totalTime }  m 
-                          </h2>
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                        <h2
-                            className={
-                                "badge bg-warning me-1"
-                            }
-                            style={{ fontSize: "12px" , margin: "0" , textAlign: "center" }}
-                          >
-                            {item?.lastUpdatedDate} 
-                          </h2>
-                          
-                       
-                        </td>
-                      {loginData?.role !== "member" && (
-                        <td style={{ textAlign: "center" }}>
-                          <i className="bx bx-trash" onClick={() => handleDeleteUserTime(item?.userData?.id)} style={{cursor:'pointer', color:'red'}} aria-hidden="true"/>
-                        </td>
-                      
-                      )}
-                      </tr>
-                    ))}
-                    {totalTimeData.result && totalTimeData.result.length === 0 && (
-                      <tr>
-                        <td colSpan={loginData?.role !== "member" ? 5 : 4} className="text-center">
-                          No data found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-        {/* <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac leo nunc. Vestibulum et mauris vel ante finibus maximus.</p> */}
-      </div>
+                 
+                  </td>
+                 
+                  {loginData?.role !== "member" && (
+                  <td style={{ textAlign: "center" }}>
+                    <i className="bx bx-trash" onClick={() => handleDeleteUserTime(item?.id)} style={{cursor:'pointer', color:'red'}} aria-hidden="true"/>
+                  </td>
+                
+                )}
+                </tr>
+              ))}
+              {totalTimeData.result && totalTimeData.result.length === 0 && (
+                <tr>
+                  <td colSpan={loginData?.role !== "member" ? 5 : 4} className="text-center">
+                    No data found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <ReactPaginate
+previousLabel={"Previous"}
+nextLabel={"Next"}
+breakLabel={"..."}
+pageCount={pageCount}
+marginPagesDisplayed={2}
+pageRangeDisplayed={5}
+onPageChange={handlePageClick}
+containerClassName={"pagination"}
+pageClassName={"page-item"}
+pageLinkClassName={"page-link"}
+previousClassName={"page-item"}
+previousLinkClassName={"page-link"}
+nextClassName={"page-item"}
+nextLinkClassName={"page-link"}
+breakClassName={"page-item"}
+breakLinkClassName={"page-link"}
+activeClassName={"active"}
+/>
+  {/* <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac leo nunc. Vestibulum et mauris vel ante finibus maximus.</p> */}
+</div>
     </div>
   </div>
 </div>

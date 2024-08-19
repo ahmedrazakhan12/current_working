@@ -702,13 +702,16 @@ const cron = require('node-cron');
 
 exports.taskTime = async (req, res) => {
   try{
-    const {userId , taskId, hour, min} = req.body;
-
+    const {userId , taskId, hour, min ,date , projectId} = req.body;
+    console.log("userId , taskId, hour, min ,date , projectId"  , userId , taskId, hour, min ,date , projectId);
+    
     const taskTime = await db.Taskworktime.create({
       userId,
       taskId,
       hour,
-      min
+      min,
+      date,
+      projectId
     })
 
     
@@ -723,81 +726,182 @@ exports.taskTime = async (req, res) => {
 exports.getTaskTime = async (req, res) => {
   try {
     const { taskId } = req.params;
+    const { page = 1, limit = 10 } = req.query; // Default to page 1 and 10 items per page
 
-    // Fetch all records that match the taskId
-    const workTimes = await db.Taskworktime.findAll({
+    if (!taskId) {
+      return res.status(400).json({
+        error: "Task ID is required",
+      });
+    }
+
+    const offset = (page - 1) * limit;
+
+    const result = await db.Taskworktime.findAll({
       where: {
         taskId: taskId,
       },
       order: [['updatedAt', 'DESC']], // Sort by most recent update
+      limit: parseInt(limit), // Limit number of records
+      offset: parseInt(offset), // Skip certain number of records
     });
 
-    // Create a map to store total hours, minutes, and last updated time for each user
-    const userTimes = {};
-
-    workTimes.forEach((workTime) => {
-      const userId = workTime.userId;
-
-      // Initialize the user time if not already done
-      if (!userTimes[userId]) {
-        userTimes[userId] = {
-          totalHours: 0,
-          totalMinutes: 0,
-          lastUpdated: workTime.updatedAt, // Initialize with the current workTime updatedAt
-        };
-      }
-
-      // Add the hours and minutes to the user's total
-      userTimes[userId].totalHours += workTime.hour;
-      userTimes[userId].totalMinutes += workTime.min;
-
-      // Update the last updated time if this workTime is more recent
-      if (workTime.updatedAt > userTimes[userId].lastUpdated) {
-        userTimes[userId].lastUpdated = workTime.updatedAt;
-      }
+    // Fetch user data for each userId found in the result
+    const userIds = result.map((item) => item.userId);
+    const userData = await db.adminModel.findAll({
+      where: {
+        id: userIds,
+      },
     });
 
-    // Format the time for each user and handle minute overflow
-    const result = await Promise.all(
-      Object.keys(userTimes).map(async (userId) => {
-        let { totalHours, totalMinutes, lastUpdated } = userTimes[userId];
+    // Create a map for quick user lookup
+    const userMap = userData.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {});
 
-        // Handle overflow of minutes to hours
-        totalHours += Math.floor(totalMinutes / 60);
-        totalMinutes = totalMinutes % 60;
-
-        // Format the time as "HH:MM"
-        const formattedTime = `${totalHours}:${totalMinutes.toString().padStart(2, '0')}`;
-
-        // Separate the date and time
-        const lastUpdatedDate = lastUpdated.toISOString().substring(0, 10); // "YYYY-MM-DD"
-        const lastUpdatedTime = lastUpdated.toISOString().substring(11, 19); // "HH:MM:SS"
-
-        // Fetch user data
-        const userData = await adminModel.findOne({
-          where: {
-            id: userId
-          }
-        });
-
-        return {
-          userData,
-          totalTime: formattedTime,
-          lastUpdatedDate,  // Separate date
-          lastUpdatedTime,  // Separate time
-        };
-      })
-    );
+    // Attach user data to each result entry
+    const resultWithUserData = result.map((item) => ({
+      ...item.toJSON(), // Convert sequelize instance to plain object
+      userData: userMap[item.userId] || [], // Attach user data or null if not found
+    }));
 
     // Send the result to the frontend
     res.status(200).json({
-      result,
+      result: resultWithUserData,
+      currentPage: parseInt(page), // Current page number
+      totalPages: Math.ceil(result.count / limit), // Calculate total number of pages
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// exports.getTaskTime = async (req, res) => {
+//   try {
+//     const { taskId } = req.params;
+    
+//     if (!taskId) {
+//       return res.status(400).json({
+//         error: "Task ID is required",
+//       });
+//     }
+
+//     const result = await db.Taskworktime.findAll({
+//       where: {
+//         taskId: taskId,
+//       },
+//       order: [['updatedAt', 'DESC']], // Sort by most recent update
+//     });
+
+//     // Fetch user data for each userId found in the result
+//     const userIds = result.map((item) => item.userId);
+//     const userData = await db.adminModel.findAll({
+//       where: {
+//         id: userIds,
+//       },
+//     });
+
+//     // Create a map for quick user lookup
+//     const userMap = userData.reduce((acc, user) => {
+//       acc[user.id] = user;
+//       return acc;
+//     }, {});
+
+//     // Attach user data to each result entry
+//     const resultWithUserData = result.map((item) => ({
+//       ...item.toJSON(), // Convert sequelize instance to plain object
+//       userData: userMap[item.userId] || [], // Attach user data or null if not found
+//     }));
+
+//     // Send the result to the frontend
+//     res.status(200).json({
+//       result: resultWithUserData,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
+// exports.getTaskTime = async (req, res) => {
+//   try {
+//     const { taskId } = req.params;
+
+//     // Fetch all records that match the taskId
+//     const workTimes = await db.Taskworktime.findAll({
+//       where: {
+//         taskId: taskId,
+//       },
+//       order: [['updatedAt', 'DESC']], // Sort by most recent update
+//     });
+
+//     // Create a map to store total hours, minutes, and last updated time for each user
+//     const userTimes = {};
+
+//     workTimes.forEach((workTime) => {
+//       const userId = workTime.userId;
+
+//       // Initialize the user time if not already done
+//       if (!userTimes[userId]) {
+//         userTimes[userId] = {
+//           totalHours: 0,
+//           totalMinutes: 0,
+//           lastUpdated: workTime.updatedAt, // Initialize with the current workTime updatedAt
+//         };
+//       }
+
+//       // Add the hours and minutes to the user's total
+//       userTimes[userId].totalHours += workTime.hour;
+//       userTimes[userId].totalMinutes += workTime.min;
+
+//       // Update the last updated time if this workTime is more recent
+//       if (workTime.updatedAt > userTimes[userId].lastUpdated) {
+//         userTimes[userId].lastUpdated = workTime.updatedAt;
+//       }
+//     });
+
+//     // Format the time for each user and handle minute overflow
+//     const result = await Promise.all(
+//       Object.keys(userTimes).map(async (userId) => {
+//         let { totalHours, totalMinutes, lastUpdated } = userTimes[userId];
+
+//         // Handle overflow of minutes to hours
+//         totalHours += Math.floor(totalMinutes / 60);
+//         totalMinutes = totalMinutes % 60;
+
+//         // Format the time as "HH:MM"
+//         const formattedTime = `${totalHours}:${totalMinutes.toString().padStart(2, '0')}`;
+
+//         // Separate the date and time
+//         const lastUpdatedDate = lastUpdated.toISOString().substring(0, 10); // "YYYY-MM-DD"
+//         const lastUpdatedTime = lastUpdated.toISOString().substring(11, 19); // "HH:MM:SS"
+
+//         // Fetch user data
+//         const userData = await adminModel.findOne({
+//           where: {
+//             id: userId
+//           }
+//         });
+
+//         return {
+//           userData,
+//           totalTime: formattedTime,
+//           lastUpdatedDate,  // Separate date
+//           lastUpdatedTime,  // Separate time
+//         };
+//       })
+//     );
+
+//     // Send the result to the frontend
+//     res.status(200).json({
+//       result,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 
 exports.deleteTaskTime = async (req, res) => {
@@ -806,7 +910,7 @@ exports.deleteTaskTime = async (req, res) => {
 
     await db.Taskworktime.destroy({
       where: {
-        userId: id
+        id: id
       }
     });
     res.status(200).json({ message: "Task time deleted successfully" });

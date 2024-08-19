@@ -971,10 +971,19 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
 
 
           <div className="row">
-          <select name="" id="" className='form-select ml-3' style={{width:'20%' , marginLeft:'20px'}} onChange={handleFilterTasks}>
+         <div className="col-6">
+         <div class="alert alert-warning w-50" role="alert">
+          Note: Double Tap to see full task.
+          </div>
+          
+         </div>
+         <div className="col-6">
+        
+          <select name="" id="" className='form-select ml-3' style={{width:'50%' , float:'right'}} onChange={handleFilterTasks}>
             <option value="">All</option>
             <option value={activeId}>My Tasks</option>
           </select>
+         </div>
           <div className="col-lg-12 col-md-12 col-sm-12 col-12">
             <div
               style={{ borderRadius: "6px" }}
@@ -1164,6 +1173,7 @@ const [openTaskIds, setOpenTaskIds] = useState([]);
                      
                     </div>
                     <AddTimeModal
+                      projectId = {id}
                       sendTaskId={sendTaskId}
                       show={showModal3} 
                       handleShow={handleShowModal} 

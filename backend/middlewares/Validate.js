@@ -63,15 +63,15 @@ const validateEmail = (email) => {
   //   return null; // Indicates valid
 };
 // Define a pattern for phone numbers with country code
-const contactPattern = /^\+?[1-9]\d{1,14}$/; // E.164 format
 
 const validateContact = (contact) => {
   if (!contact) {
     return "Contact number is required.";
   }
-  if (!contactPattern.test(contact)) {
-    return "Invalid contact number format. It should start with a '+' followed by the country code and phone number.";
+  if (contact.length < contact.minLength || contact.length > 15) {
+    return `Contact must be between ${minLength} and ${maxLength} characters.`;
   }
+
   return null; // Indicates valid
 };
 

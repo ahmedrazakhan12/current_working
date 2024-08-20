@@ -1013,7 +1013,7 @@ const Chatbar = () => {
   
   const [realTimeUser , setRealTimeUser] = useState([]);
 
-  const [latestText , setRealLatestText] = useState("");
+  const [latestText , setRealLatestText] = useState({});
   const [messageLength , setMessageLength] = useState([]);
 
   socket.on('receiveMsg', (msg, messageId) => {
@@ -1021,14 +1021,22 @@ const Chatbar = () => {
     if(Number(msg.fromId) !== Number(activeId) && Number(msg.fromId) == id){
       setMessageLength([...messageLength, msg.text]);
     }
-    if(Number(msg.fromId) !== Number(activeId)){
-      setRealLatestText("New Message.");
-    }
+        // Update the latestText object for the specific user
+        setRealLatestText((prevLatestText) => ({
+          ...prevLatestText,
+          [msg.fromId]: Number(msg.fromId) !== Number(activeId) ? `New Message.${Number(msg.fromId)}` : prevLatestText[msg.fromId],
+          [msg.toId]: Number(msg.fromId) === Number(activeId) ? `Message Sent.${Number(msg.toId)}` : prevLatestText[msg.toId],
+      }));
+  
+  
+    // if(Number(msg.fromId) !== Number(activeId)){
+    //   setRealLatestText(`New Message.${Number(msg.fromId)}`);
+    // }
     
     
-    if(Number(msg.fromId) === Number(activeId)){
-      setRealLatestText("Message Sent.");
-    }
+    // if(Number(msg.fromId) === Number(activeId)){
+    //   setRealLatestText(`Message Sent.${Number(msg.toId)}`);
+    // }
     
     
     // Ensure latestText is an array before updating
@@ -1393,8 +1401,48 @@ const filteredChatBarUsers = chatBarUsers.filter(
                  </>
               ))}
                  */}
-                
                 {realTimeUser && realTimeUser.length > 0 && realTimeUser.map((user) => (
+    user.id !== Number(loggedUser.id) && (
+        <table className="messenger-list-item mt-3" data-contact={user.id} key={user.id}>
+            <tbody>
+                <tr data-action={0} onClick={() => handleChatUser(user.id)} style={{ cursor: 'pointer' }}>
+                    <td>
+                        <div className="saved-messages avatar av-m">
+                            <img src={user.pfpImage} style={{ objectFit: 'cover' }} alt="" />
+                            <div className={activeUsers.find(data => Number(data.id) === Number(user.id)) ? 'avatar-online-status' : 'avatar-offline-status'}></div>
+                        </div>
+                    </td>
+                    <td className="text-capitalize">
+                        <p data-id={user.id} data-type="user"></p>
+                        {user.name}{"  "}
+                       
+                        <div className='d-flex justify-content-between'>
+                            <span className="d-block m-0 p-0">
+                                <span className='text-capitalize'>
+                                    {latestText[user.id] === `New Message.${Number(user.id)}` && 'New Message.'}
+                                    {latestText[user.id] === `Message Sent.${Number(user.id)}` && 'Message Sent.'}
+                                </span>
+                            </span> 
+                           
+                            {latestText[user.id] === `New Message.${Number(user.id)}` && (
+                                <>
+                                    <div id="center-div">
+                                        <div class="bubble">
+                                            <span class="bubble-outer-dot">
+                                                <span class="bubble-inner-dot"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    )
+))}  
+                {/* {realTimeUser && realTimeUser.length > 0 && realTimeUser.map((user) => (
     user.id !== Number(loggedUser.id) && (
         <table className="messenger-list-item mt-3" data-contact={user.id} key={user.id}>
             <tbody>
@@ -1415,12 +1463,14 @@ const filteredChatBarUsers = chatBarUsers.filter(
                   
                
                 <span className='text-capitalize'>
-                    {latestText}
+                    {latestText === `New Message.${Number(user.id)}` && 'New Message.'}
+
+                    {latestText === `Message Sent.${Number(user.id)}` && 'Message Sent.'}
                   </span>
                 </span> 
                
                
-               {latestText === "New Message." && (
+               {latestText === `New Message.${Number(user.id)}` && (
                           <>
                           <div id="center-div">
                           <div class="bubble">
@@ -1439,7 +1489,7 @@ const filteredChatBarUsers = chatBarUsers.filter(
                               </tbody>
                           </table>
                       )
-                  ))}
+                  ))} */}
 
 {filteredChatBarUsers?.map((item) => (
     <table className="messenger-list-item mt-3" data-contact={item.id} key={item.id}>

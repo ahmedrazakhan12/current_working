@@ -268,11 +268,13 @@ useEffect(() => {
     // Listen for the 'receiveLeaveChat' event
     const handleReceiveLeaveChat = (data) => {
       console.log('receiveLeaveChat:', data);
+      setRecieveMessages([]); // Clear previous messages
+      fetchChats();
+      setIsSeen(false);
       if (data && Number(data?.fromId) === Number(id) && Number(data?.toId) === Number(activeId)) {
-        setTimeout(() => {
-          setIsSeen(false);
-        }, 1000);
-        // setRecieveMessages([]); // Clear previous messages
+        // setTimeout(() => {
+        // }, 1000);
+        // alert("Leaving chat")
         // fetchChats();
 
       }
@@ -280,11 +282,11 @@ useEffect(() => {
 
     socket.on('receiveLeaveChat', handleReceiveLeaveChat);
 
-    return () => {
-      // Clean up the listener when the component unmounts or id/activeId/socket changes
-      socket.off('receiveLeaveChat', handleReceiveLeaveChat);
-    };
-  }, [activeId, id, socket]);
+    // return () => {
+    //   // Clean up the listener when the component unmounts or id/activeId/socket changes
+    //   socket.off('receiveLeaveChat', handleReceiveLeaveChat);
+    // };
+  }, [ id]);
 
   useEffect(()=>{
     setIsSeen(false);

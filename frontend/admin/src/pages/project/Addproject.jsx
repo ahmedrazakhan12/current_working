@@ -291,7 +291,7 @@ console.log("status: ", status);
       });
 
       
-      // navigate(-1);
+      navigate(-1);
       Swal.fire({
         position: 'top-end',
         title: 'Project Added Successfully',

@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef, useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -8,9 +6,11 @@ import Swal from 'sweetalert2';
 import { Pagination } from "react-bootstrap";
 import { useAppContext } from '../../context/AppContext';
 import ReactPaginate from 'react-paginate';
+import * as XLSX from 'xlsx';
 
 
-const Manage = () => { const navigate = useNavigate();
+const Manage = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [username, setUsername] = useState(""); 
   const [statusFilter, setStatusFilter] = useState('');
@@ -153,6 +153,8 @@ useEffect(() => {
     if (priorityRef.current) {
       priorityRef.current.value = "";
     }
+    setStartDate("");
+    setEndDate("");
     axios.get(`http://localhost:5000/project/filter/`, { params: { search } })
     .then((res) => {
       setData(res.data);
@@ -188,7 +190,8 @@ useEffect(() => {
       searchRef.current.value = "";
     }
         // setSelectedPreview(selectedPreview);
-  
+        setStartDate("");
+        setEndDate("");
     try {
       await axios.put(`http://localhost:5000/project/editStatus/${id}`, {
         status: selectedValue,
@@ -221,7 +224,8 @@ useEffect(() => {
     const selectedValue = event.target.value;
     const selectedItem = dbPriority.find((item) => item.id === selectedValue);
     const selectedPreview = selectedItem ? selectedItem.preview : '';
-  
+  setStartDate("");
+  setEndDate("");
 if (statusRef.current) {
   statusRef.current.value = "";
 }
@@ -322,6 +326,135 @@ if (searchRef.current) {
   };
 
   
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const handleStartDateChange = (e) => {
+    
+if (statusRef.current) {
+  statusRef.current.value = "";
+}
+if (priorityRef.current) {
+  priorityRef.current.value = "";
+}
+if (searchRef.current) {
+  searchRef.current.value = "";
+}
+    setStartDate(e.target.value);
+    // Add any additional logic here, such as filtering data based on the start date
+  };
+
+  const handleEndDateChange = (e) => {
+    
+if (statusRef.current) {
+  statusRef.current.value = "";
+}
+if (priorityRef.current) {
+  priorityRef.current.value = "";
+}
+if (searchRef.current) {
+  searchRef.current.value = "";
+}
+    setEndDate(e.target.value);
+    // Add any additional logic here, such as filtering data based on the end date
+  };
+
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      axios.get(`http://localhost:5000/project/filterByDate/` , {
+        params: { startDate, endDate }
+      })
+        .then((res) => {
+          console.log(res.data);
+          
+          setData(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      fetchData();
+    }
+  },[startDate , endDate]);
+  // import * as XLSX from 'xlsx';
+  // const XLSX = require('xlsx');
+
+  const generateExcel = (data) => {
+    // Define headers and map them to your data keys
+    const headers = [
+        { header: "ID", key: "id" },
+        { header: "Project Name", key: "projectName" },
+        { header: "Task Name", key: "taskName" },
+        { header: "User Name", key: "userName" },
+        { header: "Task Status", key: "taskStatus" },
+        { header: "Log hours", key: "userWorktime" },
+        { header: "Start Date", key: "startDate" },
+        { header: "End Date", key: "endDate" }
+    ];
+
+    // Flatten the data to match the headers
+    const formattedData = data.flatMap(item => 
+        item.tasks.flatMap(task => 
+            task.users.flatMap(user => {
+                // Check if userWorktime is an array with more than one item
+                if (Array.isArray(user.worktime) && user.worktime.length > 1) {
+                    return user.worktime.map((worktime, index) => ({
+                        id: user.id,
+                        projectName: task.task.projectName,
+                        taskName: task.task.taskName,  // Accessing taskName directly from task
+                        userName: user.name,
+                        taskStatus: task.task.status.status,
+                        userWorktime: `${worktime.hour}:${worktime.min} h`,  // Set worktime for each entry
+                        startDate: formatDate(task.task.startAt),
+                        endDate: formatDate(task.task.endAt)
+                    }));
+                } else {
+                    // Handle the case where userWorktime is not an array or has only one item
+                    return [{
+                        id: user.id,
+                        projectName: task.task.projectName,
+                        taskName: task.task.taskName,  // Accessing taskName directly from task
+                        userName: user.name,
+                        taskStatus: task.task.status.status,
+                        userWorktime: user.worktime?.map((item) => `${item.hour}:${item.min} h`).join(', ') || '0 h',  // Ensure worktime exists
+                        startDate: formatDate(task.task.startAt),
+                        endDate: formatDate(task.task.endAt)
+                    }];
+                }
+            })
+        )
+    );
+
+    console.log("formattedData:", formattedData);
+
+    // Create a new worksheet with headers
+    const ws = XLSX.utils.json_to_sheet(formattedData, { header: headers.map(h => h.key) });
+
+    // Optional: Adjust column width
+    const columnWidths = headers.map(header => ({ wch: header.header.length + 10 }));
+    ws['!cols'] = columnWidths;
+
+    // Optional: Add styling to header cells (e.g., bold text)
+    headers.forEach((header, index) => {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: index });
+        if (!ws[cellRef]) ws[cellRef] = {};
+        ws[cellRef].v = header.header;
+        ws[cellRef].s = { font: { bold: true } }; // Apply bold to header
+    });
+
+    // Create a new workbook and append the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+    // Generate Excel file and trigger download
+    XLSX.writeFile(wb, `FilteredData_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
+
+  
+  
+
 
   return (
     <>
@@ -329,7 +462,7 @@ if (searchRef.current) {
     <div className="container-fluid">
     
     <div className="row">
-      <div className="col-md-3 mb-3">
+      <div className="col-md-2 mb-3">
       <select
         aria-label="Default select example"
         className="form-select text-capitalize"
@@ -345,7 +478,7 @@ if (searchRef.current) {
         ))}   
       </select>
       </div>
-      <div className="col-md-3 mb-3">
+      <div className="col-md-2 mb-3">
         <select
           aria-label="Default select example"
           className="form-select"
@@ -363,13 +496,37 @@ if (searchRef.current) {
         ))}   
         </select>
       </div>
-      <div className="col-md-5 mb-3">
-          <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
+      <div className="col-md-2 mb-3">
+        <input 
+          type="date" 
+          className="form-control" 
+          value={startDate} 
+          onChange={handleStartDateChange} 
+        />
       </div>
-      <div className="col-md-1 d-flex w-10 h-100 mt-1">
-      <button
-            className="btn btn-sm nd btn-primary me-2"
-            style={{marginLeft:'-15px' }}
+
+      <div className="col-md-2 mb-3">
+        <input 
+          type="date" 
+          className="form-control" 
+          value={endDate} 
+          onChange={handleEndDateChange} 
+        />
+      </div>
+
+      <div className="col-md-4 mb-3 ">
+         <div className="row">
+          <div className="col-8">
+
+          <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
+          
+          </div>
+          <div className="col-1">
+          <div className="d-flex justify-content-between">
+          <button
+          style={{marginTop:'2px'}}
+            className="btn btn-sm nd btn-primary me-3"
+            // style={{marginLeft:'-15px' }}
             data-bs-original-title="Filter"
             data-bs-placement="left"
             data-bs-toggle="tooltip"
@@ -379,18 +536,29 @@ if (searchRef.current) {
           >
             <i className="bx bx-plus" />
           </button>
-          <button
-            className="btn btn-sm btn-primary "
-            data-bs-original-title="List View"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            type="button"
-          >
-            <i className="bx bx-list-ul" />
-          </button>
-      
-        
+          
+          <div class="dropdown">
+  <button style={{ marginTop:'2px'}} class="btn btn-sm nd btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  <i className="bx bx-list-ul" />
+
+  </button>
+ 
+  <div class="dropdown-menu" style={{marginLeft:'-130px'}} aria-labelledby="dropdownMenuButton">
+    <span class="dropdown-item cursor-pointer"  onClick={() =>generateExcel(data)}><i class='bx bx-cloud-download' style={{fontSize:'22px'}} ></i>{"  "}Export Data </span>
+    <span class="dropdown-item disabled" >More</span>
+  </div>
+</div>
+          
+          
+          </div>
+          </div>
+         </div>
+         
       </div>
+      {/* <div className="col-md-1 d-flex w-10 h-100 mt-1">
+     
+        
+      </div> */}
     </div>
     <div className="mt-4 d-flex row">
       {data.length > 0 && data.map((item ,index)=>{

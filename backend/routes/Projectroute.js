@@ -21,6 +21,7 @@ router.get("/getFavProject/", projectController.getFavProject);
 router.get("/getFavProjectId/", projectController.getFavProjectByID);
 router.get("/filter", projectController.getFilterProject);
 router.get("/filter/:id", projectController.getMemberFilterProject);
+router.get("/filterByDate/", projectController.getFilterByDate);
 
 
 // For Members

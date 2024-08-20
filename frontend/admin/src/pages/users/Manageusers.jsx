@@ -278,7 +278,37 @@ const Manageusers = () => {
                           </div>
                         </td>
                         <td style={{ textAlign: "center" }}>
-                          {loggedInData.id !== item.id ? (
+  {loggedInData.role === "super-admin" && loggedInData.id !== item.id || (loggedInData.role === "admin" && item.role !== "super-admin" && loggedInData.id !== item.id) ? (
+    <>
+      <Link to={`/editusers/${item.id}`}>
+        <i className="bx bx-edit mx-2" />
+      </Link>
+
+      <Link to={`/changeUserpassword/${item.id}`}>
+        <i className="bx bx-lock text-warning" />
+      </Link>
+
+      <button
+        title="Delete"
+        type="button"
+        style={{
+          border: "none",
+          background: "none",
+          margin: "0",
+        }}
+        onClick={() => handleUserDelete(item.id)}
+      >
+        <i className="bx bx-trash text-danger " />
+      </button>
+    </>
+  ) : (
+    "----"
+  )}
+</td>
+
+
+                        {/* <td style={{ textAlign: "center" }}>
+                          {loggedInData.id !== item.id && item.role !== "super-admin" ?  (
                             <>
                             <Link to={`/editusers/${item.id}`}>
                             <i className="bx bx-edit mx-2" />
@@ -303,7 +333,7 @@ const Manageusers = () => {
                           </>
                           ) : ('----')}
                          
-                        </td>
+                        </td> */}
                       </tr>
                     ))}
                   </tbody>

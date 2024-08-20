@@ -149,7 +149,7 @@ const Sidebar = () => {
             </ul>
           </li>
 
-          {data && data?.role === "super-admin" && (
+          {data && data?.role !== "member" && (
             <>
               <li className={`${isOpen1 ? "menu-item open" : "menu-item"}`}>
                 <span

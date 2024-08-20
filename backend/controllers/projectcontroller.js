@@ -400,7 +400,56 @@ exports.getAllProjects = async (req, res) => {
       const filteredPriorities = status.filter(user => user.id === project.priority);
       const filteredTags = tags.filter(tag => tag.projectId === project.id);
       const filterTasks = tasks.filter(task => task.projectId === project.id);
+      const taskUsersIds = await taskUsersModel.findAll({ where: { projectId: project.id } });
+      const filteredTaskUsers = await adminModel.findAll({ where: { id: taskUsersIds.map(user => user.userId) } });
+      
+      const userMap = filteredTaskUsers.reduce((map, user) => {
+        map[user.id] = user.dataValues;
+        return map;
+      }, {});
+      
+      // Attach users to each task
+      
+      const tasksWithUsers = await Promise.all(filterTasks.map(async task => {
+        const allTask = task;
+        const status = await projectStatusModel.findOne({ where: { id: task.status } });
+                const taskData = {
+          ...allTask.dataValues, // Spread the properties of dataValues into taskData
+          status: status // Add the status object directly
+        };
 
+
+        // Filter the users associated with the current task
+        const taskUserIds = taskUsersIds.filter(taskUser => taskUser.taskId === task.id).map(taskUser => taskUser.userId);
+      
+        // Fetch worktime data for all users in the current task
+        const taskWorktime = await db.Taskworktime.findAll({ where: { taskId: task.id, userId: taskUserIds } });
+      
+        // Create a map of user worktimes for easier lookup
+        const worktimeMap = taskWorktime.reduce((map, worktime) => {
+          const { userId } = worktime;
+          if (!map[userId]) {
+            map[userId] = [];
+          }
+          map[userId].push(worktime);
+          return map;
+        }, {});
+      
+        // Attach user details to the task
+        const taskUsers = taskUserIds.map(userId => ({
+          ...userMap[userId],
+          worktime: worktimeMap[userId] || [] // Attach worktime for each user
+        }));
+      
+        // Return a simplified task object with users
+        return {
+          task: taskData,
+          users: taskUsers
+        };
+      }));
+      
+
+      
       return {
         project: project,
         creator: filteredCreatorIds,
@@ -408,7 +457,8 @@ exports.getAllProjects = async (req, res) => {
         tags: filteredTags,
         status: filteredStasus,
         priority: filteredPriorities,
-        tasks: filterTasks
+        tasks: tasksWithUsers,
+        // filteredTaskUsers:filteredTaskUsers
       };
     }));
 
@@ -805,7 +855,53 @@ exports.getFilterProject = async (req, res) => {
       const filteredPriorities = statusModel.filter(user => user.id === project.priority);
       const filteredTags = tagsModel.filter(tag => tag.projectId === project.id);
       const filterTasks = tasks.filter(task => task.projectId === project.id);
+      const taskUsersIds = await taskUsersModel.findAll({ where: { projectId: project.id } });
+      const filteredTaskUsers = await adminModel.findAll({ where: { id: taskUsersIds.map(user => user.userId) } });
+      
+      const userMap = filteredTaskUsers.reduce((map, user) => {
+        map[user.id] = user.dataValues;
+        return map;
+      }, {});
+      
+      // Attach users to each task
+      
+      const tasksWithUsers = await Promise.all(filterTasks.map(async task => {
+        const allTask = task;
+        const status = await projectStatusModel.findOne({ where: { id: task.status } });
+                const taskData = {
+          ...allTask.dataValues, // Spread the properties of dataValues into taskData
+          status: status // Add the status object directly
+        };
 
+
+        // Filter the users associated with the current task
+        const taskUserIds = taskUsersIds.filter(taskUser => taskUser.taskId === task.id).map(taskUser => taskUser.userId);
+      
+        // Fetch worktime data for all users in the current task
+        const taskWorktime = await db.Taskworktime.findAll({ where: { taskId: task.id, userId: taskUserIds } });
+      
+        // Create a map of user worktimes for easier lookup
+        const worktimeMap = taskWorktime.reduce((map, worktime) => {
+          const { userId } = worktime;
+          if (!map[userId]) {
+            map[userId] = [];
+          }
+          map[userId].push(worktime);
+          return map;
+        }, {});
+      
+        // Attach user details to the task
+        const taskUsers = taskUserIds.map(userId => ({
+          ...userMap[userId],
+          worktime: worktimeMap[userId] || [] // Attach worktime for each user
+        }));
+      
+        // Return a simplified task object with users
+        return {
+          task: taskData,
+          users: taskUsers
+        };
+      }));
       return {
         project: project,
         creator: filteredCreatorIds,
@@ -813,7 +909,7 @@ exports.getFilterProject = async (req, res) => {
         tags: filteredTags,
         status: filteredStatus,
         priority: filteredPriorities,
-        tasks: filterTasks
+        tasks: tasksWithUsers
       };
     }));
 
@@ -902,6 +998,120 @@ exports.getMemberFilterProject = async (req, res) => {
     }));
 
     res.status(200).json(enrichedProjects);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+exports.getFilterByDate = async (req, res) => {
+  try {
+    const { startDate, endDate, status, priority, search } = req.query;
+
+    let dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter = {
+        createdAt: {
+          ...(startDate && { [Op.gte]: new Date(startDate) }),
+          ...(endDate && { [Op.lte]: new Date(endDate) })
+        }
+      };
+    }
+
+    let projects;
+    if (status) {
+      projects = await projectModel.findAll({ where: { status: status, ...dateFilter } });
+    } else if (priority) {
+      projects = await projectModel.findAll({ where: { priority: priority, ...dateFilter } });
+    } else if (search) {
+      const users = await adminModel.findAll({
+        where: {
+          [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+        },
+      });
+      const userId = await projectUsersModel.findAll({ where: { userId: users.map(user => user.id) } });
+      projects = await projectModel.findAll({ where: { id: userId.map(user => user.projectId), ...dateFilter } });
+      console.log(users);
+    } else {
+      projects = await projectModel.findAll({ where: dateFilter });
+    }
+
+    const users = await projectUsersModel.findAll();
+    const tagsModel = await projectTagsModel.findAll();
+    const statusModel = await projectStatusModel.findAll();
+    const creator = await adminModel.findAll();
+    const tasks = await taskModel.findAll();
+
+    const data = await Promise.all(projects.map(async (project) => {
+      const filteredUsersIds = users.filter(user => user.projectId === project.id);
+      const filteredCreatorIds = creator.filter(creator => creator.id === project.creator);
+      const filteredUsers = await adminModel.findAll({ where: { id: filteredUsersIds.map(user => user.userId) } });
+      const filteredStatus = statusModel.filter(user => user.id === project.status);
+      const filteredPriorities = statusModel.filter(user => user.id === project.priority);
+      const filteredTags = tagsModel.filter(tag => tag.projectId === project.id);
+      const filterTasks = tasks.filter(task => task.projectId === project.id);
+      const taskUsersIds = await taskUsersModel.findAll({ where: { projectId: project.id } });
+      const filteredTaskUsers = await adminModel.findAll({ where: { id: taskUsersIds.map(user => user.userId) } });
+      
+      const userMap = filteredTaskUsers.reduce((map, user) => {
+        map[user.id] = user.dataValues;
+        return map;
+      }, {});
+      
+      // Attach users to each task
+      
+      const tasksWithUsers = await Promise.all(filterTasks.map(async task => {
+        const allTask = task;
+        const status = await projectStatusModel.findOne({ where: { id: task.status } });
+                const taskData = {
+          ...allTask.dataValues, // Spread the properties of dataValues into taskData
+          status: status // Add the status object directly
+        };
+
+
+        // Filter the users associated with the current task
+        const taskUserIds = taskUsersIds.filter(taskUser => taskUser.taskId === task.id).map(taskUser => taskUser.userId);
+      
+        // Fetch worktime data for all users in the current task
+        const taskWorktime = await db.Taskworktime.findAll({ where: { taskId: task.id, userId: taskUserIds } });
+      
+        // Create a map of user worktimes for easier lookup
+        const worktimeMap = taskWorktime.reduce((map, worktime) => {
+          const { userId } = worktime;
+          if (!map[userId]) {
+            map[userId] = [];
+          }
+          map[userId].push(worktime);
+          return map;
+        }, {});
+      
+        // Attach user details to the task
+        const taskUsers = taskUserIds.map(userId => ({
+          ...userMap[userId],
+          worktime: worktimeMap[userId] || [] // Attach worktime for each user
+        }));
+      
+        // Return a simplified task object with users
+        return {
+          task: taskData,
+          users: taskUsers
+        };
+      }));
+      
+      return {
+        project: project,
+        creator: filteredCreatorIds,
+        users: filteredUsers,
+        tags: filteredTags,
+        status: filteredStatus,
+        priority: filteredPriorities,
+        tasks: tasksWithUsers
+      };
+    }));
+
+    res.status(200).json(data);
 
   } catch (error) {
     console.error(error);

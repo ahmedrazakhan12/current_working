@@ -36,7 +36,9 @@ const Navbar = () => {
 
     socket.on('notification', (data) => {
       console.log("Notification: ", data);
-      
+      if(Number(data.fromId) === Number(activeId)){
+        return
+      }
       setNotifications((prevNotifications) => [
         data,
         ...prevNotifications,
@@ -111,6 +113,7 @@ const Navbar = () => {
   const fetchNotifications = () => {
     axios.get(`http://localhost:5000/notify/getNotification/${localStorage.getItem("id")}`)
         .then((res) => {
+
           console.log("fetchNotifications: ", res.data.data);
           
           setDbNotifications(res.data.data);

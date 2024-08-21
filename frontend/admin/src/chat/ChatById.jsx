@@ -78,6 +78,8 @@ const Chat = () => {
     }
   }, [activeId, navigate]);
 
+
+
   useEffect(() => {
     if (!id) {
       navigate("/");
@@ -85,7 +87,10 @@ const Chat = () => {
       axios
         .get(`http://localhost:5000/admin/team/${id}`)
         .then((res) => {
-          setUserDataById(res.data);
+          setUserDataById(res?.data);
+          if(!res?.data){
+            navigate('*')
+          }
         })
         .catch((err) => {
           console.error(err);

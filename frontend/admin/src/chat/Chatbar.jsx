@@ -881,6 +881,7 @@ import '../App.css'
 import Swal from 'sweetalert2';
 import { faCircleArrowRight } from '@fortawesome/free-solid-svg-icons';
 import GroupImage from '../assets/images/group-image.png'
+import { formatDate } from 'date-fns';
 const Chatbar = () => {
     const { socket , location } = useAppContext();
     const { id } = useParams();
@@ -975,7 +976,7 @@ const Chatbar = () => {
       .then((res) => {
       //   setChatBarUsers(res.data);
       setDbGroupData(res.data);
-      console.log("Groups:", res.data);
+      console.log("GroupsChatbar:23", res.data);
       })
       .catch((err) => {
         console.log("Error getting Groups:", err);
@@ -1057,7 +1058,31 @@ const Chatbar = () => {
 });
 
 
+function formatTimeWithAMPM(time) {
+  // Create a new Date object from the provided time
+  const date = new Date(time);
 
+  // Extract hours, minutes, and seconds
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  // const seconds = date.getSeconds();
+
+  // Determine AM or PM suffix
+  const ampm = hours >= 12 ? ' PM' : ' AM';
+
+  // Convert hours from 24-hour to 12-hour format
+  hours = hours % 12;
+  hours = hours ? hours : 12; // The hour '0' should be '12'
+
+  // Format minutes and seconds with leading zeros if needed
+  const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+  // const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+
+  // Construct the formatted time string
+  const formattedTime = `${hours}:${formattedMinutes}${ampm}`;
+
+  return formattedTime;
+}
   const handleSearchChange = (e) => {
     const searchTerm = e.target.value;
     setSearchValue(searchTerm);
@@ -1286,16 +1311,18 @@ const filteredChatBarUsers = chatBarUsers.filter(
                         <img src={loggedUser.pfpImage} style={{objectFit:'cover' , width:'25px'  , height:'25px' , borderRadius:'50%'}} alt="" />
                       </div>
               <div className="col text-end cursor-pointer" >
+             {loggedUser.role !== "member" &&
               <div class="dropdown">
-          <button style={{background:"transparent" , border: "none",
-          }}  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i className='bx bx-dots-vertical'></i>
-          </button>
-          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-          <a class="dropdown-item" onClick={handleGroupView} >New Group</a>
-          <a class="dropdown-item" href="#" >More</a>
-          </div>
-        </div>
+              <button style={{background:"transparent" , border: "none",
+              }}  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i className='bx bx-dots-vertical'></i>
+              </button>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" onClick={handleGroupView} >New Group</a>
+              <a class="dropdown-item" href="#" >More</a>
+              </div>
+            </div>
+            }
               </div>
 
         
@@ -1555,7 +1582,7 @@ const filteredChatBarUsers = chatBarUsers.filter(
                 <p className="messenger-title">
                   <span>All Messages</span>
                 </p>
-        
+              
                 {dbGroupData.groups?.map((item, index) => (
   <table className="messenger-list-item mt-3 overflow-scroll" data-contact={7} key={item.id}>
     <tbody>
@@ -1568,10 +1595,19 @@ const filteredChatBarUsers = chatBarUsers.filter(
           </div>
         </td>
         <td className='text-capitalize '>
-          <p data-id={7} data-type="user">
-            {item.groupName}
-            <span className='d-block m-0 p-0'>click to chat</span>
-          </p>
+            {item.groupName}{"  "}
+            {item.unreadCount === 0 &&
+            <div className='d-flex justify-content-between'>
+              <p className='text-muted' style={{fontSize:'12px'}}>{item.lastMessage}</p>
+              <p className='text-muted' style={{fontSize:'12px'}}>{formatTimeWithAMPM(item.latestMessageTime)}</p>
+            </div>
+            }
+            
+            <span className='badge bg-success text-white'>{item.unreadCount !== 0 && item.unreadCount}</span>
+            {/* <span className='d-block m-0 p-0'>click to chat</span> */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span className='d-block m-0 p-0 '>{item.unreadCount !== 0 &&  `${item.unreadCount} unread messages.` }</span>
+            </div>
         </td>
       </tr>
     </tbody>
@@ -1590,10 +1626,18 @@ const filteredChatBarUsers = chatBarUsers.filter(
           </div>
         </td>
         <td className='text-capitalize '>
-          <p data-id={7} data-type="user">
-            {item.groupName}
-            <span className='d-block m-0 p-0'>click to chat</span>
-          </p>
+            {item?.groupName}{"  "}
+            {item?.unreadCount === 0 &&
+            <div className='d-flex justify-content-between'>
+              <p className='text-muted' style={{fontSize:'12px'}}>{item.lastMessage}</p>
+              <p className='text-muted' style={{fontSize:'12px'}}>{formatTimeWithAMPM(item.latestMessageTime)}</p>
+            </div>
+            }
+            <span className='badge bg-success text-white'>{item.unreadCount !== 0 && item.unreadCount}</span>
+            {/* <span className='d-block m-0 p-0'>click to chat</span> */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span className='d-block m-0 p-0 '>{item.unreadCount !== 0 &&  `${item.unreadCount} unread messages.` }</span>
+            </div>
         </td>
       </tr>
     </tbody>
@@ -1755,19 +1799,19 @@ const filteredChatBarUsers = chatBarUsers.filter(
                      <div className="col">
                      Add Group Member
                      </div>
-             <div className="col text-end cursor-pointer" >
-             <div class="dropdown">
-         <button style={{background:"transparent" , border: "none",
-         }}  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                 <i className='bx bx-dots-vertical'></i>
-         </button>
-         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-         <a class="dropdown-item" onClick={handleGroupView} >New Group</a>
-         <a class="dropdown-item" href="#" >More</a>
-         </div>
-         </div>
-             </div>
-         
+                      <div className="col text-end cursor-pointer" >
+                      <div class="dropdown">
+                  <button style={{background:"transparent" , border: "none",
+                  }}  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i className='bx bx-dots-vertical'></i>
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item" onClick={handleGroupView} >New Group</a>
+                  <a class="dropdown-item" href="#" >More</a>
+                  </div>
+                  </div>
+                      </div>
+                  
              
           
                  </div>

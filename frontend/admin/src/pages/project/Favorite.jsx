@@ -281,7 +281,7 @@ if (searchRef.current) {
      
     <div className="container-fluid">
     <div className="row">
-      <div className="col-md-3 mb-3">
+      <div className="col-lg-6 col-md-6 col-sm-12 col-12 mb-3">
       <select
         aria-label="Default select example"
         className="form-select text-capitalize"
@@ -297,7 +297,7 @@ if (searchRef.current) {
         ))}   
       </select>
       </div>
-      <div className="col-md-3 mb-3">
+      <div className="col-lg-6 col-md-6 col-sm-12 col-12 mb-3">
         <select
           aria-label="Default select example"
           className="form-select"
@@ -315,10 +315,10 @@ if (searchRef.current) {
         ))}   
         </select>
       </div>
-      <div className="col-md-5 mb-3">
+      {/* <div className="col-md-5 mb-3">
           <input type="text " ref={searchRef} placeholder="Search User" onChange={handleSearchChange} className="form-control w-100"/>
-      </div>
-      <div className="col-md-1 d-flex w-10 h-100 mt-1">
+      </div> */}
+      {/* <div className="col-md-1 d-flex w-10 h-100 mt-1">
       <button
             className="btn btn-sm nd btn-primary me-2"
             style={{marginLeft:'-15px' }}
@@ -331,18 +331,9 @@ if (searchRef.current) {
           >
             <i className="bx bx-plus" />
           </button>
-          <button
-            className="btn btn-sm btn-primary "
-            data-bs-original-title="List View"
-            data-bs-placement="left"
-            data-bs-toggle="tooltip"
-            type="button"
-          >
-            <i className="bx bx-list-ul" />
-          </button>
-      
+         
         
-      </div>
+      </div> */}
     </div>
  
     <div className="mt-4 d-flex row">

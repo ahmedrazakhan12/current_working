@@ -15,6 +15,7 @@ import { BsCheck } from 'react-icons/bs';
 import Chatbar from './Chatbar';
 import Swal from 'sweetalert2';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
@@ -90,6 +91,8 @@ const GChatById = () => {
       //   res?.data?.creator?.id === loggedUser?.id)
       // ) {
         setGroupData(res.data);
+        console.log("Group Data:", res.data);
+        
       // } else {
       //   setGroupData([]);
       // //   navigate("/");
@@ -106,6 +109,7 @@ const GChatById = () => {
   useEffect(() => {
     console.log("Client ID: ", id); // Check if the ID is valid
     fetchGroupData();
+    setRecieveMessages([]);
   }, [id]);
   
 
@@ -137,6 +141,9 @@ useEffect(() => {
   //   }
   // });
 
+  useEffect(() => {
+    scrollToBottom();
+} , [])
 useEffect(() => {
     scrollToBottom();
 } , [recieveDbMessages])
@@ -148,6 +155,26 @@ useEffect(() => {
     
   },[id])
   
+  useEffect(() => {
+    if(scrollToBottom){
+      const messageData = { 
+        fromId: Number(activeId),
+        groupId: Number(id),
+        usersIds: [
+          ...(groupData?.groupUsers?.map(user => user.id) || []),
+          Number(groupData?.creator?.id)],
+        };
+     
+        socket.emit('groupSeen', messageData, (response) => {
+          if (response && response.status === 'ok') {
+          // console.log(response.msg);
+          } else {
+          console.error('Message delivery failed or no response from server');
+          }
+          });
+      
+    }
+  } , [scrollToBottom])
   useEffect(() => {
     // Use setTimeout to ensure that the scroll happens after the DOM is fully rendered
     const timer = setTimeout(() => {
@@ -233,7 +260,22 @@ useEffect(() => {
     };
 }, [id, activeId, socket]); // Add dependencies
 
-  
+const [seenUsers , setSeenUsers] = useState(null);
+console.log("seenUsers: " , seenUsers);
+
+useEffect(() => {
+  socket.on('groupSeenUsers', ({fromId, groupId}) => {
+    console.log('groupSeenUsers:', {fromId, groupId});
+    if (groupId === Number(id)) {
+      console.log("nothing here just console")
+
+      setSeenUsers(fromId)
+    }
+    
+     
+  });
+
+}, [id, activeId, socket]); // Add dependencies
 
   
 
@@ -484,6 +526,7 @@ socket.on('allusers', (res) => {
         text,
         file: file,
         fileName: fileName,
+        inChat: seenUsers,
         usersIds: [
             ...(groupData?.groupUsers?.map(user => user.id) || []),
             Number(groupData?.creator?.id)
@@ -501,6 +544,7 @@ socket.on('allusers', (res) => {
           const notification = {
             fromId: activeId,
             usersID: [...groupData?.groupUsers?.map(user => user.id) || [], Number(groupData?.creator?.id)],
+            loggedUser : loggedUser,
             text:`${loggedUser?.name} sent a new text in group ${groupData?.group?.groupName} `,
             time: new Date().toLocaleString(),
             route: `/groupchat/${id}`,
@@ -874,7 +918,22 @@ useEffect(() => {
    })
 
   }
+  const [show55, setShow55] = useState(false);
 
+  const handleClose55 = () => setShow55(false);
+  const [viewUserData , setViewUserData] = useState([]);
+  const handleShow55 = (data) => {
+    setShow55(true)
+    setViewUserData(data)
+  };
+  // Create a mapping of the last seen message for each user
+const lastSeenMessage = {};
+
+recieveDbMessages.forEach((msg, index) => {
+  msg.seen?.forEach((userId) => {
+    lastSeenMessage[userId] = index; // Store the index of the last message seen by the user
+  });
+});
   return (
     <>
   
@@ -920,7 +979,9 @@ useEffect(() => {
             <a onClick={() => setDisplay2(!display2)} className="show-infoSide cursor-pointer">
             <i class='bx bxs-info-circle' style={{color:'#2180f3' , fontSize:'24px'}}></i>
             </a>
-            <div class="dropdown">
+            {loggedUser && loggedUser.role !== 'member' &&  
+            
+          <div class="dropdown">
           <button style={{background:"transparent" , border: "none",marginLeft:'-20px'
           }}  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i className='bx bx-dots-vertical'></i>
@@ -931,7 +992,7 @@ useEffect(() => {
           <a class="dropdown-item cursor-pointer" onClick={handleDeleteGroup}>Delete Group</a>
           <a class="dropdown-item cursor-pointer"  >More</a>
           </div>
-        </div>
+        </div>}
           </nav>
         </nav>
         <Modal
@@ -1101,40 +1162,85 @@ useEffect(() => {
                 </div>
                 ))}
              */}
- {recieveDbMessages.map((msg, index) => {
-        const messageDate = new Date(msg.time);
-        const showDate = lastMessageDate === null || (messageDate - lastMessageDate) > 2 * 24 * 60 * 60 * 1000;
-        lastMessageDate = messageDate;
+ 
 
-        return (
-          <div key={index}>
-            {showDate && (
-               <p className="messenger-title3">
-               <span>{formatDate(msg.time)}</span>
-             </p>
-            
+{recieveDbMessages.map((msg, index) => {
+    const messageDate = new Date(msg.time);
+    const showDate = lastMessageDate === null || (messageDate - lastMessageDate) > 2 * 24 * 60 * 60 * 1000;
+    lastMessageDate = messageDate;
+
+    return (
+      <div key={index}>
+        {showDate && (
+          <p className="messenger-title3">
+            <span>{formatDate(msg.time)}</span>
+          </p>
+        )}
+        <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{ fontSize: '10px', color: '#6d6d6d', marginBottom: '-110px' }}>
+          {formatTimeWithAMPM(msg.time)}
+        </p>
+        <span className={` ${Number(msg.fromId) === Number(activeId) ? 'float-end left-image' : 'float-start right-image'}`}>
+          <img src={msg?.user?.pfpImage} onClick={() => handleShow55(msg?.user)} style={{ cursor: 'pointer', position: 'absolute', width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover', marginTop: '20px' }} alt="" />
+        </span>
+        <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text}</p>
+        <br /><br /><br />
+
+        <div>
+          {groupData?.groupUsers?.map((user) => {
+            // Show the user's image only on the last message they have seen
+            if (lastSeenMessage[user.id] === index && Number(user.id) !== Number(activeId)) {
+              return (
+                <img
+                  key={user.id}
+                  className='float-end'
+                  src={user.pfpImage}
+                  alt={user.name}
+                  style={{ width: '13px', height: '13px', borderRadius: '50%', objectFit: 'cover', marginRight: '5px' }}
+                />
+              );
+            }
+            return null;
+          })}
+
+          {groupData?.creator && 
+            lastSeenMessage[groupData?.creator.id] === index && Number(groupData?.creator.id) !== Number(activeId) && (
+              <img
+                key={groupData.creator.id}
+                className='float-end'
+                src={groupData.creator.pfpImage}
+                alt={groupData.creator.name}
+                style={{ width: '13px', height: '13px', borderRadius: '50%', objectFit: 'cover', marginRight: '5px' }}
+              />
             )}
-            <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{ fontSize: '10px', color: '#6d6d6d', marginBottom: '-110px' }}>{formatTimeWithAMPM(msg.time)}</p>
-            <span className={` ${Number(msg.fromId) === Number(activeId) ? 'float-end left-image' : 'float-start right-image'}`}>
-              <img src={msg?.user?.pfpImage} style={{ position: 'absolute', width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover', marginTop: '20px' }} alt="" />
-            </span>
-            <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}>{msg.text}</p>
-            <br /><br /><br />
-          </div>
-        );
-      })}
-                    {recieveMessages?.map((msg, index) => (
+        </div>
+      </div>
+    );
+})}
+
+                
+                
+                {recieveMessages?.map((msg, index) => (
                       <div key={index} >
                         {msg.text && !msg.file ? (
                            <div>
                                 
 
                             <p className={` ${Number(msg.fromId) === Number(activeId) ? 'time-socket-end' : 'time-socket-start'}`} style={{fontSize:'10px' ,color:'#6d6d6d' , marginBottom:'-110px'}}>{formatTimeWithAMPM(msg.time)} </p>
-                            <span className={` ${Number(msg.fromId) === Number(activeId) ? 'float-end left-image' : 'float-start right-image'}`}><img src={msg?.pfpImage} style={{ position:'absolute',width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover' , marginTop:'20px'}} alt="" /></span> 
+                            <span className={` ${Number(msg.fromId) === Number(activeId) ? 'float-end left-image' : 'float-start right-image'}`}><img src={msg?.pfpImage} onClick={()=> handleShow55(msg?.loggedUser)} style={{cursor:'pointer', position:'absolute',width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover' , marginTop:'20px'}} alt="" /></span> 
                            <p className={` ${Number(msg.fromId) === Number(activeId) ? 'left' : 'right'}`}> {msg.text}<span >
                            {/* <span >   <BsCheck2All size={18} style={{marginTop:'12px' , marginLeft:'-6px' , position:"absolute" }} className={isSeen === true ? 'seen' : ''} />    </span> */}
                            </span>
                            </p>
+                           {/* {groupData?.groupUsers?.map((user) => {
+                        if (msg.inChat === user.id ) {
+                          console.log(msg.inChat)
+                    return (
+                      Number(user.id) !== Number(activeId) && <img key={user.id} className='float-end ' src={user.pfpImage} alt={user.name} style={{ width: '13px', height: '13px', borderRadius: '50%', objectFit: 'cover', marginRight: '5px' }} />
+                    );
+                  }
+                  
+                  return null;
+                })} */}
                          </div>
                           ) : (
                           msg.file && (
@@ -1167,8 +1273,9 @@ useEffect(() => {
                           )
                         )}
 
-                          
+                        
                          
+                            {/* <span className="message-time">
 
                             {/* <span className="message-time">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1257,7 +1364,7 @@ useEffect(() => {
     <span className="fas fa-smile" />
     </button>
    {file === null && 
-    <textarea
+    <input
     name="message"
     className="m-send app-scroll"
     value={text}
@@ -1347,6 +1454,24 @@ useEffect(() => {
     )}
 
 
+      <Modal show={show55} onHide={handleClose55} style={{top:'10%'}}>
+        <Modal.Header closeButton>
+          {/* <Modal.Title>{viewUserData?.name}</Modal.Title> */}
+        </Modal.Header>
+        <Modal.Body>
+         <div className=''>
+          <div className="d-flex justify-content-center mb-3">
+          <img src={viewUserData?.pfpImage} style={{objectFit:'cover' , borderRadius:'50%' , height:'150px' , width:'150px' }} alt="" />
+          </div>
+          <h5 className='text-capitalize text-center'>{viewUserData?.name}</h5>
+          <p className='text-muted text-center' style={{marginTop:'-15px' , fontSize:'12px'}}>{viewUserData?.email}</p>
+          <div className="d-flex justify-content-center mb-3">
+          <button className='btn btn-primary 'onClick={()=>handleChatUser(viewUserData?.id)}>Chat</button>
+          </div>
+         </div>
+        </Modal.Body>
+      
+      </Modal>
 
 
     {groupData && groupData.length === 0 && 

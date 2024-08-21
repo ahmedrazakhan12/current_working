@@ -26,6 +26,12 @@ const groupUserChatting = sequelize.define(
         type: DataTypes.DATE,
         allowNull: false,
     },
+    seen: {
+      type: DataTypes.JSON,  // Store as JSON, which can represent arrays
+      allowNull: true,
+  }
+  
+    
   },
   {
     // Additional model options can be defined here

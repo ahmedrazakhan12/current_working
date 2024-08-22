@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from "r
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-const socketConnect = io("http://localhost:4000" ,
+const socketConnect = io("http://localhost:5000" ,
   //  {autoConnect: false}
   );
 

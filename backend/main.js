@@ -13,8 +13,8 @@ httpServer.listen(HTTP_PORT, () => {
 });
 
 // Start the Socket.IO Server
-socketServer.listen(SOCKET_IO_PORT, () => {
-  console.log(`Socket.IO server is running on port ${SOCKET_IO_PORT}`);
+socketServer.listen(HTTP_PORT, () => {
+  console.log(`Socket.IO server is running on port ${HTTP_PORT}`);
 });
 
 

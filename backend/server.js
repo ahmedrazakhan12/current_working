@@ -467,8 +467,8 @@ io.on('connection', (socket) => {
     });
   
     socket.on('sendLeaveChat', async (data) => {
-      console.log("sendLeaveChat: ", data);
-      socket.broadcast.emit('receiveLeaveChat', data);
+        console.log("sendLeaveChat: ", data);
+        socket.broadcast.emit('receiveLeaveChat', data);
     });   
 
   // socket.on('seenMessages', async (data, callback) => {
